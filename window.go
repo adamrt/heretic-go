@@ -88,14 +88,13 @@ func (w *Window) Update() {
 
 func (w *Window) Render() {
 	w.clear(ColorBlack)
+	w.drawGrid(ColorGrey)
 
-	w.drawGrid()
+	w.drawRect(100, 100, 200, 300, ColorRed)
 
 	// Render ColorBuffer
 	w.texture.Update(nil, unsafe.Pointer(&w.colorBuffer.buf[0]), w.width*4)
 	w.renderer.Copy(w.texture, nil, nil)
-
-	w.colorBuffer.Clear(ColorBlack)
 
 	w.renderer.Present()
 }
@@ -107,6 +106,10 @@ func (w *Window) Destroy() {
 }
 
 func (w *Window) clear(color Color) {
+	// Clear color buffer
+	w.colorBuffer.Clear(ColorBlack)
+
+	// Clear SDL renderer
 	w.renderer.SetDrawColor(color.r, color.g, color.b, color.a)
 	err := w.renderer.Clear()
 	if err != nil {
@@ -114,10 +117,26 @@ func (w *Window) clear(color Color) {
 	}
 }
 
-func (w *Window) drawGrid() {
+func (w *Window) drawPixel(x, y int, color Color) {
+	if x < int(w.width) && y < int(w.height) {
+		w.colorBuffer.Set(x, y, color)
+	}
+}
+
+func (w *Window) drawGrid(color Color) {
 	for y := 0; y < w.height; y += 10 {
 		for x := 0; x < w.width; x += 10 {
-			w.colorBuffer.Set(x, y, ColorGrey)
+			w.drawPixel(x, y, color)
+		}
+	}
+}
+
+func (w *Window) drawRect(x, y, width, height int, color Color) {
+	for i := 0; i < width; i++ {
+		for j := 0; j < height; j++ {
+			current_x := x + i
+			current_y := y + j
+			w.drawPixel(current_x, current_y, color)
 		}
 	}
 }
