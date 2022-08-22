@@ -48,7 +48,7 @@ func NewWindow(height, width int) *Window {
 		texture:   texture,
 		isRunning: true,
 
-		colorBuffer: make([]Color, width*height),
+		colorBuffer: NewColorBuffer(width, height),
 	}
 }
 
@@ -60,7 +60,7 @@ type Window struct {
 
 	isRunning bool
 
-	colorBuffer []Color
+	colorBuffer ColorBuffer
 }
 
 func (w *Window) Setup() {
@@ -86,21 +86,16 @@ func (w *Window) ProcessInput() {
 func (w *Window) Update() {
 }
 
-func (w *Window) drawGrid() {
-	for y := 0; y < w.height; y += 10 {
-		for x := 0; x < w.width; x += 10 {
-			w.colorBuffer[(w.width*y)+x] = ColorGrey
-		}
-	}
-}
-
 func (w *Window) Render() {
 	w.clear(ColorBlack)
 
 	w.drawGrid()
 
-	w.renderColorBuffer()
-	w.clearColorBuffer(ColorBlack)
+	// Render ColorBuffer
+	w.texture.Update(nil, unsafe.Pointer(&w.colorBuffer.buf[0]), w.width*4)
+	w.renderer.Copy(w.texture, nil, nil)
+
+	w.colorBuffer.Clear(ColorBlack)
 
 	w.renderer.Present()
 }
@@ -111,23 +106,18 @@ func (w *Window) Destroy() {
 	sdl.Quit()
 }
 
-func (w *Window) renderColorBuffer() {
-	w.texture.Update(nil, unsafe.Pointer(&w.colorBuffer[0]), w.width*4)
-	w.renderer.Copy(w.texture, nil, nil)
-}
-
-func (w *Window) clearColorBuffer(color Color) {
-	for x := 0; x < w.width; x++ {
-		for y := 0; y < w.height; y++ {
-			w.colorBuffer[y*w.width+x] = color
-		}
-	}
-}
-
 func (w *Window) clear(color Color) {
 	w.renderer.SetDrawColor(color.r, color.g, color.b, color.a)
 	err := w.renderer.Clear()
 	if err != nil {
 		panic(err)
+	}
+}
+
+func (w *Window) drawGrid() {
+	for y := 0; y < w.height; y += 10 {
+		for x := 0; x < w.width; x += 10 {
+			w.colorBuffer.Set(x, y, ColorGrey)
+		}
 	}
 }
