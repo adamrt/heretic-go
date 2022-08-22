@@ -6,6 +6,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+var projectedPoints []Vec2
+
 func NewWindow(height, width int) *Window {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
@@ -84,13 +86,25 @@ func (w *Window) ProcessInput() {
 }
 
 func (w *Window) Update() {
+	cube := getCube()
+	for _, point := range cube {
+		projectedPoints = append(projectedPoints, project(point))
+	}
 }
 
 func (w *Window) Render() {
 	w.clear(ColorBlack)
 	w.drawGrid(ColorGrey)
 
-	w.drawRect(100, 100, 200, 300, ColorRed)
+	for _, point := range projectedPoints {
+		w.drawRectangle(
+			int(point.x+(float32(w.width)/2)),
+			int(point.y+(float32(w.height)/2)),
+			4,
+			4,
+			ColorYellow,
+		)
+	}
 
 	// Render ColorBuffer
 	w.texture.Update(nil, unsafe.Pointer(&w.colorBuffer.buf[0]), w.width*4)
@@ -118,7 +132,7 @@ func (w *Window) clear(color Color) {
 }
 
 func (w *Window) drawPixel(x, y int, color Color) {
-	if x < int(w.width) && y < int(w.height) {
+	if x > 0 && x < int(w.width) && x > 0 && y < int(w.height) {
 		w.colorBuffer.Set(x, y, color)
 	}
 }
@@ -131,7 +145,7 @@ func (w *Window) drawGrid(color Color) {
 	}
 }
 
-func (w *Window) drawRect(x, y, width, height int, color Color) {
+func (w *Window) drawRectangle(x, y, width, height int, color Color) {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			current_x := x + i
