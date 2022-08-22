@@ -1,6 +1,10 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"unsafe"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 func NewWindow(height, width int) *Window {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
@@ -24,12 +28,27 @@ func NewWindow(height, width int) *Window {
 		panic(err)
 	}
 
+	// I have no idea why we have to use ABGR8888. I would think it would be
+	// RGBA8888 since that is the order of our `Color` struct.
+	texture, err := renderer.CreateTexture(
+		sdl.PIXELFORMAT_ABGR8888,
+		sdl.TEXTUREACCESS_STREAMING,
+		int32(width),
+		int32(height),
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Window{
-		window:    window,
-		renderer:  renderer,
 		width:     width,
 		height:    height,
+		window:    window,
+		renderer:  renderer,
+		texture:   texture,
 		isRunning: true,
+
+		colorBuffer: make([]Color, width*height),
 	}
 }
 
@@ -37,8 +56,15 @@ type Window struct {
 	height, width int
 	window        *sdl.Window
 	renderer      *sdl.Renderer
+	texture       *sdl.Texture
 
 	isRunning bool
+
+	colorBuffer []Color
+}
+
+func (w *Window) Setup() {
+	w.clear()
 }
 
 func (w *Window) ProcessInput() {
@@ -58,10 +84,12 @@ func (w *Window) ProcessInput() {
 }
 
 func (w *Window) Update() {
+
 }
 
 func (w *Window) Render() {
-	w.clear()
+	w.renderColorBuffer()
+	w.clearColorBuffer(ColorYellow)
 	w.renderer.Present()
 }
 
@@ -71,8 +99,21 @@ func (w *Window) Destroy() {
 	sdl.Quit()
 }
 
+func (w *Window) renderColorBuffer() {
+	w.texture.Update(nil, unsafe.Pointer(&w.colorBuffer[0]), w.width*4)
+	w.renderer.Copy(w.texture, nil, nil)
+}
+
+func (w *Window) clearColorBuffer(color Color) {
+	for x := 0; x < w.width; x++ {
+		for y := 0; y < w.height; y++ {
+			w.colorBuffer[y*w.width+x] = color
+		}
+	}
+}
+
 func (w *Window) clear() {
-	w.renderer.SetDrawColor(255, 0, 0, 255)
+	w.renderer.SetDrawColor(0, 0, 0, 255)
 	err := w.renderer.Clear()
 	if err != nil {
 		panic(err)
