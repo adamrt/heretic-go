@@ -17,7 +17,7 @@ func NewWindow(height, width int) *Window {
 		sdl.WINDOWPOS_CENTERED,
 		int32(height),
 		int32(width),
-		sdl.WINDOW_SHOWN,
+		sdl.WINDOW_BORDERLESS,
 	)
 	if err != nil {
 		panic(err)
@@ -64,7 +64,7 @@ type Window struct {
 }
 
 func (w *Window) Setup() {
-	w.clear()
+
 }
 
 func (w *Window) ProcessInput() {
@@ -84,12 +84,24 @@ func (w *Window) ProcessInput() {
 }
 
 func (w *Window) Update() {
+}
 
+func (w *Window) drawGrid() {
+	for y := 0; y < w.height; y += 10 {
+		for x := 0; x < w.width; x += 10 {
+			w.colorBuffer[(w.width*y)+x] = ColorGrey
+		}
+	}
 }
 
 func (w *Window) Render() {
+	w.clear(ColorBlack)
+
+	w.drawGrid()
+
 	w.renderColorBuffer()
-	w.clearColorBuffer(ColorYellow)
+	w.clearColorBuffer(ColorBlack)
+
 	w.renderer.Present()
 }
 
@@ -112,8 +124,8 @@ func (w *Window) clearColorBuffer(color Color) {
 	}
 }
 
-func (w *Window) clear() {
-	w.renderer.SetDrawColor(0, 0, 0, 255)
+func (w *Window) clear(color Color) {
+	w.renderer.SetDrawColor(color.r, color.g, color.b, color.a)
 	err := w.renderer.Clear()
 	if err != nil {
 		panic(err)

@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	window := NewWindow(640, 480)
+	window := NewWindow(800, 800)
 	defer window.Destroy()
 
 	window.Setup()
