@@ -54,8 +54,8 @@ func (e *Engine) Render() {
 
 	for _, point := range projectedPoints {
 		e.renderer.DrawRectangle(
-			int(point.x+(float32(e.window.width)/2)),
-			int(point.y+(float32(e.window.height)/2)),
+			int(point.x+(float64(e.window.width)/2)),
+			int(point.y+(float64(e.window.height)/2)),
 			4,
 			4,
 			ColorYellow,
