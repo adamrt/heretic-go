@@ -4,8 +4,22 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-var points = getCube()
-var projectedPoints []Vec2
+const (
+	FPS = 60
+	// Number of milliseconds per frame
+	TargetFrameTime = (1000 / FPS)
+)
+
+var (
+	// Hacky solution to get current time on app start
+	previous = sdl.GetTicks()
+
+	// Temporary spot for vertices
+	points = getCube()
+
+	// Allocate for all the points
+	projectedPoints = make([]Vec2, len(points))
+)
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
@@ -25,10 +39,7 @@ type Engine struct {
 	isRunning      bool
 }
 
-func (e *Engine) Setup() {
-	// Allocate for all the points
-	projectedPoints = make([]Vec2, len(points))
-}
+func (e *Engine) Setup() {}
 
 func (e *Engine) ProcessInput() {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -47,12 +58,19 @@ func (e *Engine) ProcessInput() {
 }
 
 func (e *Engine) Update() {
+	// Target the specified FPS
+	wait := TargetFrameTime - (sdl.GetTicks() - previous)
+	if wait > 0 && wait <= TargetFrameTime {
+		sdl.Delay(wait)
+	}
+	previous = sdl.GetTicks()
+
 	// Clear the slice while retaining memory
 	projectedPoints = projectedPoints[:0]
 
 	// Increase the rotation
-	e.rotation.y += 0.001
-	e.rotation.x += 0.0005
+	e.rotation.y += 0.01
+	e.rotation.x += 0.005
 
 	// Project each point into 2D
 	for _, point := range points {
