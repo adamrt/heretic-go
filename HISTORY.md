@@ -9,9 +9,12 @@
 - [x] Draw rectangle
 - [x] Draw flat cube
 - [x] Draw perspective corrected cube
+- [x] Draw rotating cube (multiaxis)
 
+Everything was good and understandable today. There is no matrix math
+yet, so we are rotating with simple functions so far.
 
-Trig reminder:
+##### Trig reminder:
 
 ```
             /|
@@ -24,10 +27,6 @@ Hypotenous / |
       Adjacent
 ```
 
-Sin(a) = Opposite/Hypotenuse
-Cos(a) = Adjacent/Hypotenuse
-Tan(a) = Opposite/Adjacent
-
-s=o/h
-c=a/h
-t=o/a
+- Sin(a) = Opposite/Hypotenuse (**s=o/h**)
+- Cos(a) = Adjacent/Hypotenuse (**c=a/h**)
+- Tan(a) = Opposite/Adjacent (**t=o/a**)
