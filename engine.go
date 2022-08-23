@@ -9,16 +9,18 @@ var projectedPoints []Vec2
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
-		window:    window,
-		renderer:  renderer,
-		isRunning: true,
+		window:         window,
+		renderer:       renderer,
+		cameraPosition: Vec3{0, 0, -5},
+		isRunning:      true,
 	}
 }
 
 type Engine struct {
-	window    *Window
-	renderer  *Renderer
-	isRunning bool
+	window         *Window
+	renderer       *Renderer
+	cameraPosition Vec3
+	isRunning      bool
 }
 
 func (e *Engine) ProcessInput() {
@@ -38,8 +40,11 @@ func (e *Engine) ProcessInput() {
 }
 
 func (e *Engine) Update() {
+	// Project each point into 2D
 	for _, point := range points {
-		projectedPoints = append(projectedPoints, project(point))
+		// Move the points away from the camera
+		point.z -= e.cameraPosition.z
+		projectedPoints = append(projectedPoints, point.Project())
 	}
 }
 

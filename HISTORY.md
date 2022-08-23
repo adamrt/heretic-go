@@ -8,3 +8,26 @@
 - [x] Draw grid
 - [x] Draw rectangle
 - [x] Draw flat cube
+- [x] Draw perspective corrected cube
+
+
+Trig reminder:
+
+```
+            /|
+Hypotenous / |
+          /  |
+         /   | Opposite
+        /    |
+       /     |
+      /______|
+      Adjacent
+```
+
+Sin(a) = Opposite/Hypotenuse
+Cos(a) = Adjacent/Hypotenuse
+Tan(a) = Opposite/Adjacent
+
+s=o/h
+c=a/h
+t=o/a
