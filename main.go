@@ -1,14 +1,19 @@
 package main
 
+const (
+	WindowWidth  = 800
+	WindowHeight = 800
+)
+
 func main() {
-	window := NewWindow(800, 800)
+	window := NewWindow(WindowWidth, WindowHeight)
 	defer window.Destroy()
+	renderer := NewRenderer(WindowWidth, WindowHeight)
+	engine := NewEngine(window, renderer)
 
-	window.Setup()
-
-	for window.isRunning {
-		window.ProcessInput()
-		window.Update()
-		window.Render()
+	for engine.isRunning {
+		engine.ProcessInput()
+		engine.Update()
+		engine.Render()
 	}
 }

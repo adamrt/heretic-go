@@ -1,7 +1,5 @@
 package main
 
-var cube = [9 * 9 * 9]Vec3{}
-
 func getCube() []Vec3 {
 	cube := []Vec3{}
 	for x := float32(-1.0); x <= 1.0; x += .25 {
