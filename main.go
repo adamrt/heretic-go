@@ -6,10 +6,13 @@ const (
 )
 
 func main() {
+	renderer := NewRenderer(WindowWidth, WindowHeight)
 	window := NewWindow(WindowWidth, WindowHeight)
 	defer window.Destroy()
-	renderer := NewRenderer(WindowWidth, WindowHeight)
+
 	engine := NewEngine(window, renderer)
+	engine.LoadCubeMesh()
+	engine.Setup()
 
 	for engine.isRunning {
 		engine.ProcessInput()

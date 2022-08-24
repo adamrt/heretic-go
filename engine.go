@@ -10,22 +10,11 @@ const (
 	TargetFrameTime = (1000 / FPS)
 )
 
-var (
-	// Hacky solution to get current time on app start
-	previous = sdl.GetTicks()
-
-	// Temporary spot for vertices
-	triangles = generateTriCube()
-
-	trianglesToRender = make([]Triangle, len(triangles)*3)
-)
-
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
 		window:         window,
 		renderer:       renderer,
 		cameraPosition: Vec3{0, 0, -5},
-		rotation:       Vec3{0, 0, 0},
 		isRunning:      true,
 	}
 }
@@ -34,11 +23,19 @@ type Engine struct {
 	window         *Window
 	renderer       *Renderer
 	cameraPosition Vec3
-	rotation       Vec3
-	isRunning      bool
+
+	// Timing
+	previous  uint32
+	isRunning bool
+
+	// Model
+	mesh              *Mesh
+	trianglesToRender []Triangle
 }
 
-func (e *Engine) Setup() {}
+func (e *Engine) Setup() {
+	e.previous = sdl.GetTicks()
+}
 
 func (e *Engine) ProcessInput() {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -58,33 +55,33 @@ func (e *Engine) ProcessInput() {
 
 func (e *Engine) Update() {
 	// Target the specified FPS
-	wait := TargetFrameTime - (sdl.GetTicks() - previous)
+	wait := TargetFrameTime - (sdl.GetTicks() - e.previous)
 	if wait > 0 && wait <= TargetFrameTime {
 		sdl.Delay(wait)
 	}
-	previous = sdl.GetTicks()
+	e.previous = sdl.GetTicks()
 
 	// Increase the rotation
-	e.rotation.y += 0.01
-	e.rotation.x += 0.005
-	e.rotation.z += 0.0025
+	e.mesh.rotation.y += 0.01
+	e.mesh.rotation.x += 0.005
+	e.mesh.rotation.z += 0.0025
 
 	// Project each into 2D
-	for _, tri := range triangles {
+	for _, tri := range e.mesh.triangles {
 		var projectedTriangle Triangle
 
 		for i, point := range tri {
 			transformedPoint := point
 			// Rotate point on Y axis
-			transformedPoint = transformedPoint.RotateX(e.rotation.x)
-			transformedPoint = transformedPoint.RotateY(e.rotation.y)
-			transformedPoint = transformedPoint.RotateZ(e.rotation.z)
+			transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
+			transformedPoint = transformedPoint.RotateY(e.mesh.rotation.y)
+			transformedPoint = transformedPoint.RotateZ(e.mesh.rotation.z)
 
 			// Translate the vertex away from the camera
 			transformedPoint.z -= e.cameraPosition.z
 
-			// Project the vertex
-			projectedPoint := ProjectPoint(transformedPoint)
+			// Project the vertex (x/z, y/z)
+			projectedPoint := transformedPoint.Project()
 
 			// Scale the projected point to the middle of the screen
 			projectedPoint.x += (float64(e.window.width) / 2)
@@ -93,7 +90,7 @@ func (e *Engine) Update() {
 			// Append the projected 2D point to the projected points
 			projectedTriangle.points[i] = projectedPoint
 		}
-		trianglesToRender = append(trianglesToRender, projectedTriangle)
+		e.trianglesToRender = append(e.trianglesToRender, projectedTriangle)
 	}
 }
 
@@ -101,13 +98,21 @@ func (e *Engine) Render() {
 	e.renderer.Clear(ColorBlack)
 	e.renderer.DrawGrid(ColorGrey)
 
-	for _, tri := range trianglesToRender {
+	for _, tri := range e.trianglesToRender {
 		e.renderer.DrawTriangle(tri, ColorYellow)
 	}
 
 	// Clear the slice while retaining memory
-	trianglesToRender = trianglesToRender[:0]
+	e.trianglesToRender = e.trianglesToRender[:0]
 
 	// Render ColorBuffer
 	e.window.Update(e.renderer.colorBuffer)
+}
+
+// LoadCubeMesh loads the cube geometry into the Engine.mesh
+func (e *Engine) LoadCubeMesh() {
+	// Temporary spot for vertices
+	triangles := generateTriCube()
+	e.mesh = &Mesh{triangles: triangles}
+	e.trianglesToRender = make([]Triangle, len(triangles)*3)
 }
