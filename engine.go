@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -34,7 +36,12 @@ type Engine struct {
 }
 
 func (e *Engine) Setup() {
+	if e.mesh == nil {
+		log.Fatalln("no mesh specified")
+	}
+
 	e.previous = sdl.GetTicks()
+
 }
 
 func (e *Engine) ProcessInput() {

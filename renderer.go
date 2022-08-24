@@ -20,14 +20,14 @@ type Renderer struct {
 }
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
-func (r *Renderer) DrawPixel(x, y int, color Color) {
+func (r Renderer) DrawPixel(x, y int, color Color) {
 	if x > 0 && x < int(r.width) && y > 0 && y < int(r.height) {
 		r.colorBuffer[(r.width*y)+x] = color
 	}
 }
 
 // DrawLine draws a solid line using the DDA algorithm.
-func (r *Renderer) DrawLine(a, b Vec2, color Color) {
+func (r Renderer) DrawLine(a, b Vec2, color Color) {
 	deltaX := b.x - a.x
 	deltaY := b.y - a.y
 
@@ -52,7 +52,7 @@ func (r *Renderer) DrawLine(a, b Vec2, color Color) {
 }
 
 // DrawGrid draws a dotted grid across entire buffer.
-func (r *Renderer) DrawGrid(color Color) {
+func (r Renderer) DrawGrid(color Color) {
 	for y := 0; y < r.height; y += 10 {
 		for x := 0; x < r.width; x += 10 {
 			r.DrawPixel(x, y, color)
@@ -61,7 +61,7 @@ func (r *Renderer) DrawGrid(color Color) {
 }
 
 // DrawGrid draws a rectangle to the buffer.
-func (r *Renderer) DrawRectangle(x, y, width, height int, color Color) {
+func (r Renderer) DrawRectangle(x, y, width, height int, color Color) {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			currentX := x + i
@@ -71,14 +71,14 @@ func (r *Renderer) DrawRectangle(x, y, width, height int, color Color) {
 	}
 }
 
-func (r *Renderer) DrawTriangle(t Triangle, color Color) {
+func (r Renderer) DrawTriangle(t Triangle, color Color) {
 	r.DrawLine(t.points[0], t.points[1], color)
 	r.DrawLine(t.points[1], t.points[2], color)
 	r.DrawLine(t.points[2], t.points[0], color)
 }
 
 // Clear writes over every color in the buffer
-func (r *Renderer) Clear(color Color) {
+func (r Renderer) Clear(color Color) {
 	for x := 0; x < r.width; x++ {
 		for y := 0; y < r.height; y++ {
 			r.DrawPixel(x, y, color)
