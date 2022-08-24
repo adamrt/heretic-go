@@ -27,24 +27,24 @@ func (r Renderer) DrawPixel(x, y int, color Color) {
 }
 
 // DrawLine draws a solid line using the DDA algorithm.
-func (r Renderer) DrawLine(a, b Vec2, color Color) {
-	deltaX := b.x - a.x
-	deltaY := b.y - a.y
+func (r Renderer) DrawLine(x0, y0, x1, y1 int, color Color) {
+	deltaX := x1 - x0
+	deltaY := y1 - y0
 
-	var sideLength int
-	if math.Abs(deltaX) >= math.Abs(deltaY) {
-		sideLength = int(math.Abs(deltaX))
+	var longestSideLength int
+	if abs(deltaX) >= abs(deltaY) {
+		longestSideLength = abs(deltaX)
 	} else {
-		sideLength = int(math.Abs(deltaY))
+		longestSideLength = abs(deltaY)
 	}
 
-	incX := deltaX / float64(sideLength)
-	incY := deltaY / float64(sideLength)
+	incX := float64(deltaX) / float64(longestSideLength)
+	incY := float64(deltaY) / float64(longestSideLength)
 
-	currentX := a.x
-	currentY := a.y
+	currentX := float64(x0)
+	currentY := float64(y0)
 
-	for i := 0; i < sideLength; i++ {
+	for i := 0; i <= longestSideLength; i++ {
 		r.DrawPixel(int(math.Round(currentX)), int(math.Round(currentY)), color)
 		currentX += incX
 		currentY += incY
@@ -71,10 +71,70 @@ func (r Renderer) DrawRectangle(x, y, width, height int, color Color) {
 	}
 }
 
-func (r Renderer) DrawTriangle(t Triangle, color Color) {
-	r.DrawLine(t.points[0], t.points[1], color)
-	r.DrawLine(t.points[1], t.points[2], color)
-	r.DrawLine(t.points[2], t.points[0], color)
+func (r Renderer) DrawTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
+	r.DrawLine(x0, y0, x1, y1, color)
+	r.DrawLine(x1, y1, x2, y2, color)
+	r.DrawLine(x2, y2, x0, y0, color)
+}
+
+func (r Renderer) DrawFilledTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
+	if y0 > y1 {
+		y0, y1 = y1, y0
+		x0, x1 = x1, x0
+	}
+
+	if y1 > y2 {
+		y1, y2 = y2, y1
+		x1, x2 = x2, x1
+
+	}
+
+	if y0 > y1 {
+		y0, y1 = y1, y0
+		x0, x1 = x1, x0
+	}
+
+	if y1 == y2 {
+		r.fillFlatBottom(x0, y0, x1, y1, x2, y2, color)
+	} else if y0 == y1 {
+		r.fillFlatTop(x0, y0, x1, y1, x2, y2, color)
+	} else {
+		my := y1
+		mx := ((x2 - x0) * (y1 - y0) / (y2 - y0)) + x0
+
+		r.fillFlatBottom(x0, y0, x1, y1, mx, my, color)
+		r.fillFlatTop(x1, y1, mx, my, x2, y2, color)
+	}
+}
+
+func (r Renderer) fillFlatBottom(x0, y0, x1, y1, x2, y2 int, color Color) {
+	invSlope1 := float64(x1-x0) / float64(y1-y0)
+	invSlope2 := float64(x2-x0) / float64(y2-y0)
+
+	xStart := float64(x0)
+	xEnd := float64(x0)
+
+	// Loop scanlines bottom to top
+	for y := y0; y <= y2; y++ {
+		r.DrawLine(int(xStart), y, int(xEnd), y, color)
+		xStart += invSlope1
+		xEnd += invSlope2
+	}
+}
+
+func (r Renderer) fillFlatTop(x0, y0, x1, y1, x2, y2 int, color Color) {
+	invSlope1 := float64(x2-x0) / float64(y2-y0)
+	invSlope2 := float64(x2-x1) / float64(y2-y1)
+
+	xStart := float64(x2)
+	xEnd := float64(x2)
+
+	// Loop scanlines bottom to top
+	for y := y2; y >= y0; y-- {
+		r.DrawLine(int(xStart), y, int(xEnd), y, color)
+		xStart -= invSlope1
+		xEnd -= invSlope2
+	}
 }
 
 // Clear writes over every color in the buffer

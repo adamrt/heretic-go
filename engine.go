@@ -90,7 +90,11 @@ func (e *Engine) Render() {
 	e.renderer.DrawGrid(ColorGrey)
 
 	for _, tri := range e.trianglesToRender {
-		e.renderer.DrawTriangle(tri, ColorYellow)
+		a := tri.points[0]
+		b := tri.points[1]
+		c := tri.points[2]
+		e.renderer.DrawFilledTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorWhite)
+		e.renderer.DrawTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorBlack)
 	}
 
 	// Clear the slice while retaining memory
@@ -98,12 +102,6 @@ func (e *Engine) Render() {
 
 	// Render ColorBuffer
 	e.window.Update(e.renderer.colorBuffer)
-}
-
-// LoadCubeMesh loads the cube geometry into the Engine.mesh
-func (e *Engine) LoadMesh(filename string) {
-	// Temporary spot for vertices
-	e.mesh = NewMesh(filename)
 }
 
 func (e *Engine) transform(tri [3]Vec3) [3]Vec3 {
@@ -155,4 +153,10 @@ func (e *Engine) project(tri [3]Vec3) Triangle {
 		projectedTri.points[i] = projectedPoint
 	}
 	return projectedTri
+}
+
+// LoadCubeMesh loads the cube geometry into the Engine.mesh
+func (e *Engine) LoadMesh(filename string) {
+	// Temporary spot for vertices
+	e.mesh = NewMesh(filename)
 }
