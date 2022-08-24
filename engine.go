@@ -68,55 +68,13 @@ func (e *Engine) Update() {
 
 	// Project each into 2D
 	for _, tri := range e.mesh.triangles {
-		var projectedTriangle Triangle
-
-		// Transform each vertex
-
-		var transformedTri [3]Vec3
-		for i, point := range tri {
-			transformedPoint := point
-			transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x).
-				RotateY(e.mesh.rotation.y).
-				RotateZ(e.mesh.rotation.z)
-			// Translate the point away from the camera
-			transformedPoint.z += 5
-			transformedTri[i] = transformedPoint
-		}
-
-		// Backface culling
-
-		a := transformedTri[0]
-		b := transformedTri[1]
-		c := transformedTri[2]
-
-		vectorAB := b.Sub(a)
-		vectorAC := c.Sub(a)
-		normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
-
-		// Find the vector between a point in the triangle and the camera origin
-		cameraRay := e.cameraPosition.Sub(a)
-
-		// Use dot product to determine the alignment of the camera ray and the normal
-		visibility := normal.Dot(cameraRay)
-
-		// Bypass triangles that are not facing the camera
-		if visibility < 0 {
+		transformedTri := e.transform(tri)
+		if e.shouldCull(transformedTri) {
 			continue
 		}
+		projectedTri := e.project(transformedTri)
 
-		// Project each vertex
-
-		for i, point := range transformedTri {
-			projectedPoint := point.Project()
-
-			// Scale the projected point to the middle of the screen
-			projectedPoint.x += (float64(e.window.width) / 2)
-			projectedPoint.y += (float64(e.window.height) / 2)
-
-			// Append the projected 2D point to the projected points
-			projectedTriangle.points[i] = projectedPoint
-		}
-		e.trianglesToRender = append(e.trianglesToRender, projectedTriangle)
+		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 	}
 }
 
@@ -139,4 +97,55 @@ func (e *Engine) Render() {
 func (e *Engine) LoadMesh(filename string) {
 	// Temporary spot for vertices
 	e.mesh = NewMesh(filename)
+}
+
+func (e *Engine) transform(tri [3]Vec3) [3]Vec3 {
+	var transformedTri [3]Vec3
+	for i, point := range tri {
+		transformedPoint := point
+		// Rotate
+		transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
+		transformedPoint = transformedPoint.RotateY(e.mesh.rotation.y)
+		transformedPoint = transformedPoint.RotateZ(e.mesh.rotation.z)
+
+		// Translate (away from the camera)
+		transformedPoint.z += 5
+
+		transformedTri[i] = transformedPoint
+	}
+	return transformedTri
+}
+
+func (e *Engine) shouldCull(tri [3]Vec3) bool {
+	a := tri[0]
+	b := tri[1]
+	c := tri[2]
+
+	vectorAB := b.Sub(a)
+	vectorAC := c.Sub(a)
+	normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
+
+	// Find the vector between a point in the triangle and the camera origin
+	cameraRay := e.cameraPosition.Sub(a)
+
+	// Use dot product to determine the alignment of the camera ray and the normal
+	visibility := normal.Dot(cameraRay)
+
+	// Bypass triangles that are not facing the camera
+	return visibility < 0
+}
+
+func (e *Engine) project(tri [3]Vec3) Triangle {
+	var projectedTri Triangle
+	for i, point := range tri {
+		projectedPoint := point.Project()
+
+		// Scale the projected point to the middle of the screen
+		projectedPoint.x += (float64(e.window.width) / 2)
+		projectedPoint.y += (float64(e.window.height) / 2)
+
+		// Append the projected 2D point to the projected points
+		projectedTri.points[i] = projectedPoint
+	}
+	return projectedTri
 }
