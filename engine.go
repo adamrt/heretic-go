@@ -15,10 +15,10 @@ var (
 	previous = sdl.GetTicks()
 
 	// Temporary spot for vertices
-	points = getCube()
+	triangles = generateTriCube()
 
 	// Allocate for all the points
-	projectedPoints = make([]Vec2, len(points))
+	pointsToRender = make([]Vec2, len(triangles)*3)
 )
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
@@ -66,27 +66,29 @@ func (e *Engine) Update() {
 	previous = sdl.GetTicks()
 
 	// Clear the slice while retaining memory
-	projectedPoints = projectedPoints[:0]
+	pointsToRender = pointsToRender[:0]
 
 	// Increase the rotation
 	e.rotation.y += 0.01
 	e.rotation.x += 0.005
 
-	// Project each point into 2D
-	for _, point := range points {
-		// Rotate point on Y axis
-		transformedPoint := point
-		transformedPoint = transformedPoint.RotateY(e.rotation.y)
-		transformedPoint = transformedPoint.RotateX(e.rotation.x)
+	// Project each into 2D
+	for _, tri := range triangles {
+		for _, point := range tri.points {
+			transformedPoint := point
+			// Rotate point on Y axis
+			transformedPoint = transformedPoint.RotateY(e.rotation.y)
+			transformedPoint = transformedPoint.RotateX(e.rotation.x)
 
-		// Move the point away from the camera
-		transformedPoint.z -= e.cameraPosition.z
+			// Move the point away from the camera
+			transformedPoint.z -= e.cameraPosition.z
 
-		// Project the point
-		projectedPoint := transformedPoint.Project()
+			// Project the point
+			projectedPoint := transformedPoint.Project()
 
-		// Append the projected 2D point to the projected points
-		projectedPoints = append(projectedPoints, projectedPoint)
+			// Append the projected 2D point to the projected points
+			pointsToRender = append(pointsToRender, projectedPoint)
+		}
 	}
 }
 
@@ -94,15 +96,15 @@ func (e *Engine) Render() {
 	e.renderer.Clear(ColorBlack)
 	e.renderer.DrawGrid(ColorGrey)
 
-	for _, point := range projectedPoints {
+	for _, point := range pointsToRender {
 		// Move the point towards the center of the window.
 		centeredX := point.x + (float64(e.window.width) / 2)
 		centeredY := point.y + (float64(e.window.height) / 2)
 		e.renderer.DrawRectangle(
 			int(centeredX),
 			int(centeredY),
-			4,
-			4,
+			3,
+			3,
 			ColorYellow,
 		)
 	}

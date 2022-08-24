@@ -30,3 +30,8 @@ Hypotenous / |
 - Sin(a) = Opposite/Hypotenuse (**s=o/h**)
 - Cos(a) = Adjacent/Hypotenuse (**c=a/h**)
 - Tan(a) = Opposite/Adjacent (**t=o/a**)
+
+### Aug 23 2022
+
+- [x] Add simple timestep. Requires improvement
+- [x] Add Triangle
