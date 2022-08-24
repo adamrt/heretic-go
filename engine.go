@@ -12,12 +12,28 @@ const (
 	TargetFrameTime = (1000 / FPS)
 )
 
+type CullMode int
+type RenderMode int
+
+const (
+	CullModeNone     CullMode = 0
+	CullModeBackFace CullMode = 1
+
+	RenderModeWire       RenderMode = 1
+	RenderModeWireVertex RenderMode = 2
+	RenderModeWireFill   RenderMode = 3
+	RenderModeFill       RenderMode = 4
+)
+
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
 		window:         window,
 		renderer:       renderer,
 		cameraPosition: Vec3{0, 0, 0},
 		isRunning:      true,
+
+		cullMode:   CullModeBackFace,
+		renderMode: RenderModeWireFill,
 	}
 }
 
@@ -29,6 +45,10 @@ type Engine struct {
 	// Timing
 	previous  uint32
 	isRunning bool
+
+	// Rendering
+	cullMode   CullMode
+	renderMode RenderMode
 
 	// Model
 	mesh              *Mesh
@@ -55,6 +75,18 @@ func (e *Engine) ProcessInput() {
 			case sdl.K_ESCAPE:
 				e.isRunning = false
 				break
+			case sdl.K_1:
+				e.renderMode = RenderModeWire
+			case sdl.K_2:
+				e.renderMode = RenderModeWireVertex
+			case sdl.K_3:
+				e.renderMode = RenderModeWireFill
+			case sdl.K_4:
+				e.renderMode = RenderModeFill
+			case sdl.K_c:
+				e.cullMode = CullModeNone
+			case sdl.K_b:
+				e.cullMode = CullModeBackFace
 			}
 		}
 	}
@@ -76,9 +108,11 @@ func (e *Engine) Update() {
 	// Project each into 2D
 	for _, tri := range e.mesh.triangles {
 		transformedTri := e.transform(tri)
-		if e.shouldCull(transformedTri) {
+
+		if e.cullMode == CullModeBackFace && e.shouldCull(transformedTri) {
 			continue
 		}
+
 		projectedTri := e.project(transformedTri)
 
 		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
@@ -93,8 +127,20 @@ func (e *Engine) Render() {
 		a := tri.points[0]
 		b := tri.points[1]
 		c := tri.points[2]
-		e.renderer.DrawFilledTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorWhite)
-		e.renderer.DrawTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorBlack)
+
+		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
+			e.renderer.DrawFilledTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorGrey)
+		}
+
+		if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill {
+			e.renderer.DrawTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorWhite)
+		}
+
+		if e.renderMode == RenderModeWireVertex {
+			for _, point := range tri.points {
+				e.renderer.DrawRectangle(int(point.x), int(point.y), 4, 4, ColorRed)
+			}
+		}
 	}
 
 	// Clear the slice while retaining memory

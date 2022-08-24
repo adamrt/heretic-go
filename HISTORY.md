@@ -44,7 +44,9 @@ Hypotenous / |
 - [x] Add Mesh
 - [x] Load Mesh from OBJ file
 - [x] Vector Math
-
+- [x] Add Backface culling
+- [x] Draw Filled Triangle
+- [x] Add controls to manage culling and rendering modes
 
 Normals are for lighting, but also for backface culling.
 
