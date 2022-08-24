@@ -41,6 +41,8 @@ Hypotenous / |
 - [x] Draw Line
 - [x] Draw Triangle
 - [x] Draw Cube from Triangles
+- [x] Add Mesh
+- [x] Load Mesh from OBJ file
 
 Line equation `y = mx + c`.
 

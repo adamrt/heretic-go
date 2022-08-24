@@ -61,10 +61,8 @@ func (e *Engine) Update() {
 	}
 	e.previous = sdl.GetTicks()
 
-	// Increase the rotation
-	e.mesh.rotation.y += 0.01
-	e.mesh.rotation.x += 0.005
-	e.mesh.rotation.z += 0.0025
+	// Increase the rotation each frame
+	e.mesh.rotation.x += 0.01
 
 	// Project each into 2D
 	for _, tri := range e.mesh.triangles {
@@ -72,10 +70,8 @@ func (e *Engine) Update() {
 
 		for i, point := range tri {
 			transformedPoint := point
-			// Rotate point on Y axis
+			// Rotate point on X axis
 			transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
-			transformedPoint = transformedPoint.RotateY(e.mesh.rotation.y)
-			transformedPoint = transformedPoint.RotateZ(e.mesh.rotation.z)
 
 			// Translate the vertex away from the camera
 			transformedPoint.z -= e.cameraPosition.z
@@ -110,9 +106,7 @@ func (e *Engine) Render() {
 }
 
 // LoadCubeMesh loads the cube geometry into the Engine.mesh
-func (e *Engine) LoadCubeMesh() {
+func (e *Engine) LoadMesh(filename string) {
 	// Temporary spot for vertices
-	triangles := generateTriCube()
-	e.mesh = &Mesh{triangles: triangles}
-	e.trianglesToRender = make([]Triangle, len(triangles)*3)
+	e.mesh = NewMesh(filename)
 }
