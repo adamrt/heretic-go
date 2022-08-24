@@ -9,6 +9,7 @@ import "math"
 type Vec2 struct{ x, y float64 }
 
 func (v Vec2) Length() float64         { return math.Sqrt(v.x*v.x + v.y*v.y) }
+func (v Vec2) Normalize() Vec2         { l := v.Length(); return Vec2{v.x / l, v.y / l} }
 func (v Vec2) Add(u Vec2) Vec2         { return Vec2{v.x + u.x, v.y + u.y} }
 func (v Vec2) Sub(u Vec2) Vec2         { return Vec2{v.x - u.x, v.y - u.y} }
 func (v Vec2) Mul(factor float64) Vec2 { return Vec2{v.x * factor, v.y * factor} }
@@ -22,6 +23,7 @@ func (v Vec2) Dot(u Vec2) float64      { return v.x*u.x + v.y*u.y }
 type Vec3 struct{ x, y, z float64 }
 
 func (v Vec3) Length() float64         { return math.Sqrt(v.x*v.x + v.y*v.y + v.z*v.z) }
+func (v Vec3) Normalize() Vec3         { l := v.Length(); return Vec3{v.x / l, v.y / l, v.z / l} }
 func (v Vec3) Add(u Vec3) Vec3         { return Vec3{v.x + u.x, v.y + u.y, v.z + u.z} }
 func (v Vec3) Sub(u Vec3) Vec3         { return Vec3{v.x - u.x, v.y - u.y, v.z - u.z} }
 func (v Vec3) Mul(factor float64) Vec3 { return Vec3{v.x * factor, v.y * factor, v.z * factor} }

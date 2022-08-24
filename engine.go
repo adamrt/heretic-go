@@ -14,7 +14,7 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
 		window:         window,
 		renderer:       renderer,
-		cameraPosition: Vec3{0, 0, -5},
+		cameraPosition: Vec3{0, 0, 0},
 		isRunning:      true,
 	}
 }
@@ -63,21 +63,51 @@ func (e *Engine) Update() {
 
 	// Increase the rotation each frame
 	e.mesh.rotation.x += 0.01
+	e.mesh.rotation.y += 0.01
+	e.mesh.rotation.z += 0.005
 
 	// Project each into 2D
 	for _, tri := range e.mesh.triangles {
 		var projectedTriangle Triangle
 
+		// Transform each vertex
+
+		var transformedTri [3]Vec3
 		for i, point := range tri {
 			transformedPoint := point
-			// Rotate point on X axis
-			transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
+			transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x).
+				RotateY(e.mesh.rotation.y).
+				RotateZ(e.mesh.rotation.z)
+			// Translate the point away from the camera
+			transformedPoint.z += 5
+			transformedTri[i] = transformedPoint
+		}
 
-			// Translate the vertex away from the camera
-			transformedPoint.z -= e.cameraPosition.z
+		// Backface culling
 
-			// Project the vertex (x/z, y/z)
-			projectedPoint := transformedPoint.Project()
+		a := transformedTri[0]
+		b := transformedTri[1]
+		c := transformedTri[2]
+
+		vectorAB := b.Sub(a)
+		vectorAC := c.Sub(a)
+		normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
+
+		// Find the vector between a point in the triangle and the camera origin
+		cameraRay := e.cameraPosition.Sub(a)
+
+		// Use dot product to determine the alignment of the camera ray and the normal
+		visibility := normal.Dot(cameraRay)
+
+		// Bypass triangles that are not facing the camera
+		if visibility < 0 {
+			continue
+		}
+
+		// Project each vertex
+
+		for i, point := range transformedTri {
+			projectedPoint := point.Project()
 
 			// Scale the projected point to the middle of the screen
 			projectedPoint.x += (float64(e.window.width) / 2)
