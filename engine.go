@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sort"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -115,10 +116,20 @@ func (e *Engine) Update() {
 		}
 
 		projectedTri := e.project(transformedVertices)
+		avgDepth := (transformedVertices[0].z + transformedVertices[1].z + transformedVertices[2].z) / 3.0
+		projectedTri.averageDepth = avgDepth
 		projectedTri.color = face.color
 
 		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 	}
+
+	// Painters algorithm
+	sort.Slice(e.trianglesToRender, func(i, j int) bool {
+		a := e.trianglesToRender[i]
+		b := e.trianglesToRender[j]
+		return a.averageDepth > b.averageDepth
+	})
+
 }
 
 func (e *Engine) Render() {

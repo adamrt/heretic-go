@@ -8,6 +8,7 @@ type Face struct {
 
 // Triangle represents a triangle after rasterization.
 type Triangle struct {
-	points [3]Vec2
-	color  Color
+	points       [3]Vec2
+	color        Color
+	averageDepth float64
 }
