@@ -35,3 +35,16 @@ Hypotenous / |
 
 - [x] Add simple timestep. Requires improvement
 - [x] Add Triangle
+
+### Aug 24 2022
+
+- [x] Draw Line
+- [x] Draw Triangle
+- [x] Draw Cube from Triangles
+
+Line equation `y = mx + c`.
+
+- `m` is the slope.
+- `c` is the y-intercept.
+
+`rise`/`run`

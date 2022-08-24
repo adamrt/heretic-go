@@ -1,5 +1,7 @@
 package main
 
+import "math"
+
 func NewRenderer(width, height int) *Renderer {
 	return &Renderer{
 		width:       width,
@@ -17,6 +19,31 @@ type Renderer struct {
 func (r *Renderer) DrawPixel(x, y int, color Color) {
 	if x > 0 && x < int(r.width) && y > 0 && y < int(r.height) {
 		r.colorBuffer[(r.width*y)+x] = color
+	}
+}
+
+// DrawLine draws a solid line using the DDA algorithm.
+func (r *Renderer) DrawLine(a, b Vec2, color Color) {
+	deltaX := b.x - a.x
+	deltaY := b.y - a.y
+
+	var sideLength int
+	if math.Abs(deltaX) >= math.Abs(deltaY) {
+		sideLength = int(math.Abs(deltaX))
+	} else {
+		sideLength = int(math.Abs(deltaY))
+	}
+
+	incX := deltaX / float64(sideLength)
+	incY := deltaY / float64(sideLength)
+
+	currentX := a.x
+	currentY := a.y
+
+	for i := 0; i < sideLength; i++ {
+		r.DrawPixel(int(math.Round(currentX)), int(math.Round(currentY)), color)
+		currentX += incX
+		currentY += incY
 	}
 }
 
@@ -38,6 +65,12 @@ func (r *Renderer) DrawRectangle(x, y, width, height int, color Color) {
 			r.DrawPixel(currentX, currentY, color)
 		}
 	}
+}
+
+func (r *Renderer) DrawTriangle(t Triangle, color Color) {
+	r.DrawLine(t.points[0], t.points[1], color)
+	r.DrawLine(t.points[1], t.points[2], color)
+	r.DrawLine(t.points[2], t.points[0], color)
 }
 
 // Clear writes over every color in the buffer

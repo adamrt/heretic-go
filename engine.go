@@ -17,8 +17,7 @@ var (
 	// Temporary spot for vertices
 	triangles = generateTriCube()
 
-	// Allocate for all the points
-	pointsToRender = make([]Vec2, len(triangles)*3)
+	trianglesToRender = make([]Triangle, len(triangles)*3)
 )
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
@@ -65,30 +64,36 @@ func (e *Engine) Update() {
 	}
 	previous = sdl.GetTicks()
 
-	// Clear the slice while retaining memory
-	pointsToRender = pointsToRender[:0]
-
 	// Increase the rotation
 	e.rotation.y += 0.01
 	e.rotation.x += 0.005
+	e.rotation.z += 0.0025
 
 	// Project each into 2D
 	for _, tri := range triangles {
-		for _, point := range tri.points {
+		var projectedTriangle Triangle
+
+		for i, point := range tri {
 			transformedPoint := point
 			// Rotate point on Y axis
-			transformedPoint = transformedPoint.RotateY(e.rotation.y)
 			transformedPoint = transformedPoint.RotateX(e.rotation.x)
+			transformedPoint = transformedPoint.RotateY(e.rotation.y)
+			transformedPoint = transformedPoint.RotateZ(e.rotation.z)
 
-			// Move the point away from the camera
+			// Translate the vertex away from the camera
 			transformedPoint.z -= e.cameraPosition.z
 
-			// Project the point
-			projectedPoint := transformedPoint.Project()
+			// Project the vertex
+			projectedPoint := ProjectPoint(transformedPoint)
+
+			// Scale the projected point to the middle of the screen
+			projectedPoint.x += (float64(e.window.width) / 2)
+			projectedPoint.y += (float64(e.window.height) / 2)
 
 			// Append the projected 2D point to the projected points
-			pointsToRender = append(pointsToRender, projectedPoint)
+			projectedTriangle.points[i] = projectedPoint
 		}
+		trianglesToRender = append(trianglesToRender, projectedTriangle)
 	}
 }
 
@@ -96,18 +101,12 @@ func (e *Engine) Render() {
 	e.renderer.Clear(ColorBlack)
 	e.renderer.DrawGrid(ColorGrey)
 
-	for _, point := range pointsToRender {
-		// Move the point towards the center of the window.
-		centeredX := point.x + (float64(e.window.width) / 2)
-		centeredY := point.y + (float64(e.window.height) / 2)
-		e.renderer.DrawRectangle(
-			int(centeredX),
-			int(centeredY),
-			3,
-			3,
-			ColorYellow,
-		)
+	for _, tri := range trianglesToRender {
+		e.renderer.DrawTriangle(tri, ColorYellow)
 	}
+
+	// Clear the slice while retaining memory
+	trianglesToRender = trianglesToRender[:0]
 
 	// Render ColorBuffer
 	e.window.Update(e.renderer.colorBuffer)
