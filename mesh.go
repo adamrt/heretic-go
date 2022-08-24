@@ -11,8 +11,7 @@ import (
 type Mesh struct {
 	// This is just a slice of a slice, but for naming purposes, triangles
 	// makes more sense, since that is what it represents.
-	triangles [][3]Vec3
-
+	faces    []Face
 	rotation Vec3
 }
 
@@ -47,7 +46,7 @@ func NewMesh(filename string) *Mesh {
 			a := vertices[f[0]-1]
 			b := vertices[f[1]-1]
 			c := vertices[f[2]-1]
-			mesh.triangles = append(mesh.triangles, [3]Vec3{a, b, c})
+			mesh.faces = append(mesh.faces, Face{points: [3]Vec3{a, b, c}})
 		}
 
 	}

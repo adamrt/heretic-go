@@ -47,6 +47,7 @@ Hypotenous / |
 - [x] Add Backface culling
 - [x] Draw Filled Triangle
 - [x] Add controls to manage culling and rendering modes
+- [x] Add Face (Vec3 + Color) to represent pre-projected triangle
 
 Normals are for lighting, but also for backface culling.
 

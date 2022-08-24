@@ -106,14 +106,16 @@ func (e *Engine) Update() {
 	e.mesh.rotation.z += 0.005
 
 	// Project each into 2D
-	for _, tri := range e.mesh.triangles {
-		transformedTri := e.transform(tri)
+	for _, face := range e.mesh.faces {
+		vertices := face.points
+		transformedVertices := e.transform(vertices)
 
-		if e.cullMode == CullModeBackFace && e.shouldCull(transformedTri) {
+		if e.shouldCull(transformedVertices) {
 			continue
 		}
 
-		projectedTri := e.project(transformedTri)
+		projectedTri := e.project(transformedVertices)
+		projectedTri.color = face.color
 
 		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 	}
@@ -129,7 +131,7 @@ func (e *Engine) Render() {
 		c := tri.points[2]
 
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
-			e.renderer.DrawFilledTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorGrey)
+			e.renderer.DrawFilledTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), tri.color)
 		}
 
 		if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill {
@@ -150,9 +152,9 @@ func (e *Engine) Render() {
 	e.window.Update(e.renderer.colorBuffer)
 }
 
-func (e *Engine) transform(tri [3]Vec3) [3]Vec3 {
-	var transformedTri [3]Vec3
-	for i, point := range tri {
+func (e *Engine) transform(vertices [3]Vec3) [3]Vec3 {
+	var transformedVertices [3]Vec3
+	for i, point := range vertices {
 		transformedPoint := point
 		// Rotate
 		transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
@@ -162,12 +164,16 @@ func (e *Engine) transform(tri [3]Vec3) [3]Vec3 {
 		// Translate (away from the camera)
 		transformedPoint.z += 5
 
-		transformedTri[i] = transformedPoint
+		transformedVertices[i] = transformedPoint
 	}
-	return transformedTri
+	return transformedVertices
 }
 
 func (e *Engine) shouldCull(tri [3]Vec3) bool {
+	if e.cullMode == CullModeNone {
+		return false
+	}
+
 	a := tri[0]
 	b := tri[1]
 	c := tri[2]
@@ -186,9 +192,9 @@ func (e *Engine) shouldCull(tri [3]Vec3) bool {
 	return visibility < 0
 }
 
-func (e *Engine) project(tri [3]Vec3) Triangle {
+func (e *Engine) project(vertices [3]Vec3) Triangle {
 	var projectedTri Triangle
-	for i, point := range tri {
+	for i, point := range vertices {
 		projectedPoint := point.Project()
 
 		// Scale the projected point to the middle of the screen
@@ -205,4 +211,12 @@ func (e *Engine) project(tri [3]Vec3) Triangle {
 func (e *Engine) LoadMesh(filename string) {
 	// Temporary spot for vertices
 	e.mesh = NewMesh(filename)
+}
+
+// LoadCubeMesh loads the cube geometry into the Engine.mesh
+func (e *Engine) LoadCubeMesh() {
+	// Temporary spot for vertices
+	triangles := generateTriCube()
+	e.mesh = &Mesh{faces: triangles}
+	e.trianglesToRender = make([]Triangle, len(triangles)*3)
 }
