@@ -2,6 +2,10 @@ package main
 
 import "math"
 
+// FOV is just matching the width of the screen currently.  This is used to
+// scale up the positions of the points from
+const FOV float64 = WindowWidth
+
 func NewRenderer(width, height int) *Renderer {
 	return &Renderer{
 		width:       width,

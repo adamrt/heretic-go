@@ -2,25 +2,40 @@ package main
 
 import "math"
 
-// FOV is just matching the width of the screen currently.  This is used to
-// scale up the positions of the points from
-const FOV float64 = WindowWidth
+//
+// Vec2
+//
 
 type Vec2 struct{ x, y float64 }
 
+func (v Vec2) Length() float64         { return math.Sqrt(v.x*v.x + v.y*v.y) }
+func (v Vec2) Add(u Vec2) Vec2         { return Vec2{v.x + u.x, v.y + u.y} }
+func (v Vec2) Sub(u Vec2) Vec2         { return Vec2{v.x - u.x, v.y - u.y} }
+func (v Vec2) Mul(factor float64) Vec2 { return Vec2{v.x * factor, v.y * factor} }
+func (v Vec2) Div(factor float64) Vec2 { return Vec2{v.x / factor, v.y / factor} }
+func (v Vec2) Dot(u Vec2) float64      { return v.x*u.x + v.y*u.y }
+
+//
+// Vec3D
+//
+
 type Vec3 struct{ x, y, z float64 }
+
+func (v Vec3) Length() float64         { return math.Sqrt(v.x*v.x + v.y*v.y + v.z*v.z) }
+func (v Vec3) Add(u Vec3) Vec3         { return Vec3{v.x + u.x, v.y + u.y, v.z + u.z} }
+func (v Vec3) Sub(u Vec3) Vec3         { return Vec3{v.x - u.x, v.y - u.y, v.z - u.z} }
+func (v Vec3) Mul(factor float64) Vec3 { return Vec3{v.x * factor, v.y * factor, v.z * factor} }
+func (v Vec3) Div(factor float64) Vec3 { return Vec3{v.x / factor, v.y / factor, v.z / factor} }
+func (v Vec3) Dot(u Vec3) float64      { return v.x*u.x + v.y*u.y + v.z*u.z }
+func (v Vec3) Cross(u Vec3) Vec3 {
+	return Vec3{v.y*u.z - v.z*u.y, v.z*u.x - v.x*u.z, v.x*u.y - v.y*u.x}
+}
 
 // Project returns a 2D project point from a 3D point using Perspective Divide.
 // This currently scales the points from (-1 to 1) to (-800 to 800). This would
 // put the points off screen, but the 'perspective divide' division scales it
 // back down.
-func (v Vec3) Project() Vec2 {
-	projectedPoint := Vec2{
-		x: (FOV * v.x) / v.z,
-		y: (FOV * v.y) / v.z,
-	}
-	return projectedPoint
-}
+func (v Vec3) Project() Vec2 { return Vec2{x: (FOV * v.x) / v.z, y: (FOV * v.y) / v.z} }
 
 func (v Vec3) RotateX(angle float64) Vec3 {
 	return Vec3{

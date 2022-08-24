@@ -43,6 +43,10 @@ Hypotenous / |
 - [x] Draw Cube from Triangles
 - [x] Add Mesh
 - [x] Load Mesh from OBJ file
+- [x] Vector Math
+
+
+Normals are for lighting, but also for backface culling.
 
 Line equation `y = mx + c`.
 
