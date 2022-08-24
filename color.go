@@ -11,7 +11,9 @@ var (
 
 	ColorRed   = Color{255, 0, 0, 255}
 	ColorGreen = Color{0, 255, 0, 255}
-	ColorBlue  = Color{255, 0, 255, 255}
+	ColorBlue  = Color{0, 0, 255, 255}
 
-	ColorYellow = Color{255, 255, 0, 255}
+	ColorYellow  = Color{255, 255, 0, 255}
+	ColorCyan    = Color{0, 255, 255, 255}
+	ColorMagenta = Color{255, 0, 255, 255}
 )
