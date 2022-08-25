@@ -236,9 +236,9 @@ func (e *Engine) Render() {
 
 		if e.renderMode == RenderModeTexture {
 			e.renderer.DrawTexturedTriangle(
-				int(tri.points[0].x), int(tri.points[0].y), tri.texcoords[0].u, tri.texcoords[0].v,
-				int(tri.points[1].x), int(tri.points[1].y), tri.texcoords[1].u, tri.texcoords[1].v,
-				int(tri.points[2].x), int(tri.points[2].y), tri.texcoords[2].u, tri.texcoords[2].v,
+				int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w, tri.texcoords[0].u, tri.texcoords[0].v,
+				int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w, tri.texcoords[1].u, tri.texcoords[1].v,
+				int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2].u, tri.texcoords[2].v,
 				brickTexture,
 			)
 		}

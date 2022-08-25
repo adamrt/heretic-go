@@ -41,3 +41,4 @@ func (v Vec3) Cross(u Vec3) Vec3 {
 type Vec4 struct{ x, y, z, w float64 }
 
 func (v Vec4) Vec3() Vec3 { return Vec3{v.x, v.y, v.z} }
+func (v Vec4) Vec2() Vec2 { return Vec2{v.x, v.y} }

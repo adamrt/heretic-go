@@ -67,6 +67,7 @@ Hypotenous / |
 - [x] Add perspective projection matrix
 - [x] Add flat light shading
 - [x] Add texture mapping
+- [x] Add texture perspective correction
 
 ##### Notes:
 

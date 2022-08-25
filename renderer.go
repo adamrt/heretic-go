@@ -22,16 +22,26 @@ func (r Renderer) DrawPixel(x, y int, color Color) {
 	}
 }
 
-func (r Renderer) DrawTexel(x, y int, pointA, pointB, pointC Vec2, u0, v0, u1, v1, u2, v2 float64, texture Texture) {
+func (r Renderer) DrawTexel(x, y int, pointA, pointB, pointC Vec4, u0, v0, u1, v1, u2, v2 float64, texture Texture) {
 	pointP := Vec2{float64(x), float64(y)}
-	weights := barycentricWeights(pointA, pointB, pointC, pointP)
+	a := pointA.Vec2()
+	b := pointB.Vec2()
+	c := pointC.Vec2()
+
+	weights := barycentricWeights(a, b, c, pointP)
 
 	alpha := weights.x
 	beta := weights.y
 	gamma := weights.z
 
-	interpolatedU := u0*alpha + u1*beta + u2*gamma
-	interpolatedV := v0*alpha + v1*beta + v2*gamma
+	var interpolatedU, interpolatedV, interpolatedReciprocalW float64
+
+	interpolatedU = (u0/pointA.w)*alpha + (u1/pointB.w)*beta + (u2/pointC.w)*gamma
+	interpolatedV = (v0/pointA.w)*alpha + (v1/pointB.w)*beta + (v2/pointC.w)*gamma
+	interpolatedReciprocalW = (1/pointA.w)*alpha + (1/pointB.w)*beta + (1/pointC.w)*gamma
+
+	interpolatedU /= interpolatedReciprocalW
+	interpolatedV /= interpolatedReciprocalW
 
 	// FIXME: Texture Width is hardcoded
 	textureX := int(math.Abs(interpolatedU*float64(texture.width))) % texture.width
@@ -190,15 +200,17 @@ func (r Renderer) fillFlatTop(x0, y0, x1, y1, x2, y2 int, color Color) {
 }
 
 func (r Renderer) DrawTexturedTriangle(
-	x0, y0 int, u0, v0 float64,
-	x1, y1 int, u1, v1 float64,
-	x2, y2 int, u2, v2 float64,
+	x0, y0 int, z0, w0 float64, u0, v0 float64,
+	x1, y1 int, z1, w1 float64, u1, v1 float64,
+	x2, y2 int, z2, w2 float64, u2, v2 float64,
 	texture Texture,
 ) {
 
 	if y0 > y1 {
 		y0, y1 = y1, y0
 		x0, x1 = x1, x0
+		z0, z1 = z1, z0
+		w0, w1 = w1, w0
 		u0, u1 = u1, u0
 		v0, v1 = v1, v0
 	}
@@ -206,6 +218,8 @@ func (r Renderer) DrawTexturedTriangle(
 	if y1 > y2 {
 		y1, y2 = y2, y1
 		x1, x2 = x2, x1
+		z1, z2 = z2, z1
+		w1, w2 = w2, w1
 		u1, u2 = u2, u1
 		v1, v2 = v2, v1
 
@@ -214,13 +228,15 @@ func (r Renderer) DrawTexturedTriangle(
 	if y0 > y1 {
 		y0, y1 = y1, y0
 		x0, x1 = x1, x0
+		z0, z1 = z1, z0
+		w0, w1 = w1, w0
 		u0, u1 = u1, u0
 		v0, v1 = v1, v0
 	}
 
-	pointA := Vec2{float64(x0), float64(y0)}
-	pointB := Vec2{float64(x1), float64(y1)}
-	pointC := Vec2{float64(x2), float64(y2)}
+	pointA := Vec4{float64(x0), float64(y0), z0, w0}
+	pointB := Vec4{float64(x1), float64(y1), z1, w1}
+	pointC := Vec4{float64(x2), float64(y2), z2, w2}
 
 	//
 	// Top part of triangle
