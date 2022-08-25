@@ -52,14 +52,11 @@ Hypotenous / |
 - [x] Matrix Math
 - [x] Add Scale Matrix
 - [x] Add Translation Matrix
+- [x] Add Rotation Maticies
 
-Normals are for lighting, but also for backface culling.
+##### Notes:
 
-Line equation `y = mx + c`.
-
-- `m` is the slope.
-- `c` is the y-intercept.
-
-`rise`/`run`
-
-Identity matrix in matrix multiplication acts as a one real number multiplication
+- Normals are for lighting, but also for backface culling.
+- Identity matrix in matrix multiplication acts as a one real number multiplication
+- World matrix is a combined matrix of scale, rotation, translation
+- The order of matrix multiplation matters. Scale then rotation then translation
