@@ -11,8 +11,7 @@ func main() {
 	defer window.Destroy()
 
 	engine := NewEngine(window, renderer)
-	engine.LoadCubeMesh()
-	// engine.LoadMesh("assets/f22.obj")
+	engine.LoadMesh("assets/cube.obj", "assets/cube.png")
 	engine.Setup()
 
 	for engine.isRunning {

@@ -47,7 +47,7 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, texture T
 	textureX := int(math.Abs(interpolatedU*float64(texture.width))) % texture.width
 	textureY := int(math.Abs(interpolatedV*float64(texture.height))) % texture.height
 
-	r.DrawPixel(x, y, texture.data[(textureY*64)+textureX])
+	r.DrawPixel(x, y, texture.data[(textureY*texture.width)+textureX])
 }
 
 // DrawLine draws a solid line using the DDA algorithm.
@@ -233,6 +233,11 @@ func (r Renderer) DrawTexturedTriangle(
 		at.u, bt.u = bt.u, at.u
 		at.v, bt.v = bt.v, at.v
 	}
+
+	// FIXME: Flip the texture coordinates (handle this on import?)
+	at.v = 1 - at.v
+	bt.v = 1 - bt.v
+	ct.v = 1 - ct.v
 
 	a := Vec4{float64(x0), float64(y0), z0, w0}
 	b := Vec4{float64(x1), float64(y1), z1, w1}

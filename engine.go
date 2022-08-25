@@ -38,7 +38,7 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 		isRunning:      true,
 
 		cullMode:   CullModeBackFace,
-		renderMode: RenderModeFill,
+		renderMode: RenderModeTexture,
 	}
 }
 
@@ -117,9 +117,9 @@ func (e *Engine) Update() {
 	e.previous = sdl.GetTicks()
 
 	// Increase the rotation/scale each frame
-	e.mesh.rotation.x += 0.01
+	// e.mesh.rotation.x += 0.01
 	e.mesh.rotation.y += 0.01
-	e.mesh.rotation.z += 0.005
+	// e.mesh.rotation.z += 0.005
 
 	// e.mesh.scale.x += 0.002
 	// e.mesh.scale.y += 0.001
@@ -239,7 +239,7 @@ func (e *Engine) Render() {
 				int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w, tri.texcoords[0],
 				int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w, tri.texcoords[1],
 				int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
-				brickTexture,
+				e.mesh.texture,
 			)
 		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
@@ -265,18 +265,7 @@ func (e *Engine) Render() {
 }
 
 // LoadCubeMesh loads the cube geometry into the Engine.mesh
-func (e *Engine) LoadMesh(filename string) {
+func (e *Engine) LoadMesh(objFile, pngFile string) {
 	// Temporary spot for vertices
-	e.mesh = NewMesh(filename)
-}
-
-// LoadCubeMesh loads the cube geometry into the Engine.mesh
-func (e *Engine) LoadCubeMesh() {
-	// Temporary spot for vertices
-	triangles := generateTriCube()
-	e.mesh = &Mesh{
-		faces: triangles,
-		scale: Vec3{1.0, 1.0, 1.0},
-	}
-	e.trianglesToRender = make([]Triangle, len(triangles)*3)
+	e.mesh = NewMesh(objFile, pngFile)
 }

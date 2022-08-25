@@ -68,6 +68,8 @@ Hypotenous / |
 - [x] Add flat light shading
 - [x] Add texture mapping
 - [x] Add texture perspective correction
+- [x] Add png textures
+- [x] Add OBJ vt parsing
 
 ##### Notes:
 
