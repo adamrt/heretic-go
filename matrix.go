@@ -115,3 +115,31 @@ func MatrixMakeRotZ(angle float64) Matrix {
 	m.m[1][1] = c
 	return m
 }
+
+// Return a Perspective Projection Matrix
+//
+// The 3/2==1 stores the original z value for use in MulProjection so we can do
+// perspective divide in MulVec4Proj().
+func MatrixMakePerspective(fov, aspect, znear, zfar float64) Matrix {
+	m := Matrix{}
+	m.m[0][0] = aspect * (1 / math.Tan(fov/2))
+	m.m[1][1] = 1 / math.Tan(fov/2)
+	m.m[2][2] = zfar / (zfar - znear)
+	m.m[2][3] = (-zfar * znear) / (zfar - znear)
+	m.m[3][2] = 1.0
+	return m
+}
+
+func (m Matrix) MulVec4Proj(v Vec4) Vec4 {
+	// Multiply the original projection matrix by the vector
+	result := m.MulVec4(v)
+
+	// Perspective Divide with original z value (result.w).  The result.w is
+	// populated during MulVec4() because of the projection matrix 3/2==1.
+	if result.w != 0.0 {
+		result.x /= result.w
+		result.y /= result.w
+		result.z /= result.w
+	}
+	return result
+}

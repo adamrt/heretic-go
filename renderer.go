@@ -2,10 +2,6 @@ package main
 
 import "math"
 
-// FOV is just matching the width of the screen currently.  This is used to
-// scale up the positions of the points from
-const FOV float64 = WindowWidth
-
 func NewRenderer(width, height int) *Renderer {
 	return &Renderer{
 		width:       width,
@@ -77,6 +73,25 @@ func (r Renderer) DrawTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
 	r.DrawLine(x2, y2, x0, y0, color)
 }
 
+// Draw a filled triangle with the flat-top/flat-bottom method.  We split the
+// original triangle in two, half flat-bottom and half flat-top
+//
+//          (x0,y0)
+//            / \
+//           /   \
+//          /     \
+//         /       \
+//        /         \
+//   (x1,y1)------(Mx,My)
+//       \_           \
+//          \_         \
+//             \_       \
+//                \_     \
+//                   \    \
+//                     \_  \
+//                        \_\
+//                           \
+//                         (x2,y2)
 func (r Renderer) DrawFilledTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
 	if y0 > y1 {
 		y0, y1 = y1, y0
@@ -107,6 +122,15 @@ func (r Renderer) DrawFilledTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
 	}
 }
 
+// Draw a filled a triangle with a flat bottom
+//
+//        (x0,y0)
+//          / \
+//         /   \
+//        /     \
+//       /       \
+//      /         \
+//  (x1,y1)------(x2,y2)
 func (r Renderer) fillFlatBottom(x0, y0, x1, y1, x2, y2 int, color Color) {
 	invSlope1 := float64(x1-x0) / float64(y1-y0)
 	invSlope2 := float64(x2-x0) / float64(y2-y0)
@@ -122,6 +146,16 @@ func (r Renderer) fillFlatBottom(x0, y0, x1, y1, x2, y2 int, color Color) {
 	}
 }
 
+// Draw a filled a triangle with a flat top
+//
+//  (x0,y0)------(x1,y1)
+//      \         /
+//       \       /
+//        \     /
+//         \   /
+//          \ /
+//        (x2,y2)
+//
 func (r Renderer) fillFlatTop(x0, y0, x1, y1, x2, y2 int, color Color) {
 	invSlope1 := float64(x2-x0) / float64(y2-y0)
 	invSlope2 := float64(x2-x1) / float64(y2-y1)

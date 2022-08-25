@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"sort"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -51,6 +52,8 @@ type Engine struct {
 	cullMode   CullMode
 	renderMode RenderMode
 
+	projMatrix Matrix
+
 	// Model
 	mesh              *Mesh
 	trianglesToRender []Triangle
@@ -60,6 +63,13 @@ func (e *Engine) Setup() {
 	if e.mesh == nil {
 		log.Fatalln("no mesh specified")
 	}
+
+	// Projection matrix. We only need this calculate this once.
+	fov := math.Pi / 3.0 // Same as 180/3 or 60deg
+	aspect := float64(WindowHeight) / float64(WindowWidth)
+	znear := 0.1
+	zfar := 100.0
+	e.projMatrix = MatrixMakePerspective(fov, aspect, znear, zfar)
 
 	e.previous = sdl.GetTicks()
 
@@ -103,13 +113,13 @@ func (e *Engine) Update() {
 
 	// Increase the rotation/scale each frame
 	e.mesh.rotation.x += 0.01
-	e.mesh.rotation.y += 0.01
-	e.mesh.rotation.z += 0.005
+	// e.mesh.rotation.y += 0.01
+	// e.mesh.rotation.z += 0.005
 
 	// e.mesh.scale.x += 0.002
 	// e.mesh.scale.y += 0.001
 
-	e.mesh.trans.x += 0.01
+	// e.mesh.trans.x += 0.01
 	e.mesh.trans.z = 5.0 // constant
 
 	// World matrix. Combination of scale, rotation and translation
@@ -129,18 +139,37 @@ func (e *Engine) Update() {
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
 		// Transformation
-		transformedVertices := e.transform(face.points, worldMatrix)
+		var transformedTri Triangle
+		for i, point := range face.points {
+			transformedPoint := worldMatrix.MulVec4(point.Vec4())
+			transformedTri.points[i] = transformedPoint
+		}
 
 		// Backface Culling
-		if e.shouldCull(transformedVertices) {
+		if e.shouldCull(transformedTri) {
 			continue
 		}
 
 		// Projection
-		projectedTri := e.project(transformedVertices)
+		var projectedTri Triangle
+		for i, point := range transformedTri.points {
+			// Project the current vertex
+			projectedPoint := e.projMatrix.MulVec4Proj(point)
+
+			// Scale
+			projectedPoint.x *= (float64(e.window.width) / 2.0)
+			projectedPoint.y *= (float64(e.window.height) / 2.0)
+
+			// Translate the projected points to the middle of the screen.
+			projectedPoint.x += (float64(e.window.width) / 2.0)
+			projectedPoint.y += (float64(e.window.height) / 2.0)
+
+			// Append the projected 2D point to the projected points
+			projectedTri.points[i] = projectedPoint
+		}
 
 		// Depth Sorting
-		avgDepth := (transformedVertices[0].z + transformedVertices[1].z + transformedVertices[2].z) / 3.0
+		avgDepth := (transformedTri.points[0].z + transformedTri.points[1].z + transformedTri.points[2].z) / 3.0
 		projectedTri.averageDepth = avgDepth
 
 		// Color passthrough
@@ -189,24 +218,14 @@ func (e *Engine) Render() {
 	e.window.Update(e.renderer.colorBuffer)
 }
 
-// Scale, Rotate and Translate the vertices
-func (e *Engine) transform(vertices [3]Vec3, worldMatrix Matrix) [3]Vec4 {
-	var transformedVertices [3]Vec4
-	for i, point := range vertices {
-		transformedPoint := worldMatrix.MulVec4(point.Vec4())
-		transformedVertices[i] = transformedPoint
-	}
-	return transformedVertices
-}
-
-func (e *Engine) shouldCull(tri [3]Vec4) bool {
+func (e *Engine) shouldCull(tri Triangle) bool {
 	if e.cullMode == CullModeNone {
 		return false
 	}
 
-	a := tri[0].Vec3()
-	b := tri[1].Vec3()
-	c := tri[2].Vec3()
+	a := tri.points[0].Vec3()
+	b := tri.points[1].Vec3()
+	c := tri.points[2].Vec3()
 
 	vectorAB := b.Sub(a)
 	vectorAC := c.Sub(a)
@@ -220,21 +239,6 @@ func (e *Engine) shouldCull(tri [3]Vec4) bool {
 
 	// Bypass triangles that are not facing the camera
 	return visibility < 0
-}
-
-func (e *Engine) project(vertices [3]Vec4) Triangle {
-	var projectedTri Triangle
-	for i, point := range vertices {
-		projectedPoint := point.Vec3().Project()
-
-		// Scale the projected point to the middle of the screen
-		projectedPoint.x += (float64(e.window.width) / 2)
-		projectedPoint.y += (float64(e.window.height) / 2)
-
-		// Append the projected 2D point to the projected points
-		projectedTri.points[i] = projectedPoint
-	}
-	return projectedTri
 }
 
 // LoadCubeMesh loads the cube geometry into the Engine.mesh

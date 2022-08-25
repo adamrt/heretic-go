@@ -34,35 +34,6 @@ func (v Vec3) Cross(u Vec3) Vec3 {
 	return Vec3{v.y*u.z - v.z*u.y, v.z*u.x - v.x*u.z, v.x*u.y - v.y*u.x}
 }
 
-// Project returns a 2D project point from a 3D point using Perspective Divide.
-// This currently scales the points from (-1 to 1) to (-800 to 800). This would
-// put the points off screen, but the 'perspective divide' division scales it
-// back down.
-func (v Vec3) Project() Vec2 { return Vec2{x: (FOV * v.x) / v.z, y: (FOV * v.y) / v.z} }
-
-func (v Vec3) RotateX(angle float64) Vec3 {
-	return Vec3{
-		x: v.x,
-		y: v.y*math.Cos(angle) - v.z*math.Sin(angle),
-		z: v.y*math.Sin(angle) + v.z*math.Cos(angle),
-	}
-}
-func (v Vec3) RotateY(angle float64) Vec3 {
-	return Vec3{
-		x: v.x*math.Cos(angle) - v.z*math.Sin(angle),
-		y: v.y,
-		z: v.x*math.Sin(angle) + v.z*math.Cos(angle),
-	}
-
-}
-func (v Vec3) RotateZ(angle float64) Vec3 {
-	return Vec3{
-		x: v.x*math.Cos(angle) - v.y*math.Sin(angle),
-		y: v.x*math.Sin(angle) + v.y*math.Cos(angle),
-		z: v.z,
-	}
-}
-
 //
 // Vec4
 //

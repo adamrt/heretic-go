@@ -61,3 +61,17 @@ Hypotenous / |
 - Identity matrix in matrix multiplication acts as a one real number multiplication
 - World matrix is a combined matrix of scale, rotation, translation
 - The order of matrix multiplation matters. Scale then rotation then translation
+
+### Aug 25 2022
+
+- [x] Add perspective projection matrix
+
+
+##### Notes:
+
+- NDC == Normalized Device Coordinates, AKA Image Space
+- The value in the perspective projection matrix
+  (MatrixMakePersProj()) at m[3][2] is 1.0. During multiplication this
+  will store the original z value of the Vec4 (z*1.0==z). Then we can
+  use the z value later to handle perspective divide in
+  m.MulVec4Proj().
