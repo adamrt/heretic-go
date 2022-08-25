@@ -71,6 +71,7 @@ Hypotenous / |
 - [x] Add png textures
 - [x] Add OBJ vt parsing
 - [x] Render arbitrarily complex textured models
+- [x] Add View Matrix and Camera
 
 ##### Notes:
 
@@ -92,5 +93,7 @@ complex, I will probably have to refactor anyway.
   m.MulVec4Proj().
 - The DOT product of the face normal and the light direction gives a
   float representing alignment. Then that float between 0-1 can be
-  multiplied by the original color.
-- The normal must be normalized for this to work.
+  multiplied by the original color. The normal must be normalized for
+  this to work.
+- Modelspace -> WorldSpace -> View/Camera Space -> Screen Space
+  verts       * worldMatrix * viewMatrix         * projMatrix

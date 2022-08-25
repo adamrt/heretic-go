@@ -130,6 +130,20 @@ func MatrixMakePerspective(fov, aspect, znear, zfar float64) Matrix {
 	return m
 }
 
+func MatrixLookAt(position, target, up Vec3) Matrix {
+	z := target.Sub(position).Normalize()
+	x := up.Cross(z).Normalize()
+	y := z.Cross(x)
+
+	// View Matrix
+	return Matrix{m: [4][4]float64{
+		{x.x, x.y, x.z, -x.Dot(position)},
+		{y.x, y.y, y.z, -y.Dot(position)},
+		{z.x, z.y, z.z, -z.Dot(position)},
+		{0, 0, 0, 1},
+	}}
+}
+
 func (m Matrix) MulVec4Proj(v Vec4) Vec4 {
 	// Multiply the original projection matrix by the vector
 	result := m.MulVec4(v)

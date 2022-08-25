@@ -32,10 +32,9 @@ var globalLight = Light{direction: Vec3{0, 0, 1}}
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
-		window:         window,
-		renderer:       renderer,
-		cameraPosition: Vec3{0, 0, 0},
-		isRunning:      true,
+		window:    window,
+		renderer:  renderer,
+		isRunning: true,
 
 		cullMode:   CullModeBackFace,
 		renderMode: RenderModeTexture,
@@ -43,9 +42,8 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 }
 
 type Engine struct {
-	window         *Window
-	renderer       *Renderer
-	cameraPosition Vec3
+	window   *Window
+	renderer *Renderer
 
 	// Timing
 	previous  uint32
@@ -54,8 +52,8 @@ type Engine struct {
 	// Rendering
 	cullMode   CullMode
 	renderMode RenderMode
-
 	projMatrix Matrix
+	camera     Camera
 
 	// Model
 	mesh              *Mesh
@@ -72,7 +70,9 @@ func (e *Engine) Setup() {
 	aspect := float64(WindowHeight) / float64(WindowWidth)
 	znear := 0.1
 	zfar := 100.0
+
 	e.projMatrix = MatrixMakePerspective(fov, aspect, znear, zfar)
+	e.camera = NewCamera(Vec3{0, 0, 0}, Vec3{0, 0, 4}, Vec3{0, 1, 0})
 
 	e.previous = sdl.GetTicks()
 
@@ -127,6 +127,10 @@ func (e *Engine) Update() {
 	// e.mesh.trans.x += 0.01
 	e.mesh.trans.z = 4.0 // constant
 
+	// e.camera.position.x += 0.02
+	// e.camera.position.y += 0.01
+	// e.camera.position.z += 0.3
+
 	// World matrix. Combination of scale, rotation and translation
 	worldMatrix := MatrixIdentity()
 	scaleMatrix := MatrixMakeScale(e.mesh.scale.x, e.mesh.scale.y, e.mesh.scale.z)
@@ -134,6 +138,10 @@ func (e *Engine) Update() {
 	rotYMatrix := MatrixMakeRotY(e.mesh.rotation.y)
 	rotZMatrix := MatrixMakeRotZ(e.mesh.rotation.z)
 	transMatrix := MatrixMakeTrans(e.mesh.trans.x, e.mesh.trans.y, e.mesh.trans.z)
+
+	target := Vec3{0, 0, 5.0}
+	up := Vec3{0, 1, 0}
+	viewMatrix := MatrixLookAt(e.camera.position, target, up)
 
 	worldMatrix = scaleMatrix.Mul(worldMatrix)
 	worldMatrix = rotXMatrix.Mul(worldMatrix)
@@ -150,6 +158,7 @@ func (e *Engine) Update() {
 		var transformedTri Triangle
 		for i := 0; i < 3; i++ {
 			transformedPoint := worldMatrix.MulVec4(face.points[i].Vec4())
+			transformedPoint = viewMatrix.MulVec4(transformedPoint)
 			transformedTri.points[i] = transformedPoint
 		}
 
@@ -163,8 +172,9 @@ func (e *Engine) Update() {
 		vectorAB := b.Sub(a)
 		vectorAC := c.Sub(a)
 		normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
+
 		// Find the vector between a point in the triangle and the camera origin
-		cameraRay := e.cameraPosition.Sub(a)
+		cameraRay := e.camera.position.Sub(a)
 		// Use dot product to determine the alignment of the camera ray and the normal
 		visibility := normal.Dot(cameraRay)
 		// Bypass triangles that are not facing the camera
