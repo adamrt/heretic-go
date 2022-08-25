@@ -47,6 +47,8 @@ type Engine struct {
 
 	// Timing
 	previous  uint32
+	deltaTime float64
+
 	isRunning bool
 
 	// Rendering
@@ -114,22 +116,27 @@ func (e *Engine) Update() {
 	if wait > 0 && wait <= TargetFrameTime {
 		sdl.Delay(wait)
 	}
+
+	// Getting the deltaTime and multiplying the transformation keep
+	// animation speed consistent regardless of FPS. It basically changes it
+	// from tranforms per second instead of transforms per frame.
+	e.deltaTime = float64(sdl.GetTicks()-e.previous) / 1000.0
 	e.previous = sdl.GetTicks()
 
 	// Increase the rotation/scale each frame
-	e.mesh.rotation.x += 0.02
-	// e.mesh.rotation.y += 0.01
-	// e.mesh.rotation.z += 0.005
+	e.mesh.rotation.x += 0.5 * e.deltaTime
+	// e.mesh.rotation.y += 0.25 * e.deltaTime
+	// e.mesh.rotation.z += 0.3 * e.deltaTime
 
-	// e.mesh.scale.x += 0.002
-	// e.mesh.scale.y += 0.001
+	// e.mesh.scale.x += 0.002 * e.deltaTime
+	// e.mesh.scale.y += 0.001 * e.deltaTime
 
 	// e.mesh.trans.x += 0.01
 	e.mesh.trans.z = 4.0 // constant
 
-	// e.camera.position.x += 0.02
-	// e.camera.position.y += 0.01
-	// e.camera.position.z += 0.3
+	// e.camera.position.x += 0.02 * e.deltaTime
+	// e.camera.position.y += 0.01 * e.deltaTime
+	// e.camera.position.z += 0.3 * e.deltaTime
 
 	// World matrix. Combination of scale, rotation and translation
 	worldMatrix := MatrixIdentity()

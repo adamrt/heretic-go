@@ -72,6 +72,7 @@ Hypotenous / |
 - [x] Add OBJ vt parsing
 - [x] Render arbitrarily complex textured models
 - [x] Add View Matrix and Camera
+- [x] Add variable delta timing
 
 ##### Notes:
 
