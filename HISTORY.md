@@ -65,7 +65,7 @@ Hypotenous / |
 ### Aug 25 2022
 
 - [x] Add perspective projection matrix
-
+- [x] Add flat light shading
 
 ##### Notes:
 
@@ -75,3 +75,7 @@ Hypotenous / |
   will store the original z value of the Vec4 (z*1.0==z). Then we can
   use the z value later to handle perspective divide in
   m.MulVec4Proj().
+- The DOT product of the face normal and the light direction gives a
+  float representing alignment. Then that float between 0-1 can be
+  multiplied by the original color.
+- The normal must be normalized for this to work.

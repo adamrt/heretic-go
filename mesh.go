@@ -51,7 +51,7 @@ func NewMesh(filename string) *Mesh {
 			a := vertices[f[0]-1]
 			b := vertices[f[1]-1]
 			c := vertices[f[2]-1]
-			mesh.faces = append(mesh.faces, Face{points: [3]Vec3{a, b, c}})
+			mesh.faces = append(mesh.faces, Face{points: [3]Vec3{a, b, c}, color: ColorWhite})
 		}
 
 	}

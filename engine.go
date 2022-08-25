@@ -27,6 +27,8 @@ const (
 	RenderModeFill       RenderMode = 4
 )
 
+var globalLight = Light{direction: Vec3{0, 0, 1}}
+
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
 		window:         window,
@@ -35,7 +37,7 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 		isRunning:      true,
 
 		cullMode:   CullModeBackFace,
-		renderMode: RenderModeWireFill,
+		renderMode: RenderModeFill,
 	}
 }
 
@@ -138,19 +140,41 @@ func (e *Engine) Update() {
 
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
+		//
 		// Transformation
+		//
+
 		var transformedTri Triangle
-		for i, point := range face.points {
-			transformedPoint := worldMatrix.MulVec4(point.Vec4())
+		for i := 0; i < 3; i++ {
+			transformedPoint := worldMatrix.MulVec4(face.points[i].Vec4())
 			transformedTri.points[i] = transformedPoint
 		}
 
+		//
 		// Backface Culling
-		if e.shouldCull(transformedTri) {
-			continue
+		//
+
+		a := transformedTri.points[0].Vec3()
+		b := transformedTri.points[1].Vec3()
+		c := transformedTri.points[2].Vec3()
+		vectorAB := b.Sub(a)
+		vectorAC := c.Sub(a)
+		normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
+		// Find the vector between a point in the triangle and the camera origin
+		cameraRay := e.cameraPosition.Sub(a)
+		// Use dot product to determine the alignment of the camera ray and the normal
+		visibility := normal.Dot(cameraRay)
+		// Bypass triangles that are not facing the camera
+		if e.cullMode == CullModeBackFace {
+			if visibility < 0 {
+				continue
+			}
 		}
 
+		//
 		// Projection
+		//
+
 		var projectedTri Triangle
 		for i, point := range transformedTri.points {
 			// Project the current vertex
@@ -168,12 +192,14 @@ func (e *Engine) Update() {
 			projectedTri.points[i] = projectedPoint
 		}
 
-		// Depth Sorting
+		// Triangle depth sorting by average vertex z
 		avgDepth := (transformedTri.points[0].z + transformedTri.points[1].z + transformedTri.points[2].z) / 3.0
 		projectedTri.averageDepth = avgDepth
 
-		// Color passthrough
-		projectedTri.color = face.color
+		// Calculate shade intensity based on the normal and light direction
+		lightIntensity := -normal.Dot(globalLight.direction)
+		// Calculate color based on light
+		projectedTri.color = applyLightIntensity(face.color, lightIntensity)
 
 		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 	}
@@ -216,29 +242,6 @@ func (e *Engine) Render() {
 
 	// Render ColorBuffer
 	e.window.Update(e.renderer.colorBuffer)
-}
-
-func (e *Engine) shouldCull(tri Triangle) bool {
-	if e.cullMode == CullModeNone {
-		return false
-	}
-
-	a := tri.points[0].Vec3()
-	b := tri.points[1].Vec3()
-	c := tri.points[2].Vec3()
-
-	vectorAB := b.Sub(a)
-	vectorAC := c.Sub(a)
-	normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
-
-	// Find the vector between a point in the triangle and the camera origin
-	cameraRay := e.cameraPosition.Sub(a)
-
-	// Use dot product to determine the alignment of the camera ray and the normal
-	visibility := normal.Dot(cameraRay)
-
-	// Bypass triangles that are not facing the camera
-	return visibility < 0
 }
 
 // LoadCubeMesh loads the cube geometry into the Engine.mesh
