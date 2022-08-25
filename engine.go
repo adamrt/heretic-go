@@ -25,6 +25,7 @@ const (
 	RenderModeWireVertex RenderMode = 2
 	RenderModeWireFill   RenderMode = 3
 	RenderModeFill       RenderMode = 4
+	RenderModeTexture    RenderMode = 5
 )
 
 var globalLight = Light{direction: Vec3{0, 0, 1}}
@@ -96,6 +97,8 @@ func (e *Engine) ProcessInput() {
 				e.renderMode = RenderModeWireFill
 			case sdl.K_4:
 				e.renderMode = RenderModeFill
+			case sdl.K_5:
+				e.renderMode = RenderModeTexture
 			case sdl.K_c:
 				e.cullMode = CullModeNone
 			case sdl.K_b:
@@ -115,8 +118,8 @@ func (e *Engine) Update() {
 
 	// Increase the rotation/scale each frame
 	e.mesh.rotation.x += 0.01
-	// e.mesh.rotation.y += 0.01
-	// e.mesh.rotation.z += 0.005
+	e.mesh.rotation.y += 0.01
+	e.mesh.rotation.z += 0.005
 
 	// e.mesh.scale.x += 0.002
 	// e.mesh.scale.y += 0.001
@@ -208,6 +211,8 @@ func (e *Engine) Update() {
 		// Calculate color based on light
 		projectedTri.color = applyLightIntensity(face.color, lightIntensity)
 
+		projectedTri.texcoords = face.texcoords
+
 		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 	}
 
@@ -229,6 +234,14 @@ func (e *Engine) Render() {
 		b := tri.points[1]
 		c := tri.points[2]
 
+		if e.renderMode == RenderModeTexture {
+			e.renderer.DrawTexturedTriangle(
+				int(tri.points[0].x), int(tri.points[0].y), tri.texcoords[0].u, tri.texcoords[0].v,
+				int(tri.points[1].x), int(tri.points[1].y), tri.texcoords[1].u, tri.texcoords[1].v,
+				int(tri.points[2].x), int(tri.points[2].y), tri.texcoords[2].u, tri.texcoords[2].v,
+				brickTexture,
+			)
+		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
 			e.renderer.DrawFilledTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), tri.color)
 		}

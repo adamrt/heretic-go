@@ -22,6 +22,24 @@ func (r Renderer) DrawPixel(x, y int, color Color) {
 	}
 }
 
+func (r Renderer) DrawTexel(x, y int, pointA, pointB, pointC Vec2, u0, v0, u1, v1, u2, v2 float64, texture Texture) {
+	pointP := Vec2{float64(x), float64(y)}
+	weights := barycentricWeights(pointA, pointB, pointC, pointP)
+
+	alpha := weights.x
+	beta := weights.y
+	gamma := weights.z
+
+	interpolatedU := u0*alpha + u1*beta + u2*gamma
+	interpolatedV := v0*alpha + v1*beta + v2*gamma
+
+	// FIXME: Texture Width is hardcoded
+	textureX := int(math.Abs(interpolatedU*float64(texture.width))) % texture.width
+	textureY := int(math.Abs(interpolatedV*float64(texture.height))) % texture.height
+
+	r.DrawPixel(x, y, texture.data[(textureY*64)+textureX])
+}
+
 // DrawLine draws a solid line using the DDA algorithm.
 func (r Renderer) DrawLine(x0, y0, x1, y1 int, color Color) {
 	deltaX := x1 - x0
@@ -171,6 +189,96 @@ func (r Renderer) fillFlatTop(x0, y0, x1, y1, x2, y2 int, color Color) {
 	}
 }
 
+func (r Renderer) DrawTexturedTriangle(
+	x0, y0 int, u0, v0 float64,
+	x1, y1 int, u1, v1 float64,
+	x2, y2 int, u2, v2 float64,
+	texture Texture,
+) {
+
+	if y0 > y1 {
+		y0, y1 = y1, y0
+		x0, x1 = x1, x0
+		u0, u1 = u1, u0
+		v0, v1 = v1, v0
+	}
+
+	if y1 > y2 {
+		y1, y2 = y2, y1
+		x1, x2 = x2, x1
+		u1, u2 = u2, u1
+		v1, v2 = v2, v1
+
+	}
+
+	if y0 > y1 {
+		y0, y1 = y1, y0
+		x0, x1 = x1, x0
+		u0, u1 = u1, u0
+		v0, v1 = v1, v0
+	}
+
+	pointA := Vec2{float64(x0), float64(y0)}
+	pointB := Vec2{float64(x1), float64(y1)}
+	pointC := Vec2{float64(x2), float64(y2)}
+
+	//
+	// Top part of triangle
+	//
+	var invSlope1, invSlope2 float64
+
+	if y1-y0 != 0 {
+		invSlope1 = float64(x1-x0) / math.Abs(float64(y1-y0))
+	}
+	if y2-y0 != 0 {
+		invSlope2 = float64(x2-x0) / math.Abs(float64(y2-y0))
+	}
+
+	if y1-y0 != 0 {
+		for y := y0; y <= y1; y++ {
+			xStart := int(float64(x1) + float64(y-y1)*invSlope1)
+			xEnd := int(float64(x0) + float64(y-y0)*invSlope2)
+
+			// If xStart is to the left of xEnd
+			if xStart > xEnd {
+				xStart, xEnd = xEnd, xStart
+			}
+
+			for x := xStart; x < xEnd; x++ {
+				r.DrawTexel(x, y, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2, texture)
+			}
+		}
+	}
+
+	//
+	// Bottom part of triangle
+	//
+	invSlope1, invSlope2 = 0.0, 0.0
+
+	if y2-y1 != 0 {
+		invSlope1 = float64(x2-x1) / math.Abs(float64(y2-y1))
+	}
+	if y2-y0 != 0 {
+		invSlope2 = float64(x2-x0) / math.Abs(float64(y2-y0))
+	}
+
+	if y2-y1 != 0 {
+		for y := y1; y <= y2; y++ {
+			xStart := int(float64(x1) + float64(y-y1)*invSlope1)
+			xEnd := int(float64(x0) + float64(y-y0)*invSlope2)
+
+			// If xStart is to the left of xEnd
+			if xStart > xEnd {
+				xStart, xEnd = xEnd, xStart
+			}
+
+			for x := xStart; x < xEnd; x++ {
+				r.DrawTexel(x, y, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2, texture)
+			}
+		}
+	}
+}
+
 // Clear writes over every color in the buffer
 func (r Renderer) Clear(color Color) {
 	for x := 0; x < r.width; x++ {
@@ -178,4 +286,27 @@ func (r Renderer) Clear(color Color) {
 			r.DrawPixel(x, y, color)
 		}
 	}
+}
+
+func barycentricWeights(a, b, c, p Vec2) Vec3 {
+	ab := b.Sub(a)
+	bc := c.Sub(b)
+	ac := c.Sub(a)
+	ap := p.Sub(a)
+	bp := p.Sub(b)
+
+	// Calcualte the area of the full triangle ABC using cross product (area of parallelogram)
+	triangle_area := (ab.x*ac.y - ab.y*ac.x)
+
+	// Weight alpha is the area of subtriangle BCP divided by the area of the full triangle ABC
+	alpha := (bc.x*bp.y - bp.x*bc.y) / triangle_area
+
+	// Weight beta is the area of subtriangle ACP divided by the area of the full triangle ABC
+	beta := (ap.x*ac.y - ac.x*ap.y) / triangle_area
+
+	// Weight gamma is easily found since barycentric cooordinates always add up to 1
+	gamma := 1 - alpha - beta
+
+	weights := Vec3{alpha, beta, gamma}
+	return weights
 }
