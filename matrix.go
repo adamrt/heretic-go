@@ -15,6 +15,16 @@ func (m Matrix) MulVec4(v Vec4) Vec4 {
 	}
 }
 
+func (a Matrix) Mul(b Matrix) Matrix {
+	var m Matrix
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			m.m[i][j] = a.m[i][0]*b.m[0][j] + a.m[i][1]*b.m[1][j] + a.m[i][2]*b.m[2][j] + a.m[i][3]*b.m[3][j]
+		}
+	}
+	return m
+}
+
 // Return an Identity Matrix
 // | 1  0  0  0 |
 // | 0  1  0  0 |

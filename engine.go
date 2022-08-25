@@ -112,18 +112,38 @@ func (e *Engine) Update() {
 	e.mesh.trans.x += 0.01
 	e.mesh.trans.z = 5.0 // constant
 
+	// World matrix. Combination of scale, rotation and translation
+	worldMatrix := MatrixIdentity()
+	scaleMatrix := MatrixMakeScale(e.mesh.scale.x, e.mesh.scale.y, e.mesh.scale.z)
+	rotXMatrix := MatrixMakeRotX(e.mesh.rotation.x)
+	rotYMatrix := MatrixMakeRotY(e.mesh.rotation.y)
+	rotZMatrix := MatrixMakeRotZ(e.mesh.rotation.z)
+	transMatrix := MatrixMakeTrans(e.mesh.trans.x, e.mesh.trans.y, e.mesh.trans.z)
+
+	worldMatrix = scaleMatrix.Mul(worldMatrix)
+	worldMatrix = rotXMatrix.Mul(worldMatrix)
+	worldMatrix = rotYMatrix.Mul(worldMatrix)
+	worldMatrix = rotZMatrix.Mul(worldMatrix)
+	worldMatrix = transMatrix.Mul(worldMatrix)
+
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
-		vertices := face.points
-		transformedVertices := e.transform(vertices)
+		// Transformation
+		transformedVertices := e.transform(face.points, worldMatrix)
 
+		// Backface Culling
 		if e.shouldCull(transformedVertices) {
 			continue
 		}
 
+		// Projection
 		projectedTri := e.project(transformedVertices)
+
+		// Depth Sorting
 		avgDepth := (transformedVertices[0].z + transformedVertices[1].z + transformedVertices[2].z) / 3.0
 		projectedTri.averageDepth = avgDepth
+
+		// Color passthrough
 		projectedTri.color = face.color
 
 		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
@@ -169,27 +189,11 @@ func (e *Engine) Render() {
 	e.window.Update(e.renderer.colorBuffer)
 }
 
-func (e *Engine) transform(vertices [3]Vec3) [3]Vec4 {
+// Scale, Rotate and Translate the vertices
+func (e *Engine) transform(vertices [3]Vec3, worldMatrix Matrix) [3]Vec4 {
 	var transformedVertices [3]Vec4
 	for i, point := range vertices {
-		transformedPoint := point.Vec4()
-
-		// Scale
-		scaleMat4 := Mat4MakeScale(e.mesh.scale.x, e.mesh.scale.y, e.mesh.scale.z)
-		transformedPoint = scaleMat4.MulVec4(transformedPoint)
-
-		// Rotate
-		rotXMat4 := Mat4MakeRotX(e.mesh.rotation.x)
-		rotYMat4 := Mat4MakeRotY(e.mesh.rotation.y)
-		rotZMat4 := Mat4MakeRotZ(e.mesh.rotation.z)
-		transformedPoint = rotXMat4.MulVec4(transformedPoint)
-		transformedPoint = rotYMat4.MulVec4(transformedPoint)
-		transformedPoint = rotZMat4.MulVec4(transformedPoint)
-
-		// Translate
-		transMat4 := Mat4MakeTrans(e.mesh.trans.x, e.mesh.trans.y, e.mesh.trans.z)
-		transformedPoint = transMat4.MulVec4(transformedPoint)
-
+		transformedPoint := worldMatrix.MulVec4(point.Vec4())
 		transformedVertices[i] = transformedPoint
 	}
 	return transformedVertices

@@ -53,6 +53,7 @@ Hypotenous / |
 - [x] Add Scale Matrix
 - [x] Add Translation Matrix
 - [x] Add Rotation Maticies
+- [x] Add World Matrix
 
 ##### Notes:
 
