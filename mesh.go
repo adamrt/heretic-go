@@ -11,8 +11,10 @@ import (
 type Mesh struct {
 	// This is just a slice of a slice, but for naming purposes, triangles
 	// makes more sense, since that is what it represents.
-	faces    []Face
-	rotation Vec3
+	faces       []Face
+	rotation    Vec3
+	scale       Vec3
+	transaltion Vec3
 }
 
 func NewMesh(filename string) *Mesh {
@@ -23,6 +25,8 @@ func NewMesh(filename string) *Mesh {
 	defer f.Close()
 
 	var mesh Mesh
+	mesh.scale = Vec3{1.0, 1.0, 1.0}
+
 	var vertices []Vec3
 
 	scanner := bufio.NewScanner(f)

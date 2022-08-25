@@ -17,7 +17,7 @@ func (v Vec2) Div(factor float64) Vec2 { return Vec2{v.x / factor, v.y / factor}
 func (v Vec2) Dot(u Vec2) float64      { return v.x*u.x + v.y*u.y }
 
 //
-// Vec3D
+// Vec3
 //
 
 type Vec3 struct{ x, y, z float64 }
@@ -29,6 +29,7 @@ func (v Vec3) Sub(u Vec3) Vec3         { return Vec3{v.x - u.x, v.y - u.y, v.z -
 func (v Vec3) Mul(factor float64) Vec3 { return Vec3{v.x * factor, v.y * factor, v.z * factor} }
 func (v Vec3) Div(factor float64) Vec3 { return Vec3{v.x / factor, v.y / factor, v.z / factor} }
 func (v Vec3) Dot(u Vec3) float64      { return v.x*u.x + v.y*u.y + v.z*u.z }
+func (v Vec3) Vec4() Vec4              { return Vec4{v.x, v.y, v.z, 1} }
 func (v Vec3) Cross(u Vec3) Vec3 {
 	return Vec3{v.y*u.z - v.z*u.y, v.z*u.x - v.x*u.z, v.x*u.y - v.y*u.x}
 }
@@ -61,3 +62,11 @@ func (v Vec3) RotateZ(angle float64) Vec3 {
 		z: v.z,
 	}
 }
+
+//
+// Vec4
+//
+
+type Vec4 struct{ x, y, z, w float64 }
+
+func (v Vec4) Vec3() Vec3 { return Vec3{v.x, v.y, v.z} }

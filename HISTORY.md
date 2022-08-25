@@ -48,7 +48,9 @@ Hypotenous / |
 - [x] Draw Filled Triangle
 - [x] Add controls to manage culling and rendering modes
 - [x] Add Face (Vec3 + Color) to represent pre-projected triangle
-- [x] Add Painters algorithm
+- [x] Add painters algorithm
+- [x] Matrix Math
+- [x] Add Scale Matrix
 
 Normals are for lighting, but also for backface culling.
 
@@ -58,3 +60,5 @@ Line equation `y = mx + c`.
 - `c` is the y-intercept.
 
 `rise`/`run`
+
+Identity matrix in matrix multiplication acts as a one real number multiplication

@@ -101,10 +101,13 @@ func (e *Engine) Update() {
 	}
 	e.previous = sdl.GetTicks()
 
-	// Increase the rotation each frame
+	// Increase the rotation/scale each frame
 	e.mesh.rotation.x += 0.01
 	e.mesh.rotation.y += 0.01
 	e.mesh.rotation.z += 0.005
+
+	e.mesh.scale.x += 0.002
+	e.mesh.scale.y += 0.001
 
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
@@ -163,14 +166,19 @@ func (e *Engine) Render() {
 	e.window.Update(e.renderer.colorBuffer)
 }
 
-func (e *Engine) transform(vertices [3]Vec3) [3]Vec3 {
-	var transformedVertices [3]Vec3
+func (e *Engine) transform(vertices [3]Vec3) [3]Vec4 {
+	var transformedVertices [3]Vec4
 	for i, point := range vertices {
-		transformedPoint := point
+		transformedPoint := point.Vec4()
+
+		scaleMat4 := Mat4MakeScale(e.mesh.scale.x, e.mesh.scale.y, e.mesh.scale.z)
+
+		transformedPoint = scaleMat4.MulVec4(transformedPoint)
+
 		// Rotate
-		transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
-		transformedPoint = transformedPoint.RotateY(e.mesh.rotation.y)
-		transformedPoint = transformedPoint.RotateZ(e.mesh.rotation.z)
+		// transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
+		// transformedPoint = transformedPoint.RotateY(e.mesh.rotation.y)
+		// transformedPoint = transformedPoint.RotateZ(e.mesh.rotation.z)
 
 		// Translate (away from the camera)
 		transformedPoint.z += 5
@@ -180,14 +188,14 @@ func (e *Engine) transform(vertices [3]Vec3) [3]Vec3 {
 	return transformedVertices
 }
 
-func (e *Engine) shouldCull(tri [3]Vec3) bool {
+func (e *Engine) shouldCull(tri [3]Vec4) bool {
 	if e.cullMode == CullModeNone {
 		return false
 	}
 
-	a := tri[0]
-	b := tri[1]
-	c := tri[2]
+	a := tri[0].Vec3()
+	b := tri[1].Vec3()
+	c := tri[2].Vec3()
 
 	vectorAB := b.Sub(a)
 	vectorAC := c.Sub(a)
@@ -203,10 +211,10 @@ func (e *Engine) shouldCull(tri [3]Vec3) bool {
 	return visibility < 0
 }
 
-func (e *Engine) project(vertices [3]Vec3) Triangle {
+func (e *Engine) project(vertices [3]Vec4) Triangle {
 	var projectedTri Triangle
 	for i, point := range vertices {
-		projectedPoint := point.Project()
+		projectedPoint := point.Vec3().Project()
 
 		// Scale the projected point to the middle of the screen
 		projectedPoint.x += (float64(e.window.width) / 2)
@@ -228,6 +236,9 @@ func (e *Engine) LoadMesh(filename string) {
 func (e *Engine) LoadCubeMesh() {
 	// Temporary spot for vertices
 	triangles := generateTriCube()
-	e.mesh = &Mesh{faces: triangles}
+	e.mesh = &Mesh{
+		faces: triangles,
+		scale: Vec3{1.0, 1.0, 1.0},
+	}
 	e.trianglesToRender = make([]Triangle, len(triangles)*3)
 }
