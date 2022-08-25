@@ -22,13 +22,10 @@ func (r Renderer) DrawPixel(x, y int, color Color) {
 	}
 }
 
-func (r Renderer) DrawTexel(x, y int, pointA, pointB, pointC Vec4, u0, v0, u1, v1, u2, v2 float64, texture Texture) {
+func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, texture Texture) {
 	pointP := Vec2{float64(x), float64(y)}
-	a := pointA.Vec2()
-	b := pointB.Vec2()
-	c := pointC.Vec2()
 
-	weights := barycentricWeights(a, b, c, pointP)
+	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
 
 	alpha := weights.x
 	beta := weights.y
@@ -36,9 +33,12 @@ func (r Renderer) DrawTexel(x, y int, pointA, pointB, pointC Vec4, u0, v0, u1, v
 
 	var interpolatedU, interpolatedV, interpolatedReciprocalW float64
 
-	interpolatedU = (u0/pointA.w)*alpha + (u1/pointB.w)*beta + (u2/pointC.w)*gamma
-	interpolatedV = (v0/pointA.w)*alpha + (v1/pointB.w)*beta + (v2/pointC.w)*gamma
-	interpolatedReciprocalW = (1/pointA.w)*alpha + (1/pointB.w)*beta + (1/pointC.w)*gamma
+	interpolatedU = (auv.u/a.w)*alpha + (buv.u/b.w)*beta + (cuv.u/c.w)*gamma
+	interpolatedV = (auv.v/a.w)*alpha + (buv.v/b.w)*beta + (cuv.v/c.w)*gamma
+
+	// FIXME: move this calculation out of the function as it only needs to
+	// be calcualted once per triangle.
+	interpolatedReciprocalW = (1/a.w)*alpha + (1/b.w)*beta + (1/c.w)*gamma
 
 	interpolatedU /= interpolatedReciprocalW
 	interpolatedV /= interpolatedReciprocalW
@@ -200,9 +200,9 @@ func (r Renderer) fillFlatTop(x0, y0, x1, y1, x2, y2 int, color Color) {
 }
 
 func (r Renderer) DrawTexturedTriangle(
-	x0, y0 int, z0, w0 float64, u0, v0 float64,
-	x1, y1 int, z1, w1 float64, u1, v1 float64,
-	x2, y2 int, z2, w2 float64, u2, v2 float64,
+	x0, y0 int, z0, w0 float64, at Tex,
+	x1, y1 int, z1, w1 float64, bt Tex,
+	x2, y2 int, z2, w2 float64, ct Tex,
 	texture Texture,
 ) {
 
@@ -211,8 +211,8 @@ func (r Renderer) DrawTexturedTriangle(
 		x0, x1 = x1, x0
 		z0, z1 = z1, z0
 		w0, w1 = w1, w0
-		u0, u1 = u1, u0
-		v0, v1 = v1, v0
+		at.u, bt.u = bt.u, at.u
+		at.v, bt.v = bt.v, at.v
 	}
 
 	if y1 > y2 {
@@ -220,8 +220,8 @@ func (r Renderer) DrawTexturedTriangle(
 		x1, x2 = x2, x1
 		z1, z2 = z2, z1
 		w1, w2 = w2, w1
-		u1, u2 = u2, u1
-		v1, v2 = v2, v1
+		bt.u, ct.u = ct.u, bt.u
+		bt.v, ct.v = ct.v, bt.v
 
 	}
 
@@ -230,13 +230,13 @@ func (r Renderer) DrawTexturedTriangle(
 		x0, x1 = x1, x0
 		z0, z1 = z1, z0
 		w0, w1 = w1, w0
-		u0, u1 = u1, u0
-		v0, v1 = v1, v0
+		at.u, bt.u = bt.u, at.u
+		at.v, bt.v = bt.v, at.v
 	}
 
-	pointA := Vec4{float64(x0), float64(y0), z0, w0}
-	pointB := Vec4{float64(x1), float64(y1), z1, w1}
-	pointC := Vec4{float64(x2), float64(y2), z2, w2}
+	a := Vec4{float64(x0), float64(y0), z0, w0}
+	b := Vec4{float64(x1), float64(y1), z1, w1}
+	c := Vec4{float64(x2), float64(y2), z2, w2}
 
 	//
 	// Top part of triangle
@@ -261,7 +261,7 @@ func (r Renderer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				r.DrawTexel(x, y, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2, texture)
+				r.DrawTexel(x, y, a, b, c, at, bt, ct, texture)
 			}
 		}
 	}
@@ -289,7 +289,7 @@ func (r Renderer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				r.DrawTexel(x, y, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2, texture)
+				r.DrawTexel(x, y, a, b, c, at, bt, ct, texture)
 			}
 		}
 	}
