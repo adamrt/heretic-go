@@ -117,15 +117,15 @@ func (e *Engine) Update() {
 	e.previous = sdl.GetTicks()
 
 	// Increase the rotation/scale each frame
-	// e.mesh.rotation.x += 0.01
-	e.mesh.rotation.y += 0.01
+	e.mesh.rotation.x += 0.02
+	// e.mesh.rotation.y += 0.01
 	// e.mesh.rotation.z += 0.005
 
 	// e.mesh.scale.x += 0.002
 	// e.mesh.scale.y += 0.001
 
 	// e.mesh.trans.x += 0.01
-	e.mesh.trans.z = 5.0 // constant
+	e.mesh.trans.z = 4.0 // constant
 
 	// World matrix. Combination of scale, rotation and translation
 	worldMatrix := MatrixIdentity()

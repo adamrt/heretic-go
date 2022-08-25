@@ -70,8 +70,19 @@ Hypotenous / |
 - [x] Add texture perspective correction
 - [x] Add png textures
 - [x] Add OBJ vt parsing
+- [x] Render arbitrarily complex textured models
 
 ##### Notes:
+
+After adding textures I realized that lighting wasnt working
+anymore. This is because we calculate light intensity on the Triangle
+Color, but then if we are using textures, we use DrawTexel that uses
+the image and not the modified Triangle.color. I was able to add the
+lighting back in to textures by passing the lightIntensity along with
+the triangle struct and then pass it to DrawTexturedTriangle() and in
+turn DrawTexel(), which would get the texel color, then apply the
+light intensity. I removed this for now as my lighting gets more
+complex, I will probably have to refactor anyway.
 
 - NDC == Normalized Device Coordinates, AKA Image Space
 - The value in the perspective projection matrix
