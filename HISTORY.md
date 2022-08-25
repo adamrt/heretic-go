@@ -51,6 +51,7 @@ Hypotenous / |
 - [x] Add painters algorithm
 - [x] Matrix Math
 - [x] Add Scale Matrix
+- [x] Add Translation Matrix
 
 Normals are for lighting, but also for backface culling.
 

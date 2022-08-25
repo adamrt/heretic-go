@@ -109,6 +109,9 @@ func (e *Engine) Update() {
 	e.mesh.scale.x += 0.002
 	e.mesh.scale.y += 0.001
 
+	e.mesh.trans.x += 0.01
+	e.mesh.trans.z = 5.0 // constant
+
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
 		vertices := face.points
@@ -172,16 +175,15 @@ func (e *Engine) transform(vertices [3]Vec3) [3]Vec4 {
 		transformedPoint := point.Vec4()
 
 		scaleMat4 := Mat4MakeScale(e.mesh.scale.x, e.mesh.scale.y, e.mesh.scale.z)
-
 		transformedPoint = scaleMat4.MulVec4(transformedPoint)
+
+		transMat4 := Mat4MakeTrans(e.mesh.trans.x, e.mesh.trans.y, e.mesh.trans.z)
+		transformedPoint = transMat4.MulVec4(transformedPoint)
 
 		// Rotate
 		// transformedPoint = transformedPoint.RotateX(e.mesh.rotation.x)
 		// transformedPoint = transformedPoint.RotateY(e.mesh.rotation.y)
 		// transformedPoint = transformedPoint.RotateZ(e.mesh.rotation.z)
-
-		// Translate (away from the camera)
-		transformedPoint.z += 5
 
 		transformedVertices[i] = transformedPoint
 	}

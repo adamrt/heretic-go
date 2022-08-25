@@ -11,10 +11,11 @@ import (
 type Mesh struct {
 	// This is just a slice of a slice, but for naming purposes, triangles
 	// makes more sense, since that is what it represents.
-	faces       []Face
-	rotation    Vec3
-	scale       Vec3
-	transaltion Vec3
+	faces []Face
+
+	rotation Vec3
+	scale    Vec3
+	trans    Vec3
 }
 
 func NewMesh(filename string) *Mesh {
