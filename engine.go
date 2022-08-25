@@ -184,6 +184,13 @@ func (e *Engine) Update() {
 			projectedPoint.x *= (float64(e.window.width) / 2.0)
 			projectedPoint.y *= (float64(e.window.height) / 2.0)
 
+			// Invert Y to deal with obj coordinates system.  FIXME:
+			// I don't like this being here. I would rather it be
+			// during obj parsing, but its not as simple as just
+			// inverting Y (culling and lighting need to be inverted
+			// as well).
+			projectedPoint.y *= -1
+
 			// Translate the projected points to the middle of the screen.
 			projectedPoint.x += (float64(e.window.width) / 2.0)
 			projectedPoint.y += (float64(e.window.height) / 2.0)
