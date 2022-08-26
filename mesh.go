@@ -27,20 +27,23 @@ func NewMesh(objFile, pngFile string) *Mesh {
 	}
 	defer objF.Close()
 
-	pngF, err := os.Open(pngFile)
-	if err != nil {
-		panic(err)
-	}
-	defer pngF.Close()
-
-	image, err := png.Decode(pngF)
-	if err != nil {
-		panic(err)
-	}
-
 	mesh := Mesh{
-		scale:   Vec3{1.0, 1.0, 1.0},
-		texture: NewTexture(image),
+		scale: Vec3{1.0, 1.0, 1.0},
+	}
+
+	if pngFile != "" {
+		pngF, err := os.Open(pngFile)
+		if err != nil {
+			panic(err)
+		}
+		defer pngF.Close()
+
+		image, err := png.Decode(pngF)
+		if err != nil {
+			panic(err)
+		}
+
+		mesh.texture = NewTexture(image)
 	}
 
 	var vertices []Vec3
@@ -70,27 +73,44 @@ func NewMesh(objFile, pngFile string) *Mesh {
 			var normal_indices [3]int
 
 			f := strings.NewReader(line)
-			matches, err := fmt.Fscanf(f, "f %d/%d/%d %d/%d/%d %d/%d/%d",
-				&vertex_indices[0], &texture_indices[0], &normal_indices[0],
-				&vertex_indices[1], &texture_indices[1], &normal_indices[1],
-				&vertex_indices[2], &texture_indices[2], &normal_indices[2],
-			)
-			if err != nil || matches != 9 {
-				log.Fatalf("face: only %d matches on line %q\n", matches, line)
+
+			if !strings.Contains(line, "/") {
+				matches, err := fmt.Fscanf(f, "f %d %d %d", &vertex_indices[0], &vertex_indices[1], &vertex_indices[2])
+				if err != nil || matches != 3 {
+					log.Fatalf("face: only %d matches on line %q\n", matches, line)
+				}
+				mesh.faces = append(mesh.faces, Face{
+					points: [3]Vec3{
+						vertices[vertex_indices[0]-1],
+						vertices[vertex_indices[1]-1],
+						vertices[vertex_indices[2]-1],
+					},
+					color: ColorWhite,
+				})
+			} else {
+				matches, err := fmt.Fscanf(f, "f %d/%d/%d %d/%d/%d %d/%d/%d",
+					&vertex_indices[0], &texture_indices[0], &normal_indices[0],
+					&vertex_indices[1], &texture_indices[1], &normal_indices[1],
+					&vertex_indices[2], &texture_indices[2], &normal_indices[2],
+				)
+				if err != nil || matches != 9 {
+					log.Fatalf("face: only %d matches on line %q\n", matches, line)
+				}
+				mesh.faces = append(mesh.faces, Face{
+					points: [3]Vec3{
+						vertices[vertex_indices[0]-1],
+						vertices[vertex_indices[1]-1],
+						vertices[vertex_indices[2]-1],
+					},
+					texcoords: [3]Tex{
+						vts[texture_indices[0]-1],
+						vts[texture_indices[1]-1],
+						vts[texture_indices[2]-1],
+					},
+					color: ColorWhite,
+				})
 			}
-			mesh.faces = append(mesh.faces, Face{
-				points: [3]Vec3{
-					vertices[vertex_indices[0]-1],
-					vertices[vertex_indices[1]-1],
-					vertices[vertex_indices[2]-1],
-				},
-				texcoords: [3]Tex{
-					vts[texture_indices[0]-1],
-					vts[texture_indices[1]-1],
-					vts[texture_indices[2]-1],
-				},
-				color: ColorWhite,
-			})
+
 		}
 	}
 

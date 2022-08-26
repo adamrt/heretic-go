@@ -66,6 +66,11 @@ func (e *Engine) Setup() {
 		log.Fatalln("no mesh specified")
 	}
 
+	// If there is no texture, change the RenderMode to filled
+	if len(e.mesh.texture.data) == 0 {
+		e.renderMode = RenderModeWireFill
+	}
+
 	// Projection matrix. We only need this calculate this once.
 	fov := math.Pi / 3.0 // Same as 180/3 or 60deg
 	aspect := float64(WindowHeight) / float64(WindowWidth)
