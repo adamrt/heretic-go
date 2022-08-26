@@ -74,6 +74,7 @@ Hypotenous / |
 - [x] Add View Matrix and Camera
 - [x] Add variable delta timing
 - [x] Add Zbuffer for drawing textures
+- [x] Add Zbuffer when drawing filled triangles (removed painters algo)
 
 ##### Notes:
 

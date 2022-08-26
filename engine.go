@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"math"
-	"sort"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -219,10 +218,6 @@ func (e *Engine) Update() {
 			projectedTri.points[i] = projectedPoint
 		}
 
-		// Triangle depth sorting by average vertex z
-		avgDepth := (transformedTri.points[0].z + transformedTri.points[1].z + transformedTri.points[2].z) / 3.0
-		projectedTri.averageDepth = avgDepth
-
 		// Calculate shade intensity based on the normal and light direction
 		lightIntensity := -normal.Dot(globalLight.direction)
 		// Calculate color based on light
@@ -232,14 +227,6 @@ func (e *Engine) Update() {
 
 		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 	}
-
-	// Painters algorithm
-	sort.Slice(e.trianglesToRender, func(i, j int) bool {
-		a := e.trianglesToRender[i]
-		b := e.trianglesToRender[j]
-		return a.averageDepth > b.averageDepth
-	})
-
 }
 
 func (e *Engine) Render() {
@@ -261,7 +248,11 @@ func (e *Engine) Render() {
 			)
 		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
-			e.renderer.DrawFilledTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), tri.color)
+			e.renderer.DrawFilledTriangle(
+				int(a.x), int(a.y), a.z, a.w,
+				int(b.x), int(b.y), b.z, b.w,
+				int(c.x), int(c.y), c.z, c.w,
+				tri.color)
 		}
 
 		if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill {

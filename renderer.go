@@ -59,6 +59,29 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, texture T
 	}
 }
 
+func (r Renderer) DrawTrianglePixel(x, y int, a, b, c Vec4, color Color) {
+	pointP := Vec2{float64(x), float64(y)}
+
+	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
+
+	alpha := weights.x
+	beta := weights.y
+	gamma := weights.z
+
+	// FIXME: move this calculation out of the function as it only needs to
+	// be calcualted once per triangle.
+	interpolatedReciprocalW := (1/a.w)*alpha + (1/b.w)*beta + (1/c.w)*gamma
+
+	// Adjust 1/w so the pixels that are closer to the cam have smaller values
+	interpolatedReciprocalW = 1.0 - interpolatedReciprocalW
+
+	// Only draw pixel if depth value is less than one previously stored in zbuffer.
+	if interpolatedReciprocalW < r.zBuffer[(y*r.width)+x] {
+		r.DrawPixel(x, y, color)
+		r.zBuffer[(y*r.width)+x] = interpolatedReciprocalW
+	}
+}
+
 // DrawLine draws a solid line using the DDA algorithm.
 func (r Renderer) DrawLine(x0, y0, x1, y1 int, color Color) {
 	deltaX := x1 - x0
@@ -129,82 +152,92 @@ func (r Renderer) DrawTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
 //                        \_\
 //                           \
 //                         (x2,y2)
-func (r Renderer) DrawFilledTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
+func (r Renderer) DrawFilledTriangle(
+	x0, y0 int, z0 float64, w0 float64,
+	x1, y1 int, z1 float64, w1 float64,
+	x2, y2 int, z2 float64, w2 float64,
+	color Color,
+) {
 	if y0 > y1 {
 		y0, y1 = y1, y0
 		x0, x1 = x1, x0
+		z0, z1 = z1, z0
+		w0, w1 = w1, w0
 	}
 
 	if y1 > y2 {
 		y1, y2 = y2, y1
 		x1, x2 = x2, x1
+		z1, z2 = z2, z1
+		w1, w2 = w2, w1
 
 	}
 
 	if y0 > y1 {
 		y0, y1 = y1, y0
 		x0, x1 = x1, x0
+		z0, z1 = z1, z0
+		w0, w1 = w1, w0
 	}
 
-	if y1 == y2 {
-		r.fillFlatBottom(x0, y0, x1, y1, x2, y2, color)
-	} else if y0 == y1 {
-		r.fillFlatTop(x0, y0, x1, y1, x2, y2, color)
-	} else {
-		my := y1
-		mx := ((x2 - x0) * (y1 - y0) / (y2 - y0)) + x0
+	a := Vec4{float64(x0), float64(y0), z0, w0}
+	b := Vec4{float64(x1), float64(y1), z1, w1}
+	c := Vec4{float64(x2), float64(y2), z2, w2}
 
-		r.fillFlatBottom(x0, y0, x1, y1, mx, my, color)
-		r.fillFlatTop(x1, y1, mx, my, x2, y2, color)
+	//
+	// Top part of triangle
+	//
+	var invSlope1, invSlope2 float64
+
+	if y1-y0 != 0 {
+		invSlope1 = float64(x1-x0) / math.Abs(float64(y1-y0))
 	}
-}
-
-// Draw a filled a triangle with a flat bottom
-//
-//        (x0,y0)
-//          / \
-//         /   \
-//        /     \
-//       /       \
-//      /         \
-//  (x1,y1)------(x2,y2)
-func (r Renderer) fillFlatBottom(x0, y0, x1, y1, x2, y2 int, color Color) {
-	invSlope1 := float64(x1-x0) / float64(y1-y0)
-	invSlope2 := float64(x2-x0) / float64(y2-y0)
-
-	xStart := float64(x0)
-	xEnd := float64(x0)
-
-	// Loop scanlines bottom to top
-	for y := y0; y <= y2; y++ {
-		r.DrawLine(int(xStart), y, int(xEnd), y, color)
-		xStart += invSlope1
-		xEnd += invSlope2
+	if y2-y0 != 0 {
+		invSlope2 = float64(x2-x0) / math.Abs(float64(y2-y0))
 	}
-}
 
-// Draw a filled a triangle with a flat top
-//
-//  (x0,y0)------(x1,y1)
-//      \         /
-//       \       /
-//        \     /
-//         \   /
-//          \ /
-//        (x2,y2)
-//
-func (r Renderer) fillFlatTop(x0, y0, x1, y1, x2, y2 int, color Color) {
-	invSlope1 := float64(x2-x0) / float64(y2-y0)
-	invSlope2 := float64(x2-x1) / float64(y2-y1)
+	if y1-y0 != 0 {
+		for y := y0; y <= y1; y++ {
+			xStart := int(float64(x1) + float64(y-y1)*invSlope1)
+			xEnd := int(float64(x0) + float64(y-y0)*invSlope2)
 
-	xStart := float64(x2)
-	xEnd := float64(x2)
+			// If xStart is to the left of xEnd
+			if xStart > xEnd {
+				xStart, xEnd = xEnd, xStart
+			}
 
-	// Loop scanlines bottom to top
-	for y := y2; y >= y0; y-- {
-		r.DrawLine(int(xStart), y, int(xEnd), y, color)
-		xStart -= invSlope1
-		xEnd -= invSlope2
+			for x := xStart; x < xEnd; x++ {
+				r.DrawTrianglePixel(x, y, a, b, c, color)
+			}
+		}
+	}
+
+	//
+	// Bottom part of triangle
+	//
+	invSlope1, invSlope2 = 0.0, 0.0
+
+	if y2-y1 != 0 {
+		invSlope1 = float64(x2-x1) / math.Abs(float64(y2-y1))
+	}
+	if y2-y0 != 0 {
+		invSlope2 = float64(x2-x0) / math.Abs(float64(y2-y0))
+	}
+
+	if y2-y1 != 0 {
+		for y := y1; y <= y2; y++ {
+			xStart := int(float64(x1) + float64(y-y1)*invSlope1)
+			xEnd := int(float64(x0) + float64(y-y0)*invSlope2)
+
+			// If xStart is to the left of xEnd
+			if xStart > xEnd {
+				xStart, xEnd = xEnd, xStart
+			}
+
+			for x := xStart; x < xEnd; x++ {
+				r.DrawTrianglePixel(x, y, a, b, c, color)
+			}
+		}
 	}
 }
 
