@@ -101,3 +101,15 @@ complex, I will probably have to refactor anyway.
   this to work.
 - Modelspace -> WorldSpace -> View/Camera Space -> Screen Space
   verts       * worldMatrix * viewMatrix         * projMatrix
+
+### Aug 26 2022
+
+- [x] Add triangle clipping
+- [x] Fix height/width parameter bug. This was causing weird issues
+      when not using aspect ration of 1. I had flipped the
+      height/width params in two places so the sdl window and the
+      buffers had different sizes.
+- [x] Fix backface culling bug. I was trying to use the
+      camera.position for the origin which doesn't work as expected.
+- [x] Handle loading models without textures.
+- [x] Protect colorbuffer and zbuffer from out of bounds indexing

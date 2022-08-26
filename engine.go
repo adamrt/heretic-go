@@ -55,6 +55,7 @@ type Engine struct {
 	renderMode RenderMode
 	projMatrix Matrix
 	camera     Camera
+	frustrum   Frustrum
 
 	// Model
 	mesh              *Mesh
@@ -72,12 +73,15 @@ func (e *Engine) Setup() {
 	}
 
 	// Projection matrix. We only need this calculate this once.
-	fov := math.Pi / 3.0 // Same as 180/3 or 60deg
-	aspect := float64(WindowHeight) / float64(WindowWidth)
-	znear := 0.1
-	zfar := 100.0
+	aspectX := float64(WindowWidth) / float64(WindowHeight)
+	aspectY := float64(WindowHeight) / float64(WindowWidth)
+	fovY := math.Pi / 3.0 // Same as 180/3 or 60deg
+	fovX := math.Atan(math.Tan(fovY/2.0)*aspectX) * 2.0
+	znear := 1.0
+	zfar := 20.0
 
-	e.projMatrix = MatrixMakePerspective(fov, aspect, znear, zfar)
+	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
+	e.frustrum = NewFrustrum(fovX, fovY, znear, zfar)
 	e.camera = NewCamera(Vec3{0, 0, 0}, Vec3{0, 0, 1})
 
 	e.previous = sdl.GetTicks()
@@ -109,23 +113,17 @@ func (e *Engine) ProcessInput() {
 				e.cullMode = CullModeNone
 			case sdl.K_b:
 				e.cullMode = CullModeBackFace
-			case sdl.K_q:
-				e.camera.position.y += 3.0 * e.deltaTime
-			case sdl.K_e:
-				e.camera.position.y -= 3.0 * e.deltaTime
-			case sdl.K_g:
-				e.camera.yaw += 1.0 * e.deltaTime
-			case sdl.K_h:
-				e.camera.yaw -= 1.0 * e.deltaTime
 			case sdl.K_w:
-				e.camera.velocity = e.camera.direction.Mul(5.0 * e.deltaTime)
-				e.camera.position = e.camera.position.Add(e.camera.velocity)
+				e.camera.position.y += 3.0 * e.deltaTime
 			case sdl.K_s:
-				e.camera.velocity = e.camera.direction.Mul(5.0 * e.deltaTime)
-				e.camera.position = e.camera.position.Sub(e.camera.velocity)
+				e.camera.position.y -= 3.0 * e.deltaTime
+			case sdl.K_a:
+				e.camera.yaw += 1.0 * e.deltaTime
+			case sdl.K_d:
+				e.camera.yaw -= 1.0 * e.deltaTime
 			}
 		case *sdl.MouseWheelEvent:
-			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime)
+			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime * 2)
 			e.camera.position = e.camera.position.Add(e.camera.velocity)
 		}
 	}
@@ -145,7 +143,7 @@ func (e *Engine) Update() {
 	e.previous = sdl.GetTicks()
 
 	// Increase the rotation/scale each frame
-	e.mesh.rotation.x += 0.5 * e.deltaTime
+	// e.mesh.rotation.x += 0.5 * e.deltaTime
 	// e.mesh.rotation.y += 0.25 * e.deltaTime
 	// e.mesh.rotation.z += 0.3 * e.deltaTime
 
@@ -219,42 +217,48 @@ func (e *Engine) Update() {
 			}
 		}
 
-		//
-		// Projection
-		//
+		// Clip Polygons
+		clippedTriangles := e.frustrum.Clip(transformedTri, face.texcoords)
 
-		var projectedTri Triangle
-		for i, point := range transformedTri.points {
-			// Project the current vertex
-			projectedPoint := e.projMatrix.MulVec4Proj(point)
+		for _, tri := range clippedTriangles {
 
-			// Scale
-			projectedPoint.x *= (float64(e.window.width) / 2.0)
-			projectedPoint.y *= (float64(e.window.height) / 2.0)
+			//
+			// Projection
+			//
 
-			// Invert Y to deal with obj coordinates system.  FIXME:
-			// I don't like this being here. I would rather it be
-			// during obj parsing, but its not as simple as just
-			// inverting Y (culling and lighting need to be inverted
-			// as well).
-			projectedPoint.y *= -1
+			var projectedTri Triangle
+			for i, point := range tri.points {
+				// Project the current vertex
+				projectedPoint := e.projMatrix.MulVec4Proj(point)
 
-			// Translate the projected points to the middle of the screen.
-			projectedPoint.x += (float64(e.window.width) / 2.0)
-			projectedPoint.y += (float64(e.window.height) / 2.0)
+				// Scale
+				projectedPoint.x *= (float64(e.window.width) / 2.0)
+				projectedPoint.y *= (float64(e.window.height) / 2.0)
 
-			// Append the projected 2D point to the projected points
-			projectedTri.points[i] = projectedPoint
+				// Invert Y to deal with obj coordinates system.  FIXME:
+				// I don't like this being here. I would rather it be
+				// during obj parsing, but its not as simple as just
+				// inverting Y (culling and lighting need to be inverted
+				// as well).
+				projectedPoint.y *= -1
+
+				// Translate the projected points to the middle of the screen.
+				projectedPoint.x += (float64(e.window.width) / 2.0)
+				projectedPoint.y += (float64(e.window.height) / 2.0)
+
+				// Append the projected 2D point to the projected points
+				projectedTri.points[i] = projectedPoint
+			}
+
+			// Calculate shade intensity based on the normal and light direction
+			lightIntensity := -normal.Dot(globalLight.direction)
+			// Calculate color based on light
+			projectedTri.color = applyLightIntensity(face.color, lightIntensity)
+
+			projectedTri.texcoords = tri.texcoords
+
+			e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 		}
-
-		// Calculate shade intensity based on the normal and light direction
-		lightIntensity := -normal.Dot(globalLight.direction)
-		// Calculate color based on light
-		projectedTri.color = applyLightIntensity(face.color, lightIntensity)
-
-		projectedTri.texcoords = face.texcoords
-
-		e.trianglesToRender = append(e.trianglesToRender, projectedTri)
 	}
 }
 
@@ -275,6 +279,7 @@ func (e *Engine) Render() {
 				int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
 				e.mesh.texture,
 			)
+			e.renderer.DrawTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorWhite)
 		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
 			e.renderer.DrawFilledTriangle(
@@ -290,7 +295,7 @@ func (e *Engine) Render() {
 
 		if e.renderMode == RenderModeWireVertex {
 			for _, point := range tri.points {
-				e.renderer.DrawRectangle(int(point.x), int(point.y), 4, 4, ColorRed)
+				e.renderer.DrawRectangle(int(point.x-2), int(point.y-2), 4, 4, ColorRed)
 			}
 		}
 	}

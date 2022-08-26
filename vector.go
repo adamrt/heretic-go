@@ -40,5 +40,10 @@ func (v Vec3) Cross(u Vec3) Vec3 {
 
 type Vec4 struct{ x, y, z, w float64 }
 
+func (v Vec4) Add(u Vec4) Vec4 { return Vec4{v.x + u.x, v.y + u.y, v.z + u.z, v.w + v.w} }
+func (v Vec4) Sub(u Vec4) Vec4 { return Vec4{v.x - u.x, v.y - u.y, v.z - u.z, v.w - v.w} }
+func (v Vec4) Mul(factor float64) Vec4 {
+	return Vec4{v.x * factor, v.y * factor, v.z * factor, v.w * factor}
+}
 func (v Vec4) Vec3() Vec3 { return Vec3{v.x, v.y, v.z} }
 func (v Vec4) Vec2() Vec2 { return Vec2{v.x, v.y} }
