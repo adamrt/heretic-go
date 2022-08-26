@@ -6,7 +6,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func NewWindow(height, width int) *Window {
+func NewWindow(width, height int) *Window {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
 	}
@@ -15,8 +15,8 @@ func NewWindow(height, width int) *Window {
 		"Heretic",
 		sdl.WINDOWPOS_CENTERED,
 		sdl.WINDOWPOS_CENTERED,
-		int32(height),
 		int32(width),
+		int32(height),
 		sdl.WINDOW_BORDERLESS,
 	)
 	if err != nil {
