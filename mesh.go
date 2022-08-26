@@ -20,25 +20,27 @@ type Mesh struct {
 	trans    Vec3
 }
 
-func NewMesh(objFile, pngFile string) *Mesh {
-	objF, err := os.Open(objFile)
+func NewMesh(objFilename string) *Mesh {
+	objFile, err := os.Open(objFilename)
 	if err != nil {
 		panic(err)
 	}
-	defer objF.Close()
+	defer objFile.Close()
 
 	mesh := Mesh{
 		scale: Vec3{1.0, 1.0, 1.0},
 	}
 
-	if pngFile != "" {
-		pngF, err := os.Open(pngFile)
+	pngFilename := strings.Split(objFilename, ".")[0] + ".png"
+
+	if pngFilename != "" {
+		pngFile, err := os.Open(pngFilename)
 		if err != nil {
 			panic(err)
 		}
-		defer pngF.Close()
+		defer pngFile.Close()
 
-		image, err := png.Decode(pngF)
+		image, err := png.Decode(pngFile)
 		if err != nil {
 			panic(err)
 		}
@@ -49,7 +51,7 @@ func NewMesh(objFile, pngFile string) *Mesh {
 	var vertices []Vec3
 	var vts []Tex
 
-	scanner := bufio.NewScanner(objF)
+	scanner := bufio.NewScanner(objFile)
 	for scanner.Scan() {
 		line := scanner.Text()
 		switch {
