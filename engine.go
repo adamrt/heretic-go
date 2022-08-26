@@ -203,12 +203,13 @@ func (e *Engine) Update() {
 		a := transformedTri.points[0].Vec3()
 		b := transformedTri.points[1].Vec3()
 		c := transformedTri.points[2].Vec3()
-		vectorAB := b.Sub(a)
-		vectorAC := c.Sub(a)
+		vectorAB := b.Sub(a).Normalize()
+		vectorAC := c.Sub(a).Normalize()
 		normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
 
 		// Find the vector between a point in the triangle and the camera origin
-		cameraRay := e.camera.position.Sub(a)
+		origin := Vec3{0, 0, 0}
+		cameraRay := origin.Sub(a)
 		// Use dot product to determine the alignment of the camera ray and the normal
 		visibility := normal.Dot(cameraRay)
 		// Bypass triangles that are not facing the camera
