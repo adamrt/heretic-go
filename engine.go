@@ -28,6 +28,7 @@ const (
 )
 
 var globalLight = Light{direction: Vec3{0, 0, 1}}
+var buttonPressed = false
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
@@ -114,17 +115,33 @@ func (e *Engine) ProcessInput() {
 			case sdl.K_b:
 				e.cullMode = CullModeBackFace
 			case sdl.K_w:
-				e.camera.position.y += 3.0 * e.deltaTime
+				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime * 2)
+				e.camera.position = e.camera.position.Add(e.camera.velocity)
 			case sdl.K_s:
-				e.camera.position.y -= 3.0 * e.deltaTime
+				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime)
+				e.camera.position = e.camera.position.Sub(e.camera.velocity)
 			case sdl.K_a:
 				e.camera.yaw += 1.0 * e.deltaTime
 			case sdl.K_d:
 				e.camera.yaw -= 1.0 * e.deltaTime
+			case sdl.K_q:
+				e.camera.position.y += 3.0 * e.deltaTime
+			case sdl.K_e:
+				e.camera.position.y -= 3.0 * e.deltaTime
+
 			}
 		case *sdl.MouseWheelEvent:
 			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime * 2)
 			e.camera.position = e.camera.position.Add(e.camera.velocity)
+		case *sdl.MouseButtonEvent:
+			buttonPressed = t.Type == sdl.MOUSEBUTTONDOWN
+		case *sdl.MouseMotionEvent:
+			if buttonPressed {
+				e.camera.yaw += float64(t.XRel) * e.deltaTime / 10
+				e.camera.pitch += float64(t.YRel) * e.deltaTime / 10
+
+			}
+
 		}
 	}
 }
@@ -144,7 +161,7 @@ func (e *Engine) Update() {
 
 	// Increase the rotation/scale each frame
 	// e.mesh.rotation.x += 0.5 * e.deltaTime
-	// e.mesh.rotation.y += 0.25 * e.deltaTime
+	e.mesh.rotation.y += 0.25 * e.deltaTime
 	// e.mesh.rotation.z += 0.3 * e.deltaTime
 
 	// e.mesh.scale.x += 0.002 * e.deltaTime
@@ -173,13 +190,8 @@ func (e *Engine) Update() {
 
 	// Camera
 	up := Vec3{0, 1, 0}
-	target := Vec3{0, 0, 1.0}
-	cameraYawRotation := MatrixMakeRotY(e.camera.yaw)
-	e.camera.direction = cameraYawRotation.MulVec4(target.Vec4()).Vec3()
-
-	target = e.camera.position.Add(e.camera.direction)
-
-	viewMatrix := MatrixLookAt(e.camera.position, target, up)
+	target := e.camera.LookAtTarget()
+	viewMatrix := e.camera.LookAtMatrix(target, up)
 
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
@@ -279,7 +291,6 @@ func (e *Engine) Render() {
 				int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
 				e.mesh.texture,
 			)
-			e.renderer.DrawTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorWhite)
 		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
 			e.renderer.DrawFilledTriangle(

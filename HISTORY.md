@@ -113,3 +113,12 @@ complex, I will probably have to refactor anyway.
       camera.position for the origin which doesn't work as expected.
 - [x] Handle loading models without textures.
 - [x] Protect colorbuffer and zbuffer from out of bounds indexing
+- [x] Add mouse look around
+
+### TODO:
+
+- [ ] Use a bounding box for each mesh to short-circut culling. If the
+      bounding box is outside the frustrum we don't need to check the
+      mesh faces at all.
+
+- [ ] Implement Clipping Space / Homogenous Clipping
