@@ -7,12 +7,14 @@ func NewRenderer(width, height int) *Renderer {
 		width:       width,
 		height:      height,
 		colorBuffer: make([]Color, width*height),
+		zBuffer:     make([]float64, width*height),
 	}
 }
 
 type Renderer struct {
 	width, height int
 	colorBuffer   []Color
+	zBuffer       []float64
 }
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
@@ -47,7 +49,14 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, texture T
 	textureX := int(math.Abs(interpolatedU*float64(texture.width))) % texture.width
 	textureY := int(math.Abs(interpolatedV*float64(texture.height))) % texture.height
 
-	r.DrawPixel(x, y, texture.data[(textureY*texture.width)+textureX])
+	// Adjust 1/w so the pixels that are closer to the cam have smaller values
+	interpolatedReciprocalW = 1.0 - interpolatedReciprocalW
+
+	// Only draw pixel if depth value is less than one previously stored in zbuffer.
+	if interpolatedReciprocalW < r.zBuffer[(y*r.width)+x] {
+		r.DrawPixel(x, y, texture.data[(textureY*texture.width)+textureX])
+		r.zBuffer[(y*r.width)+x] = interpolatedReciprocalW
+	}
 }
 
 // DrawLine draws a solid line using the DDA algorithm.
@@ -301,10 +310,19 @@ func (r Renderer) DrawTexturedTriangle(
 }
 
 // Clear writes over every color in the buffer
-func (r Renderer) Clear(color Color) {
+func (r Renderer) ClearColorBuffer(color Color) {
 	for x := 0; x < r.width; x++ {
 		for y := 0; y < r.height; y++ {
 			r.DrawPixel(x, y, color)
+		}
+	}
+}
+
+// Clear writes over every color in the buffer
+func (r Renderer) ClearZBuffer() {
+	for x := 0; x < r.width; x++ {
+		for y := 0; y < r.height; y++ {
+			r.zBuffer[(y*r.width)+x] = 1.0
 		}
 	}
 }

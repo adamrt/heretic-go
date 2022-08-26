@@ -243,7 +243,8 @@ func (e *Engine) Update() {
 }
 
 func (e *Engine) Render() {
-	e.renderer.Clear(ColorBlack)
+	e.renderer.ClearColorBuffer(ColorBlack)
+	e.renderer.ClearZBuffer()
 	e.renderer.DrawGrid(ColorGrey)
 
 	for _, tri := range e.trianglesToRender {

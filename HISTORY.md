@@ -73,6 +73,7 @@ Hypotenous / |
 - [x] Render arbitrarily complex textured models
 - [x] Add View Matrix and Camera
 - [x] Add variable delta timing
+- [x] Add Zbuffer for drawing textures
 
 ##### Notes:
 
