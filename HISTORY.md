@@ -75,6 +75,7 @@ Hypotenous / |
 - [x] Add variable delta timing
 - [x] Add Zbuffer for drawing textures
 - [x] Add Zbuffer when drawing filled triangles (removed painters algo)
+- [x] Add simple keyboard and mouse wheel controls
 
 ##### Notes:
 

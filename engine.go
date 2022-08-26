@@ -73,7 +73,7 @@ func (e *Engine) Setup() {
 	zfar := 100.0
 
 	e.projMatrix = MatrixMakePerspective(fov, aspect, znear, zfar)
-	e.camera = NewCamera(Vec3{0, 0, 0}, Vec3{0, 0, 4}, Vec3{0, 1, 0})
+	e.camera = NewCamera(Vec3{0, 0, 0}, Vec3{0, 0, 1})
 
 	e.previous = sdl.GetTicks()
 
@@ -104,7 +104,24 @@ func (e *Engine) ProcessInput() {
 				e.cullMode = CullModeNone
 			case sdl.K_b:
 				e.cullMode = CullModeBackFace
+			case sdl.K_q:
+				e.camera.position.y += 3.0 * e.deltaTime
+			case sdl.K_e:
+				e.camera.position.y -= 3.0 * e.deltaTime
+			case sdl.K_g:
+				e.camera.yaw += 1.0 * e.deltaTime
+			case sdl.K_h:
+				e.camera.yaw -= 1.0 * e.deltaTime
+			case sdl.K_w:
+				e.camera.velocity = e.camera.direction.Mul(5.0 * e.deltaTime)
+				e.camera.position = e.camera.position.Add(e.camera.velocity)
+			case sdl.K_s:
+				e.camera.velocity = e.camera.direction.Mul(5.0 * e.deltaTime)
+				e.camera.position = e.camera.position.Sub(e.camera.velocity)
 			}
+		case *sdl.MouseWheelEvent:
+			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime)
+			e.camera.position = e.camera.position.Add(e.camera.velocity)
 		}
 	}
 }
@@ -145,15 +162,21 @@ func (e *Engine) Update() {
 	rotZMatrix := MatrixMakeRotZ(e.mesh.rotation.z)
 	transMatrix := MatrixMakeTrans(e.mesh.trans.x, e.mesh.trans.y, e.mesh.trans.z)
 
-	target := Vec3{0, 0, 5.0}
-	up := Vec3{0, 1, 0}
-	viewMatrix := MatrixLookAt(e.camera.position, target, up)
-
 	worldMatrix = scaleMatrix.Mul(worldMatrix)
 	worldMatrix = rotXMatrix.Mul(worldMatrix)
 	worldMatrix = rotYMatrix.Mul(worldMatrix)
 	worldMatrix = rotZMatrix.Mul(worldMatrix)
 	worldMatrix = transMatrix.Mul(worldMatrix)
+
+	// Camera
+	up := Vec3{0, 1, 0}
+	target := Vec3{0, 0, 1.0}
+	cameraYawRotation := MatrixMakeRotY(e.camera.yaw)
+	e.camera.direction = cameraYawRotation.MulVec4(target.Vec4()).Vec3()
+
+	target = e.camera.position.Add(e.camera.direction)
+
+	viewMatrix := MatrixLookAt(e.camera.position, target, up)
 
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
