@@ -24,7 +24,7 @@ func (r Renderer) DrawPixel(x, y int, color Color) {
 	}
 }
 
-func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, texture Texture) {
+func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, texture Texture) {
 	pointP := Vec2{float64(x), float64(y)}
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
@@ -54,7 +54,9 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, texture T
 
 	// Only draw pixel if depth value is less than one previously stored in zbuffer.
 	if interpolatedReciprocalW < r.ZBufferAt(x, y) {
-		r.DrawPixel(x, y, texture.data[(textureY*texture.width)+textureX])
+		textureColor := texture.data[(textureY*texture.width)+textureX]
+		textureWithLightColor := applyLightIntensity(textureColor, lightIntensity)
+		r.DrawPixel(x, y, textureWithLightColor)
 		r.ZBufferSet(x, y, interpolatedReciprocalW)
 	}
 }
@@ -245,6 +247,7 @@ func (r Renderer) DrawTexturedTriangle(
 	x0, y0 int, z0, w0 float64, at Tex,
 	x1, y1 int, z1, w1 float64, bt Tex,
 	x2, y2 int, z2, w2 float64, ct Tex,
+	lightIntensity float64,
 	texture Texture,
 ) {
 
@@ -308,7 +311,7 @@ func (r Renderer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				r.DrawTexel(x, y, a, b, c, at, bt, ct, texture)
+				r.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, texture)
 			}
 		}
 	}
@@ -336,7 +339,7 @@ func (r Renderer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				r.DrawTexel(x, y, a, b, c, at, bt, ct, texture)
+				r.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, texture)
 			}
 		}
 	}

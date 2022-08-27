@@ -160,8 +160,9 @@ func (e *Engine) Update() {
 	e.previous = sdl.GetTicks()
 
 	// Increase the rotation/scale each frame
-	// e.mesh.rotation.x += 0.5 * e.deltaTime
-	e.mesh.rotation.y += 0.25 * e.deltaTime
+	e.mesh.rotation.x -= 0.5 * e.deltaTime
+	e.mesh.rotation.z = math.Pi / 2
+	// e.mesh.rotation.y += 0.5 * e.deltaTime
 	// e.mesh.rotation.z += 0.3 * e.deltaTime
 
 	// e.mesh.scale.x += 0.002 * e.deltaTime
@@ -266,7 +267,7 @@ func (e *Engine) Update() {
 			lightIntensity := -normal.Dot(globalLight.direction)
 			// Calculate color based on light
 			projectedTri.color = applyLightIntensity(face.color, lightIntensity)
-
+			projectedTri.lightIntensity = lightIntensity
 			projectedTri.texcoords = tri.texcoords
 
 			e.trianglesToRender = append(e.trianglesToRender, projectedTri)
@@ -289,6 +290,7 @@ func (e *Engine) Render() {
 				int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w, tri.texcoords[0],
 				int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w, tri.texcoords[1],
 				int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
+				tri.lightIntensity,
 				e.mesh.texture,
 			)
 		}

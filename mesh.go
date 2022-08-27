@@ -32,12 +32,14 @@ func NewMesh(objFilename string) *Mesh {
 	}
 
 	pngFilename := strings.Split(objFilename, ".")[0] + ".png"
-
-	if pngFilename != "" {
-		pngFile, err := os.Open(pngFilename)
-		if err != nil {
+	pngFile, err := os.Open(pngFilename)
+	if err != nil {
+		if err == os.ErrNotExist {
+			log.Println(pngFilename, "does not exist.")
+		} else {
 			panic(err)
 		}
+	} else {
 		defer pngFile.Close()
 
 		image, err := png.Decode(pngFile)
