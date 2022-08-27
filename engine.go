@@ -27,7 +27,6 @@ const (
 	RenderModeTexture    RenderMode = 5
 )
 
-var globalLight = Light{direction: Vec3{0, 0, 1}}
 var buttonPressed = false
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
@@ -35,6 +34,8 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 		window:    window,
 		renderer:  renderer,
 		isRunning: true,
+
+		ambientLight: Light{direction: Vec3{0, 0, 1}},
 
 		cullMode:   CullModeBackFace,
 		renderMode: RenderModeTexture,
@@ -61,6 +62,8 @@ type Engine struct {
 	// Model
 	mesh              *Mesh
 	trianglesToRender []Triangle
+
+	ambientLight Light
 }
 
 func (e *Engine) Setup() {
@@ -196,10 +199,7 @@ func (e *Engine) Update() {
 
 	// Project each into 2D
 	for _, face := range e.mesh.faces {
-		//
 		// Transformation
-		//
-
 		var transformedTri Triangle
 		for i := 0; i < 3; i++ {
 			transformedPoint := worldMatrix.MulVec4(face.points[i].Vec4())
@@ -207,70 +207,54 @@ func (e *Engine) Update() {
 			transformedTri.points[i] = transformedPoint
 		}
 
-		//
+		normal := transformedTri.Normal()
+
 		// Backface Culling
 		//
-
-		a := transformedTri.points[0].Vec3()
-		b := transformedTri.points[1].Vec3()
-		c := transformedTri.points[2].Vec3()
-		vectorAB := b.Sub(a).Normalize()
-		vectorAC := c.Sub(a).Normalize()
-		normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
-
-		// Find the vector between a point in the triangle and the camera origin
-		origin := Vec3{0, 0, 0}
-		cameraRay := origin.Sub(a)
-		// Use dot product to determine the alignment of the camera ray and the normal
-		visibility := normal.Dot(cameraRay)
-		// Bypass triangles that are not facing the camera
+		// 1. Find the vector between a point in the triangle and the camera origin.
+		// 2. Determine the alignment of the ray and the normal
 		if e.cullMode == CullModeBackFace {
+			origin := Vec3{0, 0, 0}
+			cameraRay := origin.Sub(transformedTri.points[0].Vec3())
+			visibility := normal.Dot(cameraRay)
 			if visibility < 0 {
 				continue
 			}
 		}
 
-		// Clip Polygons
+		// Clip Polygons against the frustrum
 		clippedTriangles := e.frustrum.Clip(transformedTri, face.texcoords)
 
+		// Projection
 		for _, tri := range clippedTriangles {
+			lightIntensity := -normal.Dot(e.ambientLight.direction)
 
-			//
-			// Projection
-			//
-
-			var projectedTri Triangle
-			for i, point := range tri.points {
-				// Project the current vertex
-				projectedPoint := e.projMatrix.MulVec4Proj(point)
-
-				// Scale
-				projectedPoint.x *= (float64(e.window.width) / 2.0)
-				projectedPoint.y *= (float64(e.window.height) / 2.0)
-
-				// Invert Y to deal with obj coordinates system.  FIXME:
-				// I don't like this being here. I would rather it be
-				// during obj parsing, but its not as simple as just
-				// inverting Y (culling and lighting need to be inverted
-				// as well).
-				projectedPoint.y *= -1
-
-				// Translate the projected points to the middle of the screen.
-				projectedPoint.x += (float64(e.window.width) / 2.0)
-				projectedPoint.y += (float64(e.window.height) / 2.0)
-
-				// Append the projected 2D point to the projected points
-				projectedTri.points[i] = projectedPoint
+			// The final triangle we will render
+			triangleToRender := Triangle{
+				// This is for filled triangles
+				color: applyLightIntensity(face.color, lightIntensity),
+				// This is for textured triangles
+				lightIntensity: lightIntensity,
+				texcoords:      tri.texcoords,
 			}
 
-			// Calculate shade intensity based on the normal and light direction
-			lightIntensity := -normal.Dot(globalLight.direction)
-			// Calculate color based on light
-			projectedTri.color = applyLightIntensity(face.color, lightIntensity)
-			projectedTri.lightIntensity = lightIntensity
-			projectedTri.texcoords = tri.texcoords
+			for i, point := range tri.points {
+				projected := e.projMatrix.MulVec4Proj(point)
+				// FIXME: Invert Y to deal with obj coordinates system.
+				projected.y *= -1
 
-			e.trianglesToRender = append(e.trianglesToRender, projectedTri)
+				// Scale into view (tiny otherwise)
+				projected.x *= (float64(e.window.width) / 2.0)
+				projected.y *= (float64(e.window.height) / 2.0)
+
+				// Translate the projected points to the middle of the screen.
+				projected.x += (float64(e.window.width) / 2.0)
+				projected.y += (float64(e.window.height) / 2.0)
+
+				triangleToRender.points[i] = projected
+			}
+
+			e.trianglesToRender = append(e.trianglesToRender, triangleToRender)
 		}
 	}
 }
