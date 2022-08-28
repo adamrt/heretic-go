@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"image/png"
+	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -34,7 +36,7 @@ func NewMesh(objFilename string) *Mesh {
 	pngFilename := strings.Split(objFilename, ".")[0] + ".png"
 	pngFile, err := os.Open(pngFilename)
 	if err != nil {
-		if err == os.ErrNotExist {
+		if errors.Is(err, fs.ErrNotExist) {
 			log.Println(pngFilename, "does not exist.")
 		} else {
 			panic(err)
