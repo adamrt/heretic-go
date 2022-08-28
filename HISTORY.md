@@ -115,6 +115,11 @@ complex, I will probably have to refactor anyway.
 - [x] Protect colorbuffer and zbuffer from out of bounds indexing
 - [x] Add mouse look around
 
+### Aug 27 2022
+
+- [x] Rebase to remove all images from repo to save space, before starting github repo
+- [x] Improve mouse/keyboard camera controls
+
 ### TODO:
 
 - [ ] Use a bounding box for each mesh to short-circut culling. If the
