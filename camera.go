@@ -3,15 +3,23 @@ package main
 type Camera struct {
 	position  Vec3
 	direction Vec3
-	velocity  Vec3
-	yaw       float64
-	pitch     float64
+	right     Vec3
+	up        Vec3
+	worldUp   Vec3
+
+	velocity Vec3
+	yaw      float64
+	pitch    float64
+
+	rightButtonPressed bool
+	leftButtonPressed  bool
 }
 
 func NewCamera(position, direction Vec3) Camera {
 	return Camera{
-		position:  position,
 		direction: direction,
+		position:  position,
+		worldUp:   Vec3{0, 1, 0},
 	}
 }
 
@@ -26,6 +34,9 @@ func (c *Camera) LookAtTarget() Vec3 {
 	cameraRotation = yawRotation.Mul(cameraRotation)
 
 	c.direction = cameraRotation.MulVec4(target.Vec4()).Vec3()
+	c.right = c.direction.Cross(c.worldUp).Normalize()
+	c.up = c.right.Cross(c.direction).Normalize()
+
 	target = c.position.Add(c.direction)
 	return target
 }

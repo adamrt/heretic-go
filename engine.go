@@ -27,8 +27,6 @@ const (
 	RenderModeTexture    RenderMode = 5
 )
 
-var buttonPressed = false
-
 func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
 		window:    window,
@@ -124,25 +122,36 @@ func (e *Engine) ProcessInput() {
 				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime)
 				e.camera.position = e.camera.position.Sub(e.camera.velocity)
 			case sdl.K_a:
-				e.camera.yaw += 1.0 * e.deltaTime
+				e.camera.velocity = e.camera.right.Mul(10.0 * e.deltaTime * 2)
+				e.camera.position = e.camera.position.Add(e.camera.velocity)
 			case sdl.K_d:
-				e.camera.yaw -= 1.0 * e.deltaTime
+				e.camera.velocity = e.camera.right.Mul(10.0 * e.deltaTime)
+				e.camera.position = e.camera.position.Sub(e.camera.velocity)
 			case sdl.K_q:
 				e.camera.position.y += 3.0 * e.deltaTime
 			case sdl.K_e:
 				e.camera.position.y -= 3.0 * e.deltaTime
-
 			}
 		case *sdl.MouseWheelEvent:
 			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime * 2)
 			e.camera.position = e.camera.position.Add(e.camera.velocity)
 		case *sdl.MouseButtonEvent:
-			buttonPressed = t.Type == sdl.MOUSEBUTTONDOWN
+			if t.Button == sdl.BUTTON_RIGHT {
+				e.camera.rightButtonPressed = t.Type == sdl.MOUSEBUTTONDOWN
+			}
+			if t.Button == sdl.BUTTON_LEFT {
+				e.camera.leftButtonPressed = t.Type == sdl.MOUSEBUTTONDOWN
+			}
 		case *sdl.MouseMotionEvent:
-			if buttonPressed {
-				e.camera.yaw += float64(t.XRel) * e.deltaTime / 10
-				e.camera.pitch += float64(t.YRel) * e.deltaTime / 10
-
+			if e.camera.leftButtonPressed {
+				e.mesh.rotation.x -= float64(t.YRel) * e.deltaTime / 4
+				e.mesh.rotation.y -= float64(t.XRel) * e.deltaTime / 4
+			}
+			if e.camera.rightButtonPressed {
+				e.camera.velocity = e.camera.right.Mul(float64(t.XRel) / 200.0)
+				e.camera.position = e.camera.position.Add(e.camera.velocity)
+				e.camera.velocity = e.camera.up.Mul(float64(t.YRel) / 200.0)
+				e.camera.position = e.camera.position.Add(e.camera.velocity)
 			}
 
 		}
@@ -163,8 +172,8 @@ func (e *Engine) Update() {
 	e.previous = sdl.GetTicks()
 
 	// Increase the rotation/scale each frame
-	e.mesh.rotation.x -= 0.5 * e.deltaTime
-	e.mesh.rotation.z = math.Pi / 2
+	// e.mesh.rotation.x -= 0.5 * e.deltaTime
+	// e.mesh.rotation.z = math.Pi / 2
 	// e.mesh.rotation.y += 0.5 * e.deltaTime
 	// e.mesh.rotation.z += 0.3 * e.deltaTime
 
