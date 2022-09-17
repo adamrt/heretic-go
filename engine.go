@@ -116,13 +116,13 @@ func (e *Engine) ProcessInput() {
 			case sdl.K_b:
 				e.cullMode = CullModeBackFace
 			case sdl.K_w:
-				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime * 2)
+				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime)
 				e.camera.position = e.camera.position.Add(e.camera.velocity)
 			case sdl.K_s:
 				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime)
 				e.camera.position = e.camera.position.Sub(e.camera.velocity)
 			case sdl.K_a:
-				e.camera.velocity = e.camera.right.Mul(10.0 * e.deltaTime * 2)
+				e.camera.velocity = e.camera.right.Mul(10.0 * e.deltaTime)
 				e.camera.position = e.camera.position.Add(e.camera.velocity)
 			case sdl.K_d:
 				e.camera.velocity = e.camera.right.Mul(10.0 * e.deltaTime)
