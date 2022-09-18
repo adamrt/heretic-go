@@ -8,6 +8,13 @@ import (
 	"os"
 )
 
+const (
+	FFTTextureWidth  int = 256
+	FFTTextureHeight int = 1024
+	FFTTextureSize   int = FFTTextureWidth * FFTTextureHeight
+	RawTextureSize   int = FFTTextureSize / 2
+)
+
 type Texture struct {
 	width, height int
 	data          []Color
@@ -63,4 +70,30 @@ func (t Texture) WritePPM(filename string) {
 		}
 	}
 	bw.Flush()
+}
+
+func NewTextureFFT(raw []byte) Texture {
+	data := splitPixels(raw)
+	return Texture{
+		width:  FFTTextureWidth,
+		height: FFTTextureHeight,
+		data:   data,
+	}
+}
+
+// splitPixels takes the ISO's raw bytes and splits each of them into two
+// bytes. The ISO has two pixels per byte to save space. We want each pixel
+// independent, so we split them here.
+func splitPixels(buf []byte) []Color {
+	data := make([]Color, 0)
+	for i := 0; i < RawTextureSize; i++ {
+		colorA := uint8((buf[i] & 0xF0) >> 4)
+		colorB := uint8(buf[i] & 0x0F)
+		data = append(data,
+			Color{colorA, colorA, colorA, 255},
+			Color{colorB, colorB, colorB, 255},
+		)
+
+	}
+	return data
 }
