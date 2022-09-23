@@ -49,7 +49,7 @@ func NewMesh(objFilename string) *Mesh {
 			panic(err)
 		}
 
-		mesh.texture = NewTexture(image)
+		mesh.texture = NewTextureFromImage(image)
 	}
 
 	var vertices []Vec3

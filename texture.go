@@ -13,7 +13,11 @@ type Texture struct {
 	data          []Color
 }
 
-func NewTexture(image image.Image) Texture {
+func NewTexture(width, height int, data []Color) Texture {
+	return Texture{width, height, data}
+}
+
+func NewTextureFromImage(image image.Image) Texture {
 	width := image.Bounds().Dx()
 	height := image.Bounds().Dy()
 	data := make([]Color, width*height)
@@ -29,11 +33,7 @@ func NewTexture(image image.Image) Texture {
 			data[(y*width)+x] = color
 		}
 	}
-	return Texture{
-		width:  width,
-		height: height,
-		data:   data,
-	}
+	return Texture{width, height, data}
 }
 
 func (t Texture) WritePPM(filename string) {
