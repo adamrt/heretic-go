@@ -319,5 +319,5 @@ func (e *Engine) Render() {
 // LoadCubeMesh loads the cube geometry into the Engine.mesh
 func (e *Engine) LoadMesh(objFile string) {
 	// Temporary spot for vertices
-	e.mesh = NewMesh(objFile)
+	e.mesh = NewMeshFromFile(objFile)
 }

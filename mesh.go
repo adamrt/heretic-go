@@ -22,7 +22,12 @@ type Mesh struct {
 	trans    Vec3
 }
 
-func NewMesh(objFilename string) *Mesh {
+
+func NewMesh(faces []Face) Mesh {
+	return Mesh{faces: faces}
+}
+
+func NewMeshFromFile(objFilename string) *Mesh {
 	objFile, err := os.Open(objFilename)
 	if err != nil {
 		panic(err)
