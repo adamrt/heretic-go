@@ -1,7 +1,7 @@
 package heretic
 
 type Color struct {
-	r, g, b, a uint8
+	R, G, B, A uint8
 }
 
 var (

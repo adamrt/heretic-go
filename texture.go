@@ -25,10 +25,10 @@ func NewTextureFromImage(image image.Image) Texture {
 		for x := 0; x < width; x++ {
 			r, g, b, a := image.At(x, y).RGBA()
 			color := Color{
-				r: uint8(r >> 8),
-				g: uint8(g >> 8),
-				b: uint8(b >> 8),
-				a: uint8(a >> 8),
+				R: uint8(r >> 8),
+				G: uint8(g >> 8),
+				B: uint8(b >> 8),
+				A: uint8(a >> 8),
 			}
 			data[(y*width)+x] = color
 		}

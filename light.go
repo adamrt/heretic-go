@@ -11,9 +11,9 @@ func applyLightIntensity(orig Color, factor float64) Color {
 	factor = math.Max(0, math.Min(factor, 1.0))
 
 	return Color{
-		r: uint8(float64(orig.r) * factor),
-		g: uint8(float64(orig.g) * factor),
-		b: uint8(float64(orig.b) * factor),
-		a: orig.a,
+		R: uint8(float64(orig.R) * factor),
+		G: uint8(float64(orig.G) * factor),
+		B: uint8(float64(orig.B) * factor),
+		A: orig.A,
 	}
 }
