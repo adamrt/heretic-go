@@ -321,3 +321,7 @@ func (e *Engine) LoadMesh(objFile string) {
 	// Temporary spot for vertices
 	e.mesh = NewMeshFromFile(objFile)
 }
+
+func (e *Engine) SetMesh(mesh Mesh) {
+	e.mesh = &mesh
+}

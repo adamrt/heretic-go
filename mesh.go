@@ -22,6 +22,9 @@ type Mesh struct {
 	trans    Vec3
 }
 
+func (m *Mesh) SetScale(scale Vec3) {
+	m.scale = scale
+}
 
 func NewMesh(faces []Face) Mesh {
 	return Mesh{faces: faces}
