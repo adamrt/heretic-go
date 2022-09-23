@@ -77,10 +77,9 @@ func (e *Engine) Setup() {
 	if len(e.mesh.texture.data) == 0 {
 		e.renderMode = RenderModeWireFill
 	}
-
 	// Projection matrix. We only need this calculate this once.
-	aspectX := float64(WindowWidth) / float64(WindowHeight)
-	aspectY := float64(WindowHeight) / float64(WindowWidth)
+	aspectX := float64(e.window.width) / float64(e.window.height)
+	aspectY := float64(e.window.height) / float64(e.window.width)
 	fovY := math.Pi / 3.0 // Same as 180/3 or 60deg
 	fovX := math.Atan(math.Tan(fovY/2.0)*aspectX) * 2.0
 	znear := 1.0
