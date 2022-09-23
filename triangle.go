@@ -1,4 +1,4 @@
-package main
+package heretic
 
 // Triangle represents a triangle after rasterization.
 type Triangle struct {

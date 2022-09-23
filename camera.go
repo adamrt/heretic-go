@@ -1,4 +1,4 @@
-package main
+package heretic
 
 type Camera struct {
 	position  Vec3

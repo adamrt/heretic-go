@@ -1,4 +1,4 @@
-package main
+package heretic
 
 import (
 	"log"
@@ -62,6 +62,10 @@ type Engine struct {
 	trianglesToRender []Triangle
 
 	ambientLight Light
+}
+
+func (e *Engine) IsRunning() bool {
+	return e.isRunning
 }
 
 func (e *Engine) Setup() {

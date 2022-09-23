@@ -1,4 +1,4 @@
-package main
+package heretic
 
 // Face represents a triangle before rasterization.
 type Face struct {
