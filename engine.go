@@ -234,9 +234,10 @@ func (e *Engine) Update() {
 		// Clip Polygons against the frustrum
 		clippedTriangles := e.frustrum.Clip(transformedTri, face.texcoords)
 
+		lightIntensity := -normal.Dot(e.ambientLight.direction)
+
 		// Projection
 		for _, tri := range clippedTriangles {
-			lightIntensity := -normal.Dot(e.ambientLight.direction)
 
 			// The final triangle we will render
 			triangleToRender := Triangle{
