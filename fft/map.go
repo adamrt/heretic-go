@@ -162,9 +162,9 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	// Skip ahead to color palettes
 	r.iso.seekPointer(record.Sector(), meshFileHeader.TexturePalettesColor())
 
-	palettes := [16]heretic.Palette{}
+	palettes := [16]*heretic.Palette{}
 	for i := 0; i < 16; i++ {
-		palette := heretic.Palette{}
+		palette := &heretic.Palette{}
 		for j := 0; j < 16; j++ {
 			palette[j] = r.rgb15()
 		}

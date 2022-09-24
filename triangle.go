@@ -11,7 +11,7 @@ type Triangle struct {
 	// colors each. Each polygon references on of the 16 palettes to use. It
 	// is just passed from Face to Triangle and not used until
 	// Renderer.DrawTexel() function.
-	palette Palette
+	palette *Palette
 
 	// Color is used when there is no texture or when there is a texture,
 	// but the polygon has no palette.

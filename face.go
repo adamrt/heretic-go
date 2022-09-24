@@ -2,7 +2,7 @@ package heretic
 
 // Face represents a triangle before rasterization.
 
-func NewFace(points [3]Vec3, texcoords [3]Tex, palette Palette, color Color) Face {
+func NewFace(points [3]Vec3, texcoords [3]Tex, palette *Palette, color Color) Face {
 	return Face{points, texcoords, palette, color}
 }
 
@@ -16,7 +16,7 @@ type Face struct {
 	// colors each. Each polygon references on of the 16 palettes to use. It
 	// is just passed from Face to Triangle and not used until
 	// Renderer.DrawTexel() function.
-	palette Palette
+	palette *Palette
 
 	// Color is used when there is no texture or when there is a texture,
 	// but the polygon has no palette.

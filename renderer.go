@@ -24,7 +24,7 @@ func (r Renderer) DrawPixel(x, y int, color Color) {
 	}
 }
 
-func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, texture Texture, palette Palette) {
+func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, texture Texture, palette *Palette) {
 	pointP := Vec2{float64(x), float64(y)}
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
@@ -54,16 +54,23 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 
 	// Only draw pixel if depth value is less than one previously stored in zbuffer.
 	if interpolatedReciprocalW < r.ZBufferAt(x, y) {
-		textureGray := texture.data[(textureY*texture.width)+textureX]
-		textureColor := palette[textureGray.R]
-		textureWithLightColor := textureColor
+		textureColor := texture.data[(textureY*texture.width)+textureX]
+		// If there is a palette, the current color components will
+		// represent the index into the palette.
+		if palette != nil {
+			textureColor = palette[textureColor.R]
+		}
+
+		textureColorWithLight := textureColor
 		// Disabling this until we get proper lighting
 		// textureWithLightColor := applyLightIntensity(textureColor, lightIntensity)
 
-		if !textureColor.IsTransparent() {
-			r.DrawPixel(x, y, textureWithLightColor)
-			r.ZBufferSet(x, y, interpolatedReciprocalW)
+		// This handels transparent colors when there is a palette (FFT).
+		if textureColor.IsTransparent() && palette != nil {
+			return
 		}
+		r.DrawPixel(x, y, textureColorWithLight)
+		r.ZBufferSet(x, y, interpolatedReciprocalW)
 	}
 }
 
@@ -255,7 +262,7 @@ func (r Renderer) DrawTexturedTriangle(
 	x2, y2 int, z2, w2 float64, ct Tex,
 	lightIntensity float64,
 	texture Texture,
-	palette Palette,
+	palette *Palette,
 ) {
 
 	if y0 > y1 {

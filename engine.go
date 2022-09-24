@@ -253,6 +253,10 @@ func (e *Engine) Update() {
 		// 1. Find the vector between a point in the triangle and the camera origin.
 		// 2. Determine the alignment of the ray and the normal
 		if e.cullMode == CullModeBackFace {
+			// Why is this not the camera.position or
+			// camera.direction?  Testing with the f22 gives
+			// unexpected results, while Vec3{0,0,0} gives us the
+			// expected results, but doesn't seem logical.
 			origin := Vec3{0, 0, 0}
 			cameraRay := origin.Sub(transformedTri.points[0].Vec3())
 			visibility := normal.Dot(cameraRay)
