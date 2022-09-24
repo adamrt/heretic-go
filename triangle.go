@@ -29,3 +29,12 @@ func (t Triangle) Normal() Vec3 {
 	normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
 	return normal
 }
+
+func (t Triangle) HasTexture() bool {
+	for _, tc := range t.texcoords {
+		if !tc.IsEmpty() {
+			return true
+		}
+	}
+	return false
+}

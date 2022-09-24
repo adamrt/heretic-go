@@ -30,3 +30,7 @@ func NewTex(u, v float64) Tex {
 type Tex struct {
 	u, v float64
 }
+
+func (t Tex) IsEmpty() bool {
+	return t.u == 0.0 && t.v == 0.0
+}

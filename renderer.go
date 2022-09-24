@@ -59,8 +59,11 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 		textureWithLightColor := textureColor
 		// Disabling this until we get proper lighting
 		// textureWithLightColor := applyLightIntensity(textureColor, lightIntensity)
-		r.DrawPixel(x, y, textureWithLightColor)
-		r.ZBufferSet(x, y, interpolatedReciprocalW)
+
+		if !textureColor.IsTransparent() {
+			r.DrawPixel(x, y, textureWithLightColor)
+			r.ZBufferSet(x, y, interpolatedReciprocalW)
+		}
 	}
 }
 

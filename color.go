@@ -4,6 +4,10 @@ type Color struct {
 	R, G, B, A uint8
 }
 
+func (c Color) IsTransparent() bool {
+	return c.R+c.G+c.B+c.A == 0
+}
+
 // Palette represents the 16-color palette to use during rendering a polygon.
 type Palette [16]Color
 

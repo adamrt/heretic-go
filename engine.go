@@ -280,14 +280,24 @@ func (e *Engine) Render() {
 		c := tri.points[2]
 
 		if e.renderMode == RenderModeTexture {
-			e.renderer.DrawTexturedTriangle(
-				int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w, tri.texcoords[0],
-				int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w, tri.texcoords[1],
-				int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
-				tri.lightIntensity,
-				e.mesh.texture,
-				tri.palette,
-			)
+			if tri.HasTexture() {
+				e.renderer.DrawTexturedTriangle(
+					int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w, tri.texcoords[0],
+					int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w, tri.texcoords[1],
+					int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
+					tri.lightIntensity,
+					e.mesh.texture,
+					tri.palette,
+				)
+			} else {
+				e.renderer.DrawFilledTriangle(
+					int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w,
+					int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w,
+					int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w,
+					ColorBlack,
+				)
+			}
+
 		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
 			e.renderer.DrawFilledTriangle(
