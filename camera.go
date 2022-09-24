@@ -23,9 +23,7 @@ func NewCamera(position, direction Vec3) Camera {
 	}
 }
 
-func (c *Camera) LookAtTarget() Vec3 {
-	target := Vec3{0, 0, 1}
-
+func (c *Camera) LookAtTarget(target Vec3) Vec3 {
 	yawRotation := MatrixMakeRotY(c.yaw)
 	pitchRotation := MatrixMakeRotX(c.pitch)
 

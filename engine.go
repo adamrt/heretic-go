@@ -203,7 +203,7 @@ func (e *Engine) Update() {
 
 	// Camera
 	up := Vec3{0, 1, 0}
-	target := e.camera.LookAtTarget()
+	target := e.camera.LookAtTarget(Vec3{0, -0.2, 1})
 	viewMatrix := e.camera.LookAtMatrix(target, up)
 
 	// Project each into 2D
