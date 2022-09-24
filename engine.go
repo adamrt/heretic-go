@@ -115,16 +115,16 @@ func (e *Engine) ProcessInput() {
 	case state[sdl.GetScancodeFromKey(sdl.K_b)] != 0:
 		e.cullMode = CullModeBackFace
 	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
-		e.camera.velocity = e.camera.direction.Mul(25.0 * e.deltaTime)
+		e.camera.velocity = e.camera.direction.Mul(15.0 * e.deltaTime)
 		e.camera.position = e.camera.position.Add(e.camera.velocity)
 	case state[sdl.GetScancodeFromKey(sdl.K_s)] != 0:
-		e.camera.velocity = e.camera.direction.Mul(25.0 * e.deltaTime)
+		e.camera.velocity = e.camera.direction.Mul(15.0 * e.deltaTime)
 		e.camera.position = e.camera.position.Sub(e.camera.velocity)
 	case state[sdl.GetScancodeFromKey(sdl.K_a)] != 0:
-		e.camera.velocity = e.camera.right.Mul(25.0 * e.deltaTime)
+		e.camera.velocity = e.camera.right.Mul(15.0 * e.deltaTime)
 		e.camera.position = e.camera.position.Add(e.camera.velocity)
 	case state[sdl.GetScancodeFromKey(sdl.K_d)] != 0:
-		e.camera.velocity = e.camera.right.Mul(25.0 * e.deltaTime)
+		e.camera.velocity = e.camera.right.Mul(15.0 * e.deltaTime)
 		e.camera.position = e.camera.position.Sub(e.camera.velocity)
 	}
 
@@ -134,7 +134,7 @@ func (e *Engine) ProcessInput() {
 			e.isRunning = false
 			break
 		case *sdl.MouseWheelEvent:
-			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime * 2)
+			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime * 15)
 			e.camera.position = e.camera.position.Add(e.camera.velocity)
 		case *sdl.MouseButtonEvent:
 			if t.Button == sdl.BUTTON_RIGHT {
