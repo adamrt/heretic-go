@@ -276,7 +276,7 @@ func (e *Engine) Update() {
 func (e *Engine) Render() {
 	e.renderer.ColorBufferBackground(e.mesh.Background)
 	e.renderer.ZBufferClear()
-	e.renderer.DrawGrid(ColorGrey)
+	// e.renderer.DrawGrid(ColorGrey)
 
 	for _, tri := range e.trianglesToRender {
 		a := tri.points[0]

@@ -6,7 +6,6 @@
 package fft
 
 import (
-	"fmt"
 	"log"
 	"math"
 
@@ -182,8 +181,6 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	directionalLights := r.directionalLights()
 	ambientLight := r.ambientLight()
 	background := r.background()
-
-	fmt.Printf("background %+v // %+v\n", background.Top, background.Bottom)
 
 	return mesh{
 		triangles:         triangles,

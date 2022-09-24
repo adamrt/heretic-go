@@ -123,7 +123,7 @@ complex, I will probably have to refactor anyway.
 ### Sep 23 2022
 
 - [x] Add FFT ISO parsing for textures and meshes
-- [x] Render FFT maps!
+- [x] Render FFT maps with colord textures!
 - [x] Improve mouse/keyboard camera controls even mroe
 
 ##### Notes:
@@ -140,6 +140,11 @@ need to use orthographic projection. I've messed with it, but I need
 to research ortho cameras a bit further.
 
 Big day.
+
+### Sep 24 2022
+
+- [x] Fix texture parsing. Our textures had each pixel flipped.
+- [x] Add background parsing and add linear gradient to viewer
 
 
 ### TODO:
