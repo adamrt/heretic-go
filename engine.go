@@ -121,20 +121,15 @@ func (e *Engine) Setup() {
 
 func (e *Engine) ProcessInput() {
 	state := sdl.GetKeyboardState()
-	//state[sdl.GetScancodeFromKey(sdl.K_UP)] != 0
 	switch {
 	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
-		e.camera.velocity = e.camera.direction.Mul(15.0 * e.deltaTime)
-		e.camera.position = e.camera.position.Add(e.camera.velocity)
+		e.camera.MoveForward(e.deltaTime)
 	case state[sdl.GetScancodeFromKey(sdl.K_s)] != 0:
-		e.camera.velocity = e.camera.direction.Mul(15.0 * e.deltaTime)
-		e.camera.position = e.camera.position.Sub(e.camera.velocity)
+		e.camera.MoveBackward(e.deltaTime)
 	case state[sdl.GetScancodeFromKey(sdl.K_a)] != 0:
-		e.camera.velocity = e.camera.right.Mul(15.0 * e.deltaTime)
-		e.camera.position = e.camera.position.Add(e.camera.velocity)
+		e.camera.MoveLeft(e.deltaTime)
 	case state[sdl.GetScancodeFromKey(sdl.K_d)] != 0:
-		e.camera.velocity = e.camera.right.Mul(15.0 * e.deltaTime)
-		e.camera.position = e.camera.position.Sub(e.camera.velocity)
+		e.camera.MoveRight(e.deltaTime)
 	}
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -173,8 +168,7 @@ func (e *Engine) ProcessInput() {
 			e.isRunning = false
 			break
 		case *sdl.MouseWheelEvent:
-			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime * 15)
-			e.camera.position = e.camera.position.Add(e.camera.velocity)
+			e.camera.MoveForward(float64(t.PreciseY) * e.deltaTime)
 		case *sdl.MouseButtonEvent:
 			if t.Button == sdl.BUTTON_RIGHT {
 				e.camera.rightButtonPressed = t.Type == sdl.MOUSEBUTTONDOWN
@@ -188,10 +182,7 @@ func (e *Engine) ProcessInput() {
 				e.camera.yaw += float64(t.XRel) / 200
 			}
 			if e.camera.rightButtonPressed {
-				e.camera.velocity = e.camera.right.Mul(float64(t.XRel) / 50.0)
-				e.camera.position = e.camera.position.Add(e.camera.velocity)
-				e.camera.velocity = e.camera.up.Mul(float64(t.YRel) / 50.0)
-				e.camera.position = e.camera.position.Add(e.camera.velocity)
+				e.camera.Pan(t.XRel, t.YRel)
 			}
 		}
 	}

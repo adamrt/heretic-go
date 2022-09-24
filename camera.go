@@ -7,9 +7,10 @@ type Camera struct {
 	up        Vec3
 	worldUp   Vec3
 
-	velocity Vec3
-	yaw      float64
-	pitch    float64
+	yaw   float64
+	pitch float64
+
+	speed float64
 
 	rightButtonPressed bool
 	leftButtonPressed  bool
@@ -20,6 +21,7 @@ func NewCamera(position, direction Vec3) Camera {
 		direction: direction,
 		position:  position,
 		worldUp:   Vec3{0, 1, 0},
+		speed:     15.0,
 	}
 }
 
@@ -51,4 +53,34 @@ func (c *Camera) LookAtMatrix(target, up Vec3) Matrix {
 		{z.x, z.y, z.z, -z.Dot(c.position)},
 		{0, 0, 0, 1},
 	}}
+}
+
+func (c *Camera) MoveForward(deltaTime float64) {
+	velocity := c.direction.Mul(c.speed * deltaTime)
+	c.position = c.position.Add(velocity)
+}
+
+func (c *Camera) MoveBackward(deltaTime float64) {
+	velocity := c.direction.Mul(c.speed * deltaTime)
+	c.position = c.position.Sub(velocity)
+}
+
+func (c *Camera) MoveLeft(deltaTime float64) {
+	velocity := c.right.Mul(c.speed * deltaTime)
+	c.position = c.position.Add(velocity)
+}
+
+func (c *Camera) MoveRight(deltaTime float64) {
+	velocity := c.right.Mul(c.speed * deltaTime)
+	c.position = c.position.Sub(velocity)
+}
+
+func (c *Camera) Pan(xrel, yrel int32) {
+	// X
+	velocity := c.right.Mul(float64(xrel) / 50.0)
+	c.position = c.position.Add(velocity)
+
+	// Y
+	velocity = c.up.Mul(float64(yrel) / 50.0)
+	c.position = c.position.Add(velocity)
 }
