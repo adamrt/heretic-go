@@ -120,10 +120,31 @@ complex, I will probably have to refactor anyway.
 - [x] Rebase to remove all images from repo to save space, before starting github repo
 - [x] Improve mouse/keyboard camera controls
 
+### Sep 23 2022
+
+- [x] Add FFT ISO parsing for textures and meshes
+- [x] Render FFT maps!
+- [x] Improve mouse/keyboard camera controls even mroe
+
+##### Notes:
+
+Finally did it! After about a year of work on a ton of projects to get
+here. We are rending FFT maps in our own from-scratch 3D software
+renderer. Super pumped. Getting here was the original goal and its
+awsome.
+
+There is still plenty to do like lighting.
+
+The main issue right now is we are using perspective projection. I
+need to use orthographic projection. I've messed with it, but I need
+to research ortho cameras a bit further.
+
+Big day.
+
+
 ### TODO:
 
 - [ ] Use a bounding box for each mesh to short-circut culling. If the
       bounding box is outside the frustrum we don't need to check the
       mesh faces at all.
-
 - [ ] Implement Clipping Space / Homogenous Clipping
