@@ -123,25 +123,6 @@ func (e *Engine) ProcessInput() {
 	state := sdl.GetKeyboardState()
 	//state[sdl.GetScancodeFromKey(sdl.K_UP)] != 0
 	switch {
-	case state[sdl.GetScancodeFromKey(sdl.K_ESCAPE)] != 0:
-		e.isRunning = false
-		break
-	case state[sdl.GetScancodeFromKey(sdl.K_1)] != 0:
-		e.renderMode = RenderModeWire
-	case state[sdl.GetScancodeFromKey(sdl.K_2)] != 0:
-		e.renderMode = RenderModeWireVertex
-	case state[sdl.GetScancodeFromKey(sdl.K_3)] != 0:
-		e.renderMode = RenderModeWireFill
-	case state[sdl.GetScancodeFromKey(sdl.K_4)] != 0:
-		e.renderMode = RenderModeFill
-	case state[sdl.GetScancodeFromKey(sdl.K_5)] != 0:
-		e.renderMode = RenderModeTexture
-	case state[sdl.GetScancodeFromKey(sdl.K_6)] != 0:
-		e.renderMode = RenderModeTextureWire
-	case state[sdl.GetScancodeFromKey(sdl.K_c)] != 0:
-		e.cullMode = CullModeNone
-	case state[sdl.GetScancodeFromKey(sdl.K_b)] != 0:
-		e.cullMode = CullModeBackFace
 	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
 		e.camera.velocity = e.camera.direction.Mul(15.0 * e.deltaTime)
 		e.camera.position = e.camera.position.Add(e.camera.velocity)
@@ -158,6 +139,36 @@ func (e *Engine) ProcessInput() {
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
+		case *sdl.KeyboardEvent:
+			if event.GetType() != sdl.KEYDOWN {
+				continue
+			}
+			switch t.Keysym.Sym {
+			case sdl.K_ESCAPE:
+				e.isRunning = false
+				break
+
+			case sdl.K_1:
+				e.renderMode = RenderModeWire
+			case sdl.K_2:
+				e.renderMode = RenderModeWireVertex
+			case sdl.K_3:
+				e.renderMode = RenderModeWireFill
+			case sdl.K_4:
+				e.renderMode = RenderModeFill
+			case sdl.K_5:
+				e.renderMode = RenderModeTexture
+			case sdl.K_6:
+				e.renderMode = RenderModeTextureWire
+			case sdl.K_c:
+				e.cullMode = CullModeNone
+			case sdl.K_b:
+				e.cullMode = CullModeBackFace
+			case sdl.K_k:
+				e.NextMap()
+			case sdl.K_j:
+				e.PrevMap()
+			}
 		case *sdl.QuitEvent:
 			e.isRunning = false
 			break
