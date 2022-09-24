@@ -353,7 +353,7 @@ func (r Renderer) DrawTexturedTriangle(
 }
 
 // Clear writes over every color in the buffer
-func (r Renderer) ColorBufferClear(color Color) {
+func (r Renderer) ColorBufferColor(color Color) {
 	for x := 0; x < r.width; x++ {
 		for y := 0; y < r.height; y++ {
 			r.DrawPixel(x, y, color)
