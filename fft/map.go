@@ -23,17 +23,24 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 	records := r.readGNSRecords(mapNum)
 
 	textures := []heretic.Texture{}
-	var mesh heretic.Mesh
+	triangles := []triangle{}
 	for _, record := range records {
 		if record.Type() == RecordTypeTexture {
 			texture := r.parseTexture(record)
 			textures = append(textures, texture)
 		} else if record.Type() == RecordTypeMeshPrimary {
-			mesh = r.parsePrimaryMesh(record)
+			triangles = r.parsePrimaryMesh(record)
 		}
 	}
 
-	mesh.SetScale(heretic.NewVec3(0.05, 0.05, 0.05))
+	// Convert fft Triangles to engine Faces
+	faces := make([]heretic.Face, len(triangles))
+	for i, tri := range triangles {
+		faces[i] = tri.face()
+	}
+
+	mesh := heretic.NewMesh(faces, textures[0])
+	mesh.SetScale(heretic.NewVec3(0.1, 0.1, 0.1))
 
 	return mesh
 }
@@ -65,12 +72,13 @@ func (r MeshReader) parseTexture(record GNSRecord) heretic.Texture {
 	if err != nil || int64(n) != record.Len() {
 		log.Fatalf("read texture data: %v", err)
 	}
-	pixels := splitPixels(data)
+	pixels := textureSplitPixels(data)
+	textureFlipVertical(pixels)
 	return heretic.NewTexture(textureWidth, textureHeight, pixels)
 }
 
 // parseTexture reads and returns an FFT mesh as an engine Mesh.
-func (r MeshReader) parsePrimaryMesh(record GNSRecord) heretic.Mesh {
+func (r MeshReader) parsePrimaryMesh(record GNSRecord) []triangle {
 	r.iso.seekSector(record.Sector())
 
 	// File header contains intra-file pointers to areas of mesh data.
@@ -113,27 +121,43 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) heretic.Mesh {
 		triangles = append(triangles, r.quad().split()...)
 	}
 
-	// Convert fft Triangles to engine Faces
-	faces := make([]heretic.Face, len(triangles))
-	for i, tri := range triangles {
-		faces[i] = heretic.NewFace(tri.points(), heretic.ColorWhite)
+	// Normals
+	// Nothing is actually collected. They are just read here so the
+	// iso read position moves forward, so we can read polygon texture data
+	// next.  This could be cleaned up as a seek, but we may eventually use
+	// the normal data here.
+	for i := 0; i < meshHeader.numTexturedTriangles(); i++ {
+		r.triNormal()
+	}
+	for i := 0; i < meshHeader.numTexturedQuads(); i++ {
+		r.quadNormal()
 	}
 
-	return heretic.NewMesh(faces)
+	// Polygon texture data
+	for i := 0; i < meshHeader.numTexturedTriangles(); i++ {
+		triangles[i].textureData = r.triUV()
+	}
+	for i := meshHeader.numTexturedTriangles(); i < meshHeader.numTexturedTriangles()+(meshHeader.numTexturedQuads()*2); i = i + 2 {
+		textureData := r.quadUV().split()
+		triangles[i].textureData = textureData[0]
+		triangles[i+1].textureData = textureData[1]
+	}
+
+	return triangles
 }
 
 func (r MeshReader) vertex() vertex {
 	x := r.iso.int16()
-	y := -r.iso.int16()
+	y := r.iso.int16()
 	z := r.iso.int16()
-	return vertex{x, y, z}
+	return vertex{x, -y, z}
 }
 
 func (r MeshReader) triangle() triangle {
 	a := r.vertex()
 	b := r.vertex()
 	c := r.vertex()
-	return triangle{a, b, c}
+	return triangle{a: a, b: b, c: c}
 }
 
 func (r MeshReader) quad() quad {
@@ -149,16 +173,10 @@ func (r MeshReader) f1x3x12() float64 {
 }
 
 func (r MeshReader) normal() normal {
-	a := r.f1x3x12()
-	b := r.f1x3x12()
-	c := r.f1x3x12()
-	return normal{a, b, c}
-}
-
-func (r MeshReader) uv() polygonTexData {
-	u := r.iso.uint8()
-	v := r.iso.uint8()
-	return polygonTexData{u: u, v: v}
+	x := r.f1x3x12()
+	y := r.f1x3x12()
+	z := r.f1x3x12()
+	return normal{x, -y, z}
 }
 
 func (r MeshReader) triNormal() []normal {
@@ -176,36 +194,31 @@ func (r MeshReader) quadNormal() []normal {
 	return []normal{a, b, c, d}
 }
 
-func (r MeshReader) triUV() []polygonTexData {
-	a := r.uv()
-	palette := r.iso.uint8() & 0b1111
-	r.iso.uint8() // padding
-	b := r.uv()
-	page := r.iso.uint8() & 0b11
-	r.iso.uint8() // padding
-	c := r.uv()
-
-	colorPoint := (page << 4) + palette
-
-	return []polygonTexData{{a.u, a.v, colorPoint}, {b.u, b.v, colorPoint}, {c.u, c.v, colorPoint}}
+func (r MeshReader) uv() uv {
+	x := r.iso.uint8()
+	y := r.iso.uint8()
+	return uv{x: x, y: y}
 }
 
-func (r MeshReader) quadUV() []polygonTexData {
+func (r MeshReader) triUV() triangleTexData {
 	a := r.uv()
-	palette := r.iso.uint8() & 0b1111
+	palette := int(r.iso.uint8() & 0b1111)
 	r.iso.uint8() // padding
 	b := r.uv()
-	page := r.iso.uint8() & 0b11
+	page := int(r.iso.uint8() & 0b11) // only 2 bits
+	r.iso.uint8()                     // padding
+	c := r.uv()
+	return triangleTexData{a: a, b: b, c: c, palette: palette, page: page}
+}
+
+func (r MeshReader) quadUV() quadTexData {
+	a := r.uv()
+	palette := int(r.iso.uint8() & 0b1111)
 	r.iso.uint8() // padding
+	b := r.uv()
+	page := int(r.iso.uint8() & 0b11) // only 2 bits
+	r.iso.uint8()                     // padding
 	c := r.uv()
 	d := r.uv()
-
-	colorPoint := (page << 4) + palette
-
-	return []polygonTexData{
-		{a.u, a.v, colorPoint},
-		{b.u, b.v, colorPoint},
-		{c.u, c.v, colorPoint},
-		{d.u, d.v, colorPoint},
-	}
+	return quadTexData{a: a, b: b, c: c, d: d, palette: palette, page: page}
 }

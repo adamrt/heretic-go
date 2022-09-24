@@ -21,7 +21,7 @@ func main() {
 	iso := fft.NewISOReader("/home/adam/tmp/emu/fft.iso")
 	defer iso.Close()
 
-	meshReader := fft.NewMapReader(iso)
+	meshReader := fft.NewMeshReader(iso)
 	mesh := meshReader.ReadMesh(3)
 	engine.SetMesh(mesh)
 

@@ -26,8 +26,8 @@ func (m *Mesh) SetScale(scale Vec3) {
 	m.scale = scale
 }
 
-func NewMesh(faces []Face) Mesh {
-	return Mesh{faces: faces}
+func NewMesh(faces []Face, texture Texture) Mesh {
+	return Mesh{faces: faces, texture: texture}
 }
 
 func NewMeshFromFile(objFilename string) *Mesh {

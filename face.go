@@ -2,8 +2,8 @@ package heretic
 
 // Face represents a triangle before rasterization.
 
-func NewFace(points [3]Vec3, color Color) Face {
-	return Face{points: points, color: color}
+func NewFace(points [3]Vec3, texcoords [3]Tex, color Color) Face {
+	return Face{points: points, texcoords: texcoords, color: color}
 }
 
 type Face struct {
