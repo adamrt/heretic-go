@@ -20,11 +20,12 @@ const (
 	CullModeNone     CullMode = 0
 	CullModeBackFace CullMode = 1
 
-	RenderModeWire       RenderMode = 1
-	RenderModeWireVertex RenderMode = 2
-	RenderModeWireFill   RenderMode = 3
-	RenderModeFill       RenderMode = 4
-	RenderModeTexture    RenderMode = 5
+	RenderModeWire        RenderMode = 1
+	RenderModeWireVertex  RenderMode = 2
+	RenderModeWireFill    RenderMode = 3
+	RenderModeFill        RenderMode = 4
+	RenderModeTexture     RenderMode = 5
+	RenderModeTextureWire RenderMode = 6
 )
 
 func NewEngine(window *Window, renderer *Renderer) *Engine {
@@ -110,6 +111,8 @@ func (e *Engine) ProcessInput() {
 		e.renderMode = RenderModeFill
 	case state[sdl.GetScancodeFromKey(sdl.K_5)] != 0:
 		e.renderMode = RenderModeTexture
+	case state[sdl.GetScancodeFromKey(sdl.K_6)] != 0:
+		e.renderMode = RenderModeTextureWire
 	case state[sdl.GetScancodeFromKey(sdl.K_c)] != 0:
 		e.cullMode = CullModeNone
 	case state[sdl.GetScancodeFromKey(sdl.K_b)] != 0:
@@ -280,7 +283,7 @@ func (e *Engine) Render() {
 		b := tri.points[1]
 		c := tri.points[2]
 
-		if e.renderMode == RenderModeTexture {
+		if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
 			if tri.HasTexture() {
 				e.renderer.DrawTexturedTriangle(
 					int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w, tri.texcoords[0],
@@ -308,7 +311,7 @@ func (e *Engine) Render() {
 				tri.color)
 		}
 
-		if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill {
+		if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
 			e.renderer.DrawTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorWhite)
 		}
 
