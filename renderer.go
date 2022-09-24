@@ -29,18 +29,18 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
 
-	alpha := weights.x
-	beta := weights.y
-	gamma := weights.z
+	alpha := weights.X
+	beta := weights.Y
+	gamma := weights.Z
 
 	var interpolatedU, interpolatedV, interpolatedReciprocalW float64
 
-	interpolatedU = (auv.u/a.w)*alpha + (buv.u/b.w)*beta + (cuv.u/c.w)*gamma
-	interpolatedV = (auv.v/a.w)*alpha + (buv.v/b.w)*beta + (cuv.v/c.w)*gamma
+	interpolatedU = (auv.u/a.W)*alpha + (buv.u/b.W)*beta + (cuv.u/c.W)*gamma
+	interpolatedV = (auv.v/a.W)*alpha + (buv.v/b.W)*beta + (cuv.v/c.W)*gamma
 
 	// FIXME: move this calculation out of the function as it only needs to
 	// be calcualted once per triangle.
-	interpolatedReciprocalW = (1/a.w)*alpha + (1/b.w)*beta + (1/c.w)*gamma
+	interpolatedReciprocalW = (1/a.W)*alpha + (1/b.W)*beta + (1/c.W)*gamma
 
 	interpolatedU /= interpolatedReciprocalW
 	interpolatedV /= interpolatedReciprocalW
@@ -79,13 +79,13 @@ func (r Renderer) DrawTrianglePixel(x, y int, a, b, c Vec4, color Color) {
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
 
-	alpha := weights.x
-	beta := weights.y
-	gamma := weights.z
+	alpha := weights.X
+	beta := weights.Y
+	gamma := weights.Z
 
 	// FIXME: move this calculation out of the function as it only needs to
 	// be calcualted once per triangle.
-	interpolatedReciprocalW := (1/a.w)*alpha + (1/b.w)*beta + (1/c.w)*gamma
+	interpolatedReciprocalW := (1/a.W)*alpha + (1/b.W)*beta + (1/c.W)*gamma
 
 	// Adjust 1/w so the pixels that are closer to the cam have smaller values
 	interpolatedReciprocalW = 1.0 - interpolatedReciprocalW
@@ -409,13 +409,13 @@ func barycentricWeights(a, b, c, p Vec2) Vec3 {
 	bp := p.Sub(b)
 
 	// Calcualte the area of the full triangle ABC using cross product (area of parallelogram)
-	triangle_area := (ab.x*ac.y - ab.y*ac.x)
+	triangleArea := (ab.X*ac.Y - ab.Y*ac.X)
 
 	// Weight alpha is the area of subtriangle BCP divided by the area of the full triangle ABC
-	alpha := (bc.x*bp.y - bp.x*bc.y) / triangle_area
+	alpha := (bc.X*bp.Y - bp.X*bc.Y) / triangleArea
 
 	// Weight beta is the area of subtriangle ACP divided by the area of the full triangle ABC
-	beta := (ap.x*ac.y - ac.x*ap.y) / triangle_area
+	beta := (ap.X*ac.Y - ac.X*ap.Y) / triangleArea
 
 	// Weight gamma is easily found since barycentric cooordinates always add up to 1
 	gamma := 1 - alpha - beta

@@ -67,7 +67,7 @@ func NewMeshFromFile(objFilename string) *Mesh {
 		switch {
 		case strings.HasPrefix(line, "v "):
 			var v Vec3
-			matches, err := fmt.Fscanf(strings.NewReader(line), "v %f %f %f", &v.x, &v.y, &v.z)
+			matches, err := fmt.Fscanf(strings.NewReader(line), "v %f %f %f", &v.X, &v.Y, &v.Z)
 			if err != nil || matches != 3 {
 				log.Fatalf("vertex: only %d matches on line %q\n", matches, line)
 			}

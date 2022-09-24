@@ -18,10 +18,10 @@ func (a Matrix) Mul(b Matrix) Matrix {
 
 func (m Matrix) MulVec4(v Vec4) Vec4 {
 	return Vec4{
-		m.m[0][0]*v.x + m.m[0][1]*v.y + m.m[0][2]*v.z + m.m[0][3]*v.w,
-		m.m[1][0]*v.x + m.m[1][1]*v.y + m.m[1][2]*v.z + m.m[1][3]*v.w,
-		m.m[2][0]*v.x + m.m[2][1]*v.y + m.m[2][2]*v.z + m.m[2][3]*v.w,
-		m.m[3][0]*v.x + m.m[3][1]*v.y + m.m[3][2]*v.z + m.m[3][3]*v.w,
+		m.m[0][0]*v.X + m.m[0][1]*v.Y + m.m[0][2]*v.Z + m.m[0][3]*v.W,
+		m.m[1][0]*v.X + m.m[1][1]*v.Y + m.m[1][2]*v.Z + m.m[1][3]*v.W,
+		m.m[2][0]*v.X + m.m[2][1]*v.Y + m.m[2][2]*v.Z + m.m[2][3]*v.W,
+		m.m[3][0]*v.X + m.m[3][1]*v.Y + m.m[3][2]*v.Z + m.m[3][3]*v.W,
 	}
 }
 
@@ -31,10 +31,10 @@ func (m Matrix) MulVec4Proj(v Vec4) Vec4 {
 
 	// Perspective Divide with original z value (result.w).  The result.w is
 	// populated during MulVec4() because of the projection matrix 3/2==1.
-	if result.w != 0.0 {
-		result.x /= result.w
-		result.y /= result.w
-		result.z /= result.w
+	if result.W != 0.0 {
+		result.X /= result.W
+		result.Y /= result.W
+		result.Z /= result.W
 	}
 	return result
 }

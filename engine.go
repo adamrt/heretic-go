@@ -202,28 +202,28 @@ func (e *Engine) Update() {
 	e.previous = sdl.GetTicks()
 
 	// Increase the rotation/scale each frame
-	// e.mesh.rotation.x -= 0.5 * e.deltaTime
-	// e.mesh.rotation.z = math.Pi / 2
-	// e.mesh.rotation.y += 0.5 * e.deltaTime
-	// e.mesh.rotation.z += 0.3 * e.deltaTime
+	// e.mesh.rotation.X -= 0.5 * e.deltaTime
+	// e.mesh.rotation.Z = math.Pi / 2
+	// e.mesh.Rotation.Y += 0.5 * e.deltaTime
+	// e.mesh.rotation.Z += 0.3 * e.deltaTime
 
-	// e.mesh.scale.x += 0.002 * e.deltaTime
-	// e.mesh.scale.y += 0.001 * e.deltaTime
+	// e.mesh.scale.X += 0.002 * e.deltaTime
+	// e.mesh.scale.Y += 0.001 * e.deltaTime
 
-	// e.mesh.trans.x += 0.01
-	// e.mesh.trans.z = 4.0 // constant
+	// e.mesh.trans.X += 0.01
+	// e.mesh.trans.Z = 4.0 // constant
 
-	// e.camera.position.x += 0.02 * e.deltaTime
-	// e.camera.position.y += 0.01 * e.deltaTime
-	// e.camera.position.z += 0.3 * e.deltaTime
+	// e.camera.position.X += 0.02 * e.deltaTime
+	// e.camera.position.Y += 0.01 * e.deltaTime
+	// e.camera.position.Z += 0.3 * e.deltaTime
 
 	// World matrix. Combination of scale, rotation and translation
 	worldMatrix := MatrixIdentity()
-	scaleMatrix := MatrixMakeScale(e.mesh.Scale.x, e.mesh.Scale.y, e.mesh.Scale.z)
-	rotXMatrix := MatrixMakeRotX(e.mesh.Rotation.x)
-	rotYMatrix := MatrixMakeRotY(e.mesh.Rotation.y)
-	rotZMatrix := MatrixMakeRotZ(e.mesh.Rotation.z)
-	transMatrix := MatrixMakeTrans(e.mesh.Trans.x, e.mesh.Trans.y, e.mesh.Trans.z)
+	scaleMatrix := MatrixMakeScale(e.mesh.Scale.X, e.mesh.Scale.Y, e.mesh.Scale.Z)
+	rotXMatrix := MatrixMakeRotX(e.mesh.Rotation.X)
+	rotYMatrix := MatrixMakeRotY(e.mesh.Rotation.Y)
+	rotZMatrix := MatrixMakeRotZ(e.mesh.Rotation.Z)
+	transMatrix := MatrixMakeTrans(e.mesh.Trans.X, e.mesh.Trans.Y, e.mesh.Trans.Z)
 
 	worldMatrix = scaleMatrix.Mul(worldMatrix)
 	worldMatrix = rotXMatrix.Mul(worldMatrix)
@@ -286,15 +286,15 @@ func (e *Engine) Update() {
 			for i, point := range tri.points {
 				projected := e.projMatrix.MulVec4Proj(point)
 				// FIXME: Invert Y to deal with obj coordinates system.
-				projected.y *= -1
+				projected.Y *= -1
 
 				// Scale into view (tiny otherwise)
-				projected.x *= (float64(e.window.width) / 2.0)
-				projected.y *= (float64(e.window.height) / 2.0)
+				projected.X *= (float64(e.window.width) / 2.0)
+				projected.Y *= (float64(e.window.height) / 2.0)
 
 				// Translate the projected points to the middle of the screen.
-				projected.x += (float64(e.window.width) / 2.0)
-				projected.y += (float64(e.window.height) / 2.0)
+				projected.X += (float64(e.window.width) / 2.0)
+				projected.Y += (float64(e.window.height) / 2.0)
 
 				triangleToRender.points[i] = projected
 			}
@@ -317,18 +317,18 @@ func (e *Engine) Render() {
 		if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
 			if tri.HasTexture() {
 				e.renderer.DrawTexturedTriangle(
-					int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w, tri.texcoords[0],
-					int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w, tri.texcoords[1],
-					int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
+					int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W, tri.texcoords[0],
+					int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W, tri.texcoords[1],
+					int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W, tri.texcoords[2],
 					tri.lightIntensity,
 					e.mesh.Texture,
 					tri.palette,
 				)
 			} else {
 				e.renderer.DrawFilledTriangle(
-					int(tri.points[0].x), int(tri.points[0].y), tri.points[0].z, tri.points[0].w,
-					int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w,
-					int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w,
+					int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W,
+					int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W,
+					int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W,
 					ColorBlack,
 				)
 			}
@@ -336,19 +336,19 @@ func (e *Engine) Render() {
 		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
 			e.renderer.DrawFilledTriangle(
-				int(a.x), int(a.y), a.z, a.w,
-				int(b.x), int(b.y), b.z, b.w,
-				int(c.x), int(c.y), c.z, c.w,
+				int(a.X), int(a.Y), a.Z, a.W,
+				int(b.X), int(b.Y), b.Z, b.W,
+				int(c.X), int(c.Y), c.Z, c.W,
 				tri.color)
 		}
 
 		if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
-			e.renderer.DrawTriangle(int(a.x), int(a.y), int(b.x), int(b.y), int(c.x), int(c.y), ColorWhite)
+			e.renderer.DrawTriangle(int(a.X), int(a.Y), int(b.X), int(b.Y), int(c.X), int(c.Y), ColorWhite)
 		}
 
 		if e.renderMode == RenderModeWireVertex {
 			for _, point := range tri.points {
-				e.renderer.DrawRectangle(int(point.x-2), int(point.y-2), 4, 4, ColorRed)
+				e.renderer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
 			}
 		}
 	}

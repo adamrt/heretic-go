@@ -103,9 +103,9 @@ func (f Frustrum) clipAgainstPlane(polygon Polygon, plane Plane) Polygon {
 		if currentDot*previousDot < 0 {
 			t := previousDot / (previousDot - currentDot)
 			intersectionPoint := Vec3{
-				x: lerp(previousVertex.x, currentVertex.x, t),
-				y: lerp(previousVertex.y, currentVertex.y, t),
-				z: lerp(previousVertex.z, currentVertex.z, t),
+				X: lerp(previousVertex.X, currentVertex.X, t),
+				Y: lerp(previousVertex.Y, currentVertex.Y, t),
+				Z: lerp(previousVertex.Z, currentVertex.Z, t),
 			}
 			insideVertices = append(insideVertices, intersectionPoint)
 

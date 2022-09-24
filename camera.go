@@ -48,9 +48,9 @@ func (c *Camera) LookAtMatrix(target, up Vec3) Matrix {
 
 	// View Matrix
 	return Matrix{m: [4][4]float64{
-		{x.x, x.y, x.z, -x.Dot(c.position)},
-		{y.x, y.y, y.z, -y.Dot(c.position)},
-		{z.x, z.y, z.z, -z.Dot(c.position)},
+		{x.X, x.Y, x.Z, -x.Dot(c.position)},
+		{y.X, y.Y, y.Z, -y.Dot(c.position)},
+		{z.X, z.Y, z.Z, -z.Dot(c.position)},
 		{0, 0, 0, 1},
 	}}
 }
