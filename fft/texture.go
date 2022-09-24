@@ -17,8 +17,8 @@ const (
 func textureSplitPixels(buf []byte) []heretic.Color {
 	data := make([]heretic.Color, 0)
 	for i := 0; i < textureRawLen; i++ {
-		colorA := uint8((buf[i] & 0xF0) >> 4)
-		colorB := uint8(buf[i] & 0x0F)
+		colorA := uint8(buf[i] & 0x0F)
+		colorB := uint8((buf[i] & 0xF0) >> 4)
 
 		// We dont care about RGB here.
 		// This is just an index to the palette.
