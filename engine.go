@@ -94,47 +94,45 @@ func (e *Engine) Setup() {
 }
 
 func (e *Engine) ProcessInput() {
+	state := sdl.GetKeyboardState()
+	//state[sdl.GetScancodeFromKey(sdl.K_UP)] != 0
+	switch {
+	case state[sdl.GetScancodeFromKey(sdl.K_ESCAPE)] != 0:
+		e.isRunning = false
+		break
+	case state[sdl.GetScancodeFromKey(sdl.K_1)] != 0:
+		e.renderMode = RenderModeWire
+	case state[sdl.GetScancodeFromKey(sdl.K_2)] != 0:
+		e.renderMode = RenderModeWireVertex
+	case state[sdl.GetScancodeFromKey(sdl.K_3)] != 0:
+		e.renderMode = RenderModeWireFill
+	case state[sdl.GetScancodeFromKey(sdl.K_4)] != 0:
+		e.renderMode = RenderModeFill
+	case state[sdl.GetScancodeFromKey(sdl.K_5)] != 0:
+		e.renderMode = RenderModeTexture
+	case state[sdl.GetScancodeFromKey(sdl.K_c)] != 0:
+		e.cullMode = CullModeNone
+	case state[sdl.GetScancodeFromKey(sdl.K_b)] != 0:
+		e.cullMode = CullModeBackFace
+	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
+		e.camera.velocity = e.camera.direction.Mul(25.0 * e.deltaTime)
+		e.camera.position = e.camera.position.Add(e.camera.velocity)
+	case state[sdl.GetScancodeFromKey(sdl.K_s)] != 0:
+		e.camera.velocity = e.camera.direction.Mul(25.0 * e.deltaTime)
+		e.camera.position = e.camera.position.Sub(e.camera.velocity)
+	case state[sdl.GetScancodeFromKey(sdl.K_a)] != 0:
+		e.camera.velocity = e.camera.right.Mul(25.0 * e.deltaTime)
+		e.camera.position = e.camera.position.Add(e.camera.velocity)
+	case state[sdl.GetScancodeFromKey(sdl.K_d)] != 0:
+		e.camera.velocity = e.camera.right.Mul(25.0 * e.deltaTime)
+		e.camera.position = e.camera.position.Sub(e.camera.velocity)
+	}
+
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
 		case *sdl.QuitEvent:
 			e.isRunning = false
 			break
-		case *sdl.KeyboardEvent:
-			switch t.Keysym.Sym {
-			case sdl.K_ESCAPE:
-				e.isRunning = false
-				break
-			case sdl.K_1:
-				e.renderMode = RenderModeWire
-			case sdl.K_2:
-				e.renderMode = RenderModeWireVertex
-			case sdl.K_3:
-				e.renderMode = RenderModeWireFill
-			case sdl.K_4:
-				e.renderMode = RenderModeFill
-			case sdl.K_5:
-				e.renderMode = RenderModeTexture
-			case sdl.K_c:
-				e.cullMode = CullModeNone
-			case sdl.K_b:
-				e.cullMode = CullModeBackFace
-			case sdl.K_w:
-				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime)
-				e.camera.position = e.camera.position.Add(e.camera.velocity)
-			case sdl.K_s:
-				e.camera.velocity = e.camera.direction.Mul(10.0 * e.deltaTime)
-				e.camera.position = e.camera.position.Sub(e.camera.velocity)
-			case sdl.K_a:
-				e.camera.velocity = e.camera.right.Mul(10.0 * e.deltaTime)
-				e.camera.position = e.camera.position.Add(e.camera.velocity)
-			case sdl.K_d:
-				e.camera.velocity = e.camera.right.Mul(10.0 * e.deltaTime)
-				e.camera.position = e.camera.position.Sub(e.camera.velocity)
-			case sdl.K_q:
-				e.camera.position.y += 3.0 * e.deltaTime
-			case sdl.K_e:
-				e.camera.position.y -= 3.0 * e.deltaTime
-			}
 		case *sdl.MouseWheelEvent:
 			e.camera.velocity = e.camera.direction.Mul(float64(t.PreciseY) * e.deltaTime * 2)
 			e.camera.position = e.camera.position.Add(e.camera.velocity)
@@ -147,16 +145,15 @@ func (e *Engine) ProcessInput() {
 			}
 		case *sdl.MouseMotionEvent:
 			if e.camera.leftButtonPressed {
-				e.mesh.rotation.x -= float64(t.YRel) * e.deltaTime / 4
-				e.mesh.rotation.y -= float64(t.XRel) * e.deltaTime / 4
+				e.camera.pitch += float64(t.YRel) / 200
+				e.camera.yaw += float64(t.XRel) / 200
 			}
 			if e.camera.rightButtonPressed {
-				e.camera.velocity = e.camera.right.Mul(float64(t.XRel) / 200.0)
+				e.camera.velocity = e.camera.right.Mul(float64(t.XRel) / 50.0)
 				e.camera.position = e.camera.position.Add(e.camera.velocity)
-				e.camera.velocity = e.camera.up.Mul(float64(t.YRel) / 200.0)
+				e.camera.velocity = e.camera.up.Mul(float64(t.YRel) / 50.0)
 				e.camera.position = e.camera.position.Add(e.camera.velocity)
 			}
-
 		}
 	}
 }
@@ -184,7 +181,7 @@ func (e *Engine) Update() {
 	// e.mesh.scale.y += 0.001 * e.deltaTime
 
 	// e.mesh.trans.x += 0.01
-	e.mesh.trans.z = 4.0 // constant
+	// e.mesh.trans.z = 4.0 // constant
 
 	// e.camera.position.x += 0.02 * e.deltaTime
 	// e.camera.position.y += 0.01 * e.deltaTime
