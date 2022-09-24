@@ -6,6 +6,16 @@ type Matrix struct {
 	m [4][4]float64
 }
 
+func (a Matrix) Mul(b Matrix) Matrix {
+	var m Matrix
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			m.m[i][j] = a.m[i][0]*b.m[0][j] + a.m[i][1]*b.m[1][j] + a.m[i][2]*b.m[2][j] + a.m[i][3]*b.m[3][j]
+		}
+	}
+	return m
+}
+
 func (m Matrix) MulVec4(v Vec4) Vec4 {
 	return Vec4{
 		m.m[0][0]*v.x + m.m[0][1]*v.y + m.m[0][2]*v.z + m.m[0][3]*v.w,
@@ -15,14 +25,18 @@ func (m Matrix) MulVec4(v Vec4) Vec4 {
 	}
 }
 
-func (a Matrix) Mul(b Matrix) Matrix {
-	var m Matrix
-	for i := 0; i < 4; i++ {
-		for j := 0; j < 4; j++ {
-			m.m[i][j] = a.m[i][0]*b.m[0][j] + a.m[i][1]*b.m[1][j] + a.m[i][2]*b.m[2][j] + a.m[i][3]*b.m[3][j]
-		}
+func (m Matrix) MulVec4Proj(v Vec4) Vec4 {
+	// Multiply the original projection matrix by the vector
+	result := m.MulVec4(v)
+
+	// Perspective Divide with original z value (result.w).  The result.w is
+	// populated during MulVec4() because of the projection matrix 3/2==1.
+	if result.w != 0.0 {
+		result.x /= result.w
+		result.y /= result.w
+		result.z /= result.w
 	}
-	return m
+	return result
 }
 
 // Return an Identity Matrix
@@ -128,18 +142,4 @@ func MatrixMakePerspective(fov, aspect, znear, zfar float64) Matrix {
 	m.m[2][3] = (-zfar * znear) / (zfar - znear)
 	m.m[3][2] = 1.0
 	return m
-}
-
-func (m Matrix) MulVec4Proj(v Vec4) Vec4 {
-	// Multiply the original projection matrix by the vector
-	result := m.MulVec4(v)
-
-	// Perspective Divide with original z value (result.w).  The result.w is
-	// populated during MulVec4() because of the projection matrix 3/2==1.
-	if result.w != 0.0 {
-		result.x /= result.w
-		result.y /= result.w
-		result.z /= result.w
-	}
-	return result
 }
