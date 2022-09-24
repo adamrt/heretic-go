@@ -25,12 +25,14 @@ type normal struct {
 type triangle struct {
 	a, b, c     vertex
 	textureData triangleTexData
+	palette     heretic.Palette
 }
 
 func (t triangle) face() heretic.Face {
 	return heretic.NewFace(
 		t.points(),
 		t.texcoords(),
+		t.palette,
 		heretic.ColorWhite,
 	)
 }

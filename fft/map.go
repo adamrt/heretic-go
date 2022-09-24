@@ -143,7 +143,43 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) []triangle {
 		triangles[i+1].textureData = textureData[1]
 	}
 
+	//
+	// We skip an unknown chunk and the polygon tile locations for now
+	//
+
+	// Skip ahead to color palettes
+	r.iso.seekPointer(record.Sector(), meshFileHeader.TexturePalettesColor())
+
+	palettes := [16]heretic.Palette{}
+	for i := 0; i < 16; i++ {
+		palette := heretic.Palette{}
+		for j := 0; j < 16; j++ {
+			palette[j] = r.rgb15()
+		}
+		palettes[i] = palette
+	}
+
+	// Add palette to each triangle
+	for i := 0; i < len(triangles); i++ {
+		triangles[i].palette = palettes[triangles[i].textureData.palette]
+	}
+
 	return triangles
+}
+
+func (mr MeshReader) rgb15() heretic.Color {
+	val := mr.iso.uint16()
+	var a uint8
+	if val == 0 {
+		a = 0x00
+	} else {
+		a = 0xFF
+	}
+
+	b := uint8((val & 0b01111100_00000000) >> 7)
+	g := uint8((val & 0b00000011_11100000) >> 2)
+	r := uint8((val & 0b00000000_00011111) << 3)
+	return heretic.Color{R: r, G: g, B: b, A: a}
 }
 
 func (r MeshReader) vertex() vertex {

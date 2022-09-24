@@ -4,6 +4,9 @@ type Color struct {
 	R, G, B, A uint8
 }
 
+// Palette represents the 16-color palette to use during rendering a polygon.
+type Palette [16]Color
+
 var (
 	ColorBlack = Color{0, 0, 0, 255}
 	ColorWhite = Color{255, 255, 255, 255}

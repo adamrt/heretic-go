@@ -20,6 +20,8 @@ func textureSplitPixels(buf []byte) []heretic.Color {
 		colorA := uint8((buf[i] & 0xF0) >> 4)
 		colorB := uint8(buf[i] & 0x0F)
 
+		// We dont care about RGB here.
+		// This is just an index to the palette.
 		data = append(data,
 			heretic.Color{R: colorA, G: colorA, B: colorA, A: 255},
 			heretic.Color{R: colorB, G: colorB, B: colorB, A: 255},

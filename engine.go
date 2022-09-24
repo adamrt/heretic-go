@@ -248,6 +248,7 @@ func (e *Engine) Update() {
 				// This is for textured triangles
 				lightIntensity: lightIntensity,
 				texcoords:      tri.texcoords,
+				palette:        face.palette,
 			}
 
 			for i, point := range tri.points {
@@ -288,6 +289,7 @@ func (e *Engine) Render() {
 				int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
 				tri.lightIntensity,
 				e.mesh.texture,
+				tri.palette,
 			)
 		}
 		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
