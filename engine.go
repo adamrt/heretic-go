@@ -41,6 +41,10 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 	}
 }
 
+type meshReader interface {
+	ReadMesh(mapNum int) Mesh
+}
+
 type Engine struct {
 	window   *Window
 	renderer *Renderer
@@ -62,7 +66,28 @@ type Engine struct {
 	mesh              *Mesh
 	trianglesToRender []Triangle
 
+	MeshReader meshReader
+	currentMap int
+
 	ambientLight DirectionalLight
+}
+
+func (e *Engine) NextMap() {
+	if e.currentMap < 125 {
+		e.currentMap++
+		mesh := e.MeshReader.ReadMesh(e.currentMap)
+		e.mesh = &mesh
+		e.Setup()
+	}
+}
+
+func (e *Engine) PrevMap() {
+	if e.currentMap > 1 {
+		e.currentMap--
+		mesh := e.MeshReader.ReadMesh(e.currentMap)
+		e.mesh = &mesh
+		e.Setup()
+	}
 }
 
 func (e *Engine) IsRunning() bool {
