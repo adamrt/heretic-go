@@ -25,6 +25,9 @@ type Mesh struct {
 func (m *Mesh) SetScale(scale Vec3) {
 	m.scale = scale
 }
+func (m *Mesh) SetTransform(transform Vec3) {
+	m.trans = transform
+}
 
 func NewMesh(faces []Face, texture Texture) Mesh {
 	return Mesh{faces: faces, texture: texture}

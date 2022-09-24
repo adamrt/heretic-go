@@ -40,7 +40,8 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 	}
 
 	mesh := heretic.NewMesh(faces, textures[0])
-	mesh.SetScale(heretic.NewVec3(0.1, 0.1, 0.1))
+	mesh.SetScale(heretic.NewVec3(0.05, 0.05, 0.05))
+	mesh.SetTransform(heretic.NewVec3(-7, -8, 10.0))
 
 	return mesh
 }

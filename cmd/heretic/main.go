@@ -22,7 +22,7 @@ func main() {
 	defer iso.Close()
 
 	meshReader := fft.NewMeshReader(iso)
-	mesh := meshReader.ReadMesh(3)
+	mesh := meshReader.ReadMesh(1)
 	engine.SetMesh(mesh)
 
 	engine.Setup()
