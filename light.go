@@ -2,8 +2,14 @@ package heretic
 
 import "math"
 
-type Light struct {
-	direction Vec3
+type AmbientLight struct {
+	Color Color
+}
+
+type DirectionalLight struct {
+	Direction Vec3
+	Position  Vec3
+	Color     Color
 }
 
 func applyLightIntensity(orig Color, factor float64) Color {

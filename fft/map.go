@@ -6,7 +6,9 @@
 package fft
 
 import (
+	"fmt"
 	"log"
+	"math"
 
 	"github.com/adamrt/heretic"
 )
@@ -15,6 +17,12 @@ func NewMeshReader(iso ISOReader) MeshReader {
 	return MeshReader{iso}
 }
 
+type mesh struct {
+	triangles         []triangle
+	directionalLights []heretic.DirectionalLight
+	ambientLight      heretic.AmbientLight
+	background        heretic.Background
+}
 type MeshReader struct {
 	iso ISOReader
 }
@@ -23,25 +31,29 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 	records := r.readGNSRecords(mapNum)
 
 	textures := []heretic.Texture{}
-	triangles := []triangle{}
+	m := mesh{}
 	for _, record := range records {
 		if record.Type() == RecordTypeTexture {
 			texture := r.parseTexture(record)
 			textures = append(textures, texture)
 		} else if record.Type() == RecordTypeMeshPrimary {
-			triangles = r.parsePrimaryMesh(record)
+			m = r.parsePrimaryMesh(record)
 		}
 	}
 
 	// Convert fft Triangles to engine Faces
-	faces := make([]heretic.Face, len(triangles))
-	for i, tri := range triangles {
+	faces := make([]heretic.Face, len(m.triangles))
+	for i, tri := range m.triangles {
 		faces[i] = tri.face()
 	}
 
-	mesh := heretic.NewMesh(faces, textures[0])
-	mesh.SetScale(heretic.NewVec3(0.05, 0.05, 0.05))
-	mesh.SetTransform(heretic.NewVec3(-7, -8, 10.0))
+	mesh := heretic.Mesh{
+		Faces:      faces,
+		Texture:    textures[0],
+		Background: m.background,
+		Scale:      heretic.NewVec3(0.05, 0.05, 0.05),
+		Trans:      heretic.NewVec3(-7, -8, 10.0),
+	}
 
 	return mesh
 }
@@ -79,7 +91,7 @@ func (r MeshReader) parseTexture(record GNSRecord) heretic.Texture {
 }
 
 // parseTexture reads and returns an FFT mesh as an engine Mesh.
-func (r MeshReader) parsePrimaryMesh(record GNSRecord) []triangle {
+func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	r.iso.seekSector(record.Sector())
 
 	// File header contains intra-file pointers to areas of mesh data.
@@ -160,12 +172,34 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) []triangle {
 		palettes[i] = palette
 	}
 
-	// Add palette to each triangle
 	for i := 0; i < len(triangles); i++ {
 		triangles[i].palette = palettes[triangles[i].textureData.palette]
 	}
 
-	return triangles
+	// Skip ahead to lights
+	r.iso.seekPointer(record.Sector(), meshFileHeader.LightsAndBackground())
+
+	directionalLights := r.directionalLights()
+	ambientLight := r.ambientLight()
+	background := r.background()
+
+	fmt.Printf("background %+v // %+v\n", background.Top, background.Bottom)
+
+	return mesh{
+		triangles:         triangles,
+		directionalLights: directionalLights,
+		ambientLight:      ambientLight,
+		background:        background,
+	}
+}
+
+func (r MeshReader) rgb8() heretic.Color {
+	return heretic.Color{
+		R: r.iso.uint8(),
+		G: r.iso.uint8(),
+		B: r.iso.uint8(),
+		A: 255,
+	}
 }
 
 func (mr MeshReader) rgb15() heretic.Color {
@@ -258,4 +292,39 @@ func (r MeshReader) quadUV() quadTexData {
 	c := r.uv()
 	d := r.uv()
 	return quadTexData{a: a, b: b, c: c, d: d, palette: palette, page: page}
+}
+
+func (r MeshReader) lightColor() uint8 {
+	val := r.f1x3x12()
+	return uint8(255 * math.Min(math.Max(0.0, val), 1.0))
+}
+
+func (r MeshReader) directionalLights() []heretic.DirectionalLight {
+	l1r, l2r, l3r := r.lightColor(), r.lightColor(), r.lightColor()
+	l1g, l2g, l3g := r.lightColor(), r.lightColor(), r.lightColor()
+	l1b, l2b, l3b := r.lightColor(), r.lightColor(), r.lightColor()
+
+	l1color := heretic.Color{R: l1r, G: l1g, B: l1b, A: 255}
+	l2color := heretic.Color{R: l2r, G: l2g, B: l2b, A: 255}
+	l3color := heretic.Color{R: l3r, G: l3g, B: l3b, A: 255}
+
+	l1pos, l2pos, l3pos := r.vertex().vec3(), r.vertex().vec3(), r.vertex().vec3()
+
+	return []heretic.DirectionalLight{
+		{Position: l1pos, Color: l1color},
+		{Position: l2pos, Color: l2color},
+		{Position: l3pos, Color: l3color},
+	}
+}
+
+func (r MeshReader) ambientLight() heretic.AmbientLight {
+	color := r.rgb8()
+	return heretic.AmbientLight{Color: color}
+
+}
+
+func (r MeshReader) background() heretic.Background {
+	top := r.rgb8()
+	bottom := r.rgb8()
+	return heretic.Background{Top: top, Bottom: bottom}
 }

@@ -34,7 +34,7 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 		renderer:  renderer,
 		isRunning: true,
 
-		ambientLight: Light{direction: Vec3{0, 0, 1}},
+		ambientLight: DirectionalLight{Direction: Vec3{0, 0, 1}},
 
 		cullMode:   CullModeBackFace,
 		renderMode: RenderModeTexture,
@@ -62,7 +62,7 @@ type Engine struct {
 	mesh              *Mesh
 	trianglesToRender []Triangle
 
-	ambientLight Light
+	ambientLight DirectionalLight
 }
 
 func (e *Engine) IsRunning() bool {
