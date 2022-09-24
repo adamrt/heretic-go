@@ -109,7 +109,7 @@ func (e *Engine) Setup() {
 	fovY := math.Pi / 3.0 // Same as 180/3 or 60deg
 	fovX := math.Atan(math.Tan(fovY/2.0)*aspectX) * 2.0
 	znear := 1.0
-	zfar := 1000.0
+	zfar := 100.0
 
 	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
 	e.frustrum = NewFrustrum(fovX, fovY, znear, zfar)
