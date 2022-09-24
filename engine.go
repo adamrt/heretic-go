@@ -75,7 +75,7 @@ func (e *Engine) Setup() {
 	}
 
 	// If there is no texture, change the RenderMode to filled
-	if len(e.mesh.texture.data) == 0 {
+	if len(e.mesh.Texture.data) == 0 {
 		e.renderMode = RenderModeWireFill
 	}
 	// Projection matrix. We only need this calculate this once.
@@ -192,11 +192,11 @@ func (e *Engine) Update() {
 
 	// World matrix. Combination of scale, rotation and translation
 	worldMatrix := MatrixIdentity()
-	scaleMatrix := MatrixMakeScale(e.mesh.scale.x, e.mesh.scale.y, e.mesh.scale.z)
-	rotXMatrix := MatrixMakeRotX(e.mesh.rotation.x)
-	rotYMatrix := MatrixMakeRotY(e.mesh.rotation.y)
-	rotZMatrix := MatrixMakeRotZ(e.mesh.rotation.z)
-	transMatrix := MatrixMakeTrans(e.mesh.trans.x, e.mesh.trans.y, e.mesh.trans.z)
+	scaleMatrix := MatrixMakeScale(e.mesh.Scale.x, e.mesh.Scale.y, e.mesh.Scale.z)
+	rotXMatrix := MatrixMakeRotX(e.mesh.Rotation.x)
+	rotYMatrix := MatrixMakeRotY(e.mesh.Rotation.y)
+	rotZMatrix := MatrixMakeRotZ(e.mesh.Rotation.z)
+	transMatrix := MatrixMakeTrans(e.mesh.Trans.x, e.mesh.Trans.y, e.mesh.Trans.z)
 
 	worldMatrix = scaleMatrix.Mul(worldMatrix)
 	worldMatrix = rotXMatrix.Mul(worldMatrix)
@@ -210,7 +210,7 @@ func (e *Engine) Update() {
 	viewMatrix := e.camera.LookAtMatrix(target, up)
 
 	// Project each into 2D
-	for _, face := range e.mesh.faces {
+	for _, face := range e.mesh.Faces {
 		// Transformation
 		var transformedTri Triangle
 		for i := 0; i < 3; i++ {
@@ -237,7 +237,7 @@ func (e *Engine) Update() {
 		// Clip Polygons against the frustrum
 		clippedTriangles := e.frustrum.Clip(transformedTri, face.texcoords)
 
-		lightIntensity := -normal.Dot(e.ambientLight.direction)
+		lightIntensity := -normal.Dot(e.ambientLight.Direction)
 
 		// Projection
 		for _, tri := range clippedTriangles {
@@ -290,7 +290,7 @@ func (e *Engine) Render() {
 					int(tri.points[1].x), int(tri.points[1].y), tri.points[1].z, tri.points[1].w, tri.texcoords[1],
 					int(tri.points[2].x), int(tri.points[2].y), tri.points[2].z, tri.points[2].w, tri.texcoords[2],
 					tri.lightIntensity,
-					e.mesh.texture,
+					e.mesh.Texture,
 					tri.palette,
 				)
 			} else {

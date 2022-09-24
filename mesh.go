@@ -14,23 +14,17 @@ import (
 type Mesh struct {
 	// This is just a slice of a slice, but for naming purposes, triangles
 	// makes more sense, since that is what it represents.
-	faces   []Face
-	texture Texture
+	Faces   []Face
+	Texture Texture
 
-	rotation Vec3
-	scale    Vec3
-	trans    Vec3
-}
 
-func (m *Mesh) SetScale(scale Vec3) {
-	m.scale = scale
-}
-func (m *Mesh) SetTransform(transform Vec3) {
-	m.trans = transform
+	Rotation Vec3
+	Scale    Vec3
+	Trans    Vec3
 }
 
 func NewMesh(faces []Face, texture Texture) Mesh {
-	return Mesh{faces: faces, texture: texture}
+	return Mesh{Faces: faces, Texture: texture}
 }
 
 func NewMeshFromFile(objFilename string) *Mesh {
@@ -41,7 +35,7 @@ func NewMeshFromFile(objFilename string) *Mesh {
 	defer objFile.Close()
 
 	mesh := Mesh{
-		scale: Vec3{1.0, 1.0, 1.0},
+		Scale: Vec3{1.0, 1.0, 1.0},
 	}
 
 	pngFilename := strings.Split(objFilename, ".")[0] + ".png"
@@ -60,7 +54,7 @@ func NewMeshFromFile(objFilename string) *Mesh {
 			panic(err)
 		}
 
-		mesh.texture = NewTextureFromImage(image)
+		mesh.Texture = NewTextureFromImage(image)
 	}
 
 	var vertices []Vec3
@@ -96,7 +90,7 @@ func NewMeshFromFile(objFilename string) *Mesh {
 				if err != nil || matches != 3 {
 					log.Fatalf("face: only %d matches on line %q\n", matches, line)
 				}
-				mesh.faces = append(mesh.faces, Face{
+				mesh.Faces = append(mesh.Faces, Face{
 					points: [3]Vec3{
 						vertices[vertex_indices[0]-1],
 						vertices[vertex_indices[1]-1],
@@ -113,7 +107,7 @@ func NewMeshFromFile(objFilename string) *Mesh {
 				if err != nil || matches != 9 {
 					log.Fatalf("face: only %d matches on line %q\n", matches, line)
 				}
-				mesh.faces = append(mesh.faces, Face{
+				mesh.Faces = append(mesh.Faces, Face{
 					points: [3]Vec3{
 						vertices[vertex_indices[0]-1],
 						vertices[vertex_indices[1]-1],
