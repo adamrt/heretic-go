@@ -17,6 +17,7 @@ type Mesh struct {
 	Faces   []Face
 	Texture Texture
 
+	Background Background
 
 	Rotation Vec3
 	Scale    Vec3

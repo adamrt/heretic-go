@@ -362,6 +362,16 @@ func (r Renderer) ColorBufferClear(color Color) {
 }
 
 // Clear writes over every color in the buffer
+func (r Renderer) ColorBufferBackground(bg Background) {
+	for y := 0; y < r.height; y++ {
+		color := bg.At(y, r.height)
+		for x := 0; x < r.width; x++ {
+			r.DrawPixel(x, y, color)
+		}
+	}
+}
+
+// Clear writes over every color in the buffer
 func (r Renderer) ZBufferClear() {
 	for x := 0; x < r.width; x++ {
 		for y := 0; y < r.height; y++ {

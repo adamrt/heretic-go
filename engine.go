@@ -274,7 +274,7 @@ func (e *Engine) Update() {
 }
 
 func (e *Engine) Render() {
-	e.renderer.ColorBufferClear(ColorBlack)
+	e.renderer.ColorBufferBackground(e.mesh.Background)
 	e.renderer.ZBufferClear()
 	e.renderer.DrawGrid(ColorGrey)
 
