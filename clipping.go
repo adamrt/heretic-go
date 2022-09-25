@@ -110,8 +110,8 @@ func (f Frustrum) clipAgainstPlane(polygon Polygon, plane Plane) Polygon {
 			insideVertices = append(insideVertices, intersectionPoint)
 
 			interpolatedTexcoord := Tex{
-				u: lerp(previousTexcoord.u, currentTexcoord.u, t),
-				v: lerp(previousTexcoord.v, currentTexcoord.v, t),
+				U: lerp(previousTexcoord.U, currentTexcoord.U, t),
+				V: lerp(previousTexcoord.V, currentTexcoord.V, t),
 			}
 			insideTexcoords = append(insideTexcoords, interpolatedTexcoord)
 		}

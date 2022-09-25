@@ -53,8 +53,8 @@ type quad struct {
 
 func (q quad) split() []triangle {
 	return []triangle{
-		triangle{points: [3]heretic.Vec3{q.a, q.b, q.c}},
-		triangle{points: [3]heretic.Vec3{q.b, q.d, q.c}},
+		{points: [3]heretic.Vec3{q.a, q.b, q.c}},
+		{points: [3]heretic.Vec3{q.b, q.d, q.c}},
 	}
 }
 
@@ -64,7 +64,7 @@ type uv struct {
 
 func (t uv) tex(page int) heretic.Tex {
 	y := int(t.y) + page*256
-	return heretic.NewTex(float64(t.x)/255, float64(y)/1023.0)
+	return heretic.Tex{float64(t.x) / 255, float64(y) / 1023.0}
 }
 
 type triangleTexData struct {

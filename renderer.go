@@ -35,8 +35,8 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 
 	var interpolatedU, interpolatedV, interpolatedReciprocalW float64
 
-	interpolatedU = (auv.u/a.W)*alpha + (buv.u/b.W)*beta + (cuv.u/c.W)*gamma
-	interpolatedV = (auv.v/a.W)*alpha + (buv.v/b.W)*beta + (cuv.v/c.W)*gamma
+	interpolatedU = (auv.U/a.W)*alpha + (buv.U/b.W)*beta + (cuv.U/c.W)*gamma
+	interpolatedV = (auv.V/a.W)*alpha + (buv.V/b.W)*beta + (cuv.V/c.W)*gamma
 
 	// FIXME: move this calculation out of the function as it only needs to
 	// be calcualted once per triangle.
@@ -270,8 +270,8 @@ func (r Renderer) DrawTexturedTriangle(
 		x0, x1 = x1, x0
 		z0, z1 = z1, z0
 		w0, w1 = w1, w0
-		at.u, bt.u = bt.u, at.u
-		at.v, bt.v = bt.v, at.v
+		at.U, bt.U = bt.U, at.U
+		at.V, bt.V = bt.V, at.V
 	}
 
 	if y1 > y2 {
@@ -279,8 +279,8 @@ func (r Renderer) DrawTexturedTriangle(
 		x1, x2 = x2, x1
 		z1, z2 = z2, z1
 		w1, w2 = w2, w1
-		bt.u, ct.u = ct.u, bt.u
-		bt.v, ct.v = ct.v, bt.v
+		bt.U, ct.U = ct.U, bt.U
+		bt.V, ct.V = ct.V, bt.V
 
 	}
 
@@ -289,14 +289,14 @@ func (r Renderer) DrawTexturedTriangle(
 		x0, x1 = x1, x0
 		z0, z1 = z1, z0
 		w0, w1 = w1, w0
-		at.u, bt.u = bt.u, at.u
-		at.v, bt.v = bt.v, at.v
+		at.U, bt.U = bt.U, at.U
+		at.V, bt.V = bt.V, at.V
 	}
 
 	// FIXME: Flip the texture coordinates (handle this on import?)
-	at.v = 1 - at.v
-	bt.v = 1 - bt.v
-	ct.v = 1 - ct.v
+	at.V = 1 - at.V
+	bt.V = 1 - bt.V
+	ct.V = 1 - ct.V
 
 	a := Vec4{float64(x0), float64(y0), z0, w0}
 	b := Vec4{float64(x1), float64(y1), z1, w1}

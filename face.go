@@ -23,14 +23,10 @@ type Face struct {
 	color Color
 }
 
-func NewTex(u, v float64) Tex {
-	return Tex{u, v}
-}
-
 type Tex struct {
-	u, v float64
+	U, V float64
 }
 
 func (t Tex) IsEmpty() bool {
-	return t.u == 0.0 && t.v == 0.0
+	return t.U == 0.0 && t.V == 0.0
 }
