@@ -29,13 +29,3 @@ func textureSplitPixels(buf []byte) []heretic.Color {
 	}
 	return data
 }
-
-func textureFlipVertical(buf []heretic.Color) {
-	for row := 0; row < (textureHeight / 2); row++ {
-		for col := 0; col < textureWidth; col++ {
-			a := textureWidth*row + col
-			b := textureWidth*(textureHeight-row-1) + col
-			buf[a], buf[b] = buf[b], buf[a]
-		}
-	}
-}

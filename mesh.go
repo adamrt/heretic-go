@@ -78,6 +78,7 @@ func NewMeshFromFile(objFilename string) *Mesh {
 			if err != nil || matches != 2 {
 				log.Fatalf("vertex: only %d matches on line %q\n", matches, line)
 			}
+			vt.V = 1 - vt.V
 			vts = append(vts, vt)
 		case strings.HasPrefix(line, "f "):
 			var vertex_indices [3]int

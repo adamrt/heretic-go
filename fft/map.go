@@ -90,7 +90,6 @@ func (r MeshReader) parseTexture(record GNSRecord) heretic.Texture {
 		log.Fatalf("read texture data: %v", err)
 	}
 	pixels := textureSplitPixels(data)
-	textureFlipVertical(pixels)
 	return heretic.NewTexture(textureWidth, textureHeight, pixels)
 }
 

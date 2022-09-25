@@ -293,11 +293,6 @@ func (r Renderer) DrawTexturedTriangle(
 		at.V, bt.V = bt.V, at.V
 	}
 
-	// FIXME: Flip the texture coordinates (handle this on import?)
-	at.V = 1 - at.V
-	bt.V = 1 - bt.V
-	ct.V = 1 - ct.V
-
 	a := Vec4{float64(x0), float64(y0), z0, w0}
 	b := Vec4{float64(x1), float64(y1), z1, w1}
 	c := Vec4{float64(x2), float64(y2), z2, w2}
