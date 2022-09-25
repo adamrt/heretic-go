@@ -219,19 +219,17 @@ func (e *Engine) Update() {
 
 	// World matrix. Combination of scale, rotation and translation
 	worldMatrix := MatrixIdentity()
-	scaleMatrix := MatrixMakeScale(e.mesh.Scale.X, e.mesh.Scale.Y, e.mesh.Scale.Z)
-	rotXMatrix := MatrixMakeRotX(e.mesh.Rotation.X)
-	rotYMatrix := MatrixMakeRotY(e.mesh.Rotation.Y)
-	rotZMatrix := MatrixMakeRotZ(e.mesh.Rotation.Z)
-	transMatrix := MatrixMakeTrans(e.mesh.Trans.X, e.mesh.Trans.Y, e.mesh.Trans.Z)
 
-	worldMatrix = scaleMatrix.Mul(worldMatrix)
-	worldMatrix = rotXMatrix.Mul(worldMatrix)
-	worldMatrix = rotYMatrix.Mul(worldMatrix)
-	worldMatrix = rotZMatrix.Mul(worldMatrix)
-	worldMatrix = transMatrix.Mul(worldMatrix)
+	// 1. Scale
+	worldMatrix = worldMatrix.Mul(MatrixMakeScale(e.mesh.Scale))
 
-	// Camera
+	// 2. Rotate
+	worldMatrix = worldMatrix.Mul(MatrixMakeRotation(e.mesh.Rotation))
+
+	// 3. Translate
+	worldMatrix = worldMatrix.Mul(MatrixMakeTrans(e.mesh.Trans))
+
+	// Setup Camera
 	up := Vec3{0, 1, 0}
 	target := e.camera.LookAtTarget()
 	viewMatrix := e.camera.LookAtMatrix(target, up)

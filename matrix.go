@@ -58,11 +58,11 @@ func MatrixIdentity() Matrix {
 // |  0 sy  0  0 |
 // |  0  0 sx  0 |
 // |  0  0  0  1 |
-func MatrixMakeScale(sx, sy, sz float64) Matrix {
+func MatrixMakeScale(v Vec3) Matrix {
 	m := MatrixIdentity()
-	m.m[0][0] = sx
-	m.m[1][1] = sy
-	m.m[2][2] = sz
+	m.m[0][0] = v.X
+	m.m[1][1] = v.Y
+	m.m[2][2] = v.Z
 	return m
 }
 
@@ -71,12 +71,20 @@ func MatrixMakeScale(sx, sy, sz float64) Matrix {
 // | 0  1  0  ty |
 // | 0  0  1  tz |
 // | 0  0  0   1 |
-func MatrixMakeTrans(tx, ty, tz float64) Matrix {
+func MatrixMakeTrans(v Vec3) Matrix {
 	m := MatrixIdentity()
-	m.m[0][3] = tx
-	m.m[1][3] = ty
-	m.m[2][3] = tz
+	m.m[0][3] = v.X
+	m.m[1][3] = v.Y
+	m.m[2][3] = v.Z
 	return m
+}
+
+// Sugar function to run x, y and z rotation matrix functions.
+func MatrixMakeRotation(v Vec3) Matrix {
+	x := MatrixMakeRotX(v.X)
+	y := MatrixMakeRotY(v.Y)
+	z := MatrixMakeRotZ(v.Z)
+	return x.Mul(y).Mul(z)
 }
 
 // Return a Rotation Matrix for x axis
