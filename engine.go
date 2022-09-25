@@ -196,8 +196,7 @@ func (e *Engine) ProcessInput() {
 			}
 		case *sdl.MouseMotionEvent:
 			if e.camera.leftButtonPressed {
-				e.camera.pitch += float64(t.YRel) / 200
-				e.camera.yaw += float64(t.XRel) / 200
+				e.camera.Look(t.XRel, t.YRel)
 			}
 			if e.camera.rightButtonPressed {
 				e.camera.Pan(t.XRel, t.YRel)

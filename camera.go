@@ -76,6 +76,11 @@ func (c *Camera) MoveRight(deltaTime float64) {
 	c.position = c.position.Sub(velocity)
 }
 
+func (c *Camera) Look(xrel, yrel int32) {
+	c.yaw += float64(xrel) / 200
+	c.pitch += float64(yrel) / 200
+}
+
 func (c *Camera) Pan(xrel, yrel int32) {
 	// X
 	velocity := c.right.Mul(float64(xrel) / 400.0)
