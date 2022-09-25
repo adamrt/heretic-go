@@ -213,11 +213,11 @@ func (mr MeshReader) rgb15() heretic.Color {
 	return heretic.Color{R: r, G: g, B: b, A: a}
 }
 
-func (r MeshReader) vertex() vertex {
-	x := r.iso.int16()
-	y := r.iso.int16()
-	z := r.iso.int16()
-	return vertex{x, -y, z}
+func (r MeshReader) vertex() heretic.Vec3 {
+	x := float64(r.iso.int16())
+	y := float64(r.iso.int16())
+	z := float64(r.iso.int16())
+	return heretic.Vec3{x, -y, z}
 }
 
 func (r MeshReader) triangle() triangle {
@@ -304,7 +304,7 @@ func (r MeshReader) directionalLights() []heretic.DirectionalLight {
 	l2color := heretic.Color{R: l2r, G: l2g, B: l2b, A: 255}
 	l3color := heretic.Color{R: l3r, G: l3g, B: l3b, A: 255}
 
-	l1pos, l2pos, l3pos := r.vertex().vec3(), r.vertex().vec3(), r.vertex().vec3()
+	l1pos, l2pos, l3pos := r.vertex(), r.vertex(), r.vertex()
 
 	return []heretic.DirectionalLight{
 		{Position: l1pos, Color: l1color},

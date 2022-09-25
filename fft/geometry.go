@@ -10,20 +10,12 @@ package fft
 
 import "github.com/adamrt/heretic"
 
-type vertex struct {
-	x, y, z int16
-}
-
-func (v vertex) vec3() heretic.Vec3 {
-	return heretic.NewVec3(float64(v.x), float64(v.y), float64(v.z))
-}
-
 type normal struct {
 	x, y, z float64
 }
 
 type triangle struct {
-	a, b, c     vertex
+	a, b, c     heretic.Vec3
 	textureData triangleTexData
 	palette     *heretic.Palette
 }
@@ -38,7 +30,7 @@ func (t triangle) face() heretic.Face {
 }
 
 func (t triangle) points() [3]heretic.Vec3 {
-	return [3]heretic.Vec3{t.a.vec3(), t.b.vec3(), t.c.vec3()}
+	return [3]heretic.Vec3{t.a, t.b, t.c}
 }
 
 func (t triangle) texcoords() [3]heretic.Tex {
@@ -50,7 +42,7 @@ func (t triangle) texcoords() [3]heretic.Tex {
 }
 
 type quad struct {
-	a, b, c, d vertex
+	a, b, c, d heretic.Vec3
 }
 
 func (q quad) split() []triangle {
