@@ -38,6 +38,12 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 
 		cullMode:   CullModeBackFace,
 		renderMode: RenderModeTexture,
+
+		// Rotation is set so if the user presses spacebar they get some
+		// rotation. But autoRotation is off by default. Use
+		// SetAutoRotation() to override the rotation value.
+		autoRotation: false,
+		rotation:     Vec3{0, 0.5, 0},
 	}
 }
 
@@ -70,6 +76,16 @@ type Engine struct {
 	currentMap int
 
 	ambientLight DirectionalLight
+
+	// These two control the mesh rotating on its own.
+	// The amount can be set by SetAutoRotation().
+	autoRotation bool
+	rotation     Vec3
+}
+
+func (e *Engine) SetAutoRotation(v Vec3) {
+	e.rotation = v
+	e.autoRotation = true
 }
 
 func (e *Engine) NextMap() {
@@ -163,6 +179,8 @@ func (e *Engine) ProcessInput() {
 				e.NextMap()
 			case sdl.K_j:
 				e.PrevMap()
+			case sdl.K_SPACE:
+				e.autoRotation = !e.autoRotation
 			}
 		case *sdl.QuitEvent:
 			e.isRunning = false
@@ -201,21 +219,10 @@ func (e *Engine) Update() {
 	e.deltaTime = float64(sdl.GetTicks()-e.previous) / 1000.0
 	e.previous = sdl.GetTicks()
 
-	// Increase the rotation/scale each frame
-	// e.mesh.rotation.X -= 0.5 * e.deltaTime
-	// e.mesh.rotation.Z = math.Pi / 2
-	// e.mesh.Rotation.Y += 0.5 * e.deltaTime
-	// e.mesh.rotation.Z += 0.3 * e.deltaTime
-
-	// e.mesh.scale.X += 0.002 * e.deltaTime
-	// e.mesh.scale.Y += 0.001 * e.deltaTime
-
-	// e.mesh.trans.X += 0.01
-	// e.mesh.trans.Z = 4.0 // constant
-
-	// e.camera.position.X += 0.02 * e.deltaTime
-	// e.camera.position.Y += 0.01 * e.deltaTime
-	// e.camera.position.Z += 0.3 * e.deltaTime
+	// Apply the engine's rotation vector. This is for automatic rotation.
+	if e.autoRotation {
+		e.mesh.Rotation = e.mesh.Rotation.Add(e.rotation.Mul(e.deltaTime))
+	}
 
 	// World matrix. Combination of scale, rotation and translation
 	worldMatrix := MatrixIdentity()
