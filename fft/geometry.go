@@ -15,22 +15,28 @@ type normal struct {
 }
 
 type triangle struct {
-	a, b, c     heretic.Vec3
+	points      [3]heretic.Vec3
 	textureData triangleTexData
 	palette     *heretic.Palette
 }
 
 func (t triangle) face() heretic.Face {
 	return heretic.NewFace(
-		t.points(),
+		t.points,
 		t.texcoords(),
 		t.palette,
 		heretic.ColorWhite,
 	)
 }
 
-func (t triangle) points() [3]heretic.Vec3 {
-	return [3]heretic.Vec3{t.a, t.b, t.c}
+func (t triangle) normalizedPoints(min, max float64) [3]heretic.Vec3 {
+	normalized := [3]heretic.Vec3{}
+	for i := 0; i < 3; i++ {
+		normalized[i].X = normalize(t.points[i].X, min, max)
+		normalized[i].Y = normalize(t.points[i].Y, min, max)
+		normalized[i].Z = normalize(t.points[i].Z, min, max)
+	}
+	return normalized
 }
 
 func (t triangle) texcoords() [3]heretic.Tex {
@@ -47,8 +53,8 @@ type quad struct {
 
 func (q quad) split() []triangle {
 	return []triangle{
-		{a: q.a, b: q.b, c: q.c},
-		{a: q.b, b: q.d, c: q.c},
+		triangle{points: [3]heretic.Vec3{q.a, q.b, q.c}},
+		triangle{points: [3]heretic.Vec3{q.b, q.d, q.c}},
 	}
 }
 
@@ -78,4 +84,8 @@ func (q quadTexData) split() []triangleTexData {
 		{a: q.a, b: q.b, c: q.c, palette: q.palette, page: q.page},
 		{a: q.b, b: q.d, c: q.c, palette: q.palette, page: q.page},
 	}
+}
+
+func normalize(x, min, max float64) float64 {
+	return ((x - min) / (max - min)) // - 0.5
 }

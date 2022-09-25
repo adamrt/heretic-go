@@ -40,6 +40,12 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 		}
 	}
 
+	// Normalize all coordinates to -1.0 - 1.0.
+	min, max := minMaxTriangles(m.triangles)
+	for i := 0; i < len(m.triangles); i++ {
+		m.triangles[i].points = m.triangles[i].normalizedPoints(min, max)
+	}
+
 	// Convert fft Triangles to engine Faces
 	faces := make([]heretic.Face, len(m.triangles))
 	for i, tri := range m.triangles {
@@ -224,7 +230,7 @@ func (r MeshReader) triangle() triangle {
 	a := r.vertex()
 	b := r.vertex()
 	c := r.vertex()
-	return triangle{a: a, b: b, c: c}
+	return triangle{points: [3]heretic.Vec3{a, b, c}}
 }
 
 func (r MeshReader) quad() quad {
@@ -323,4 +329,38 @@ func (r MeshReader) background() heretic.Background {
 	top := r.rgb8()
 	bottom := r.rgb8()
 	return heretic.Background{Top: top, Bottom: bottom}
+}
+
+func minMaxTriangles(triangles []triangle) (float64, float64) {
+	var min float64 = math.MaxInt16
+	var max float64 = math.MinInt16
+
+	for _, t := range triangles {
+
+		// Each point for max
+		for i := 0; i < 3; i++ {
+			// Max
+			if t.points[i].X > max {
+				max = t.points[i].X
+			}
+			if t.points[i].Y > max {
+				max = t.points[i].Y
+			}
+			if t.points[i].Z > max {
+				max = t.points[i].Z
+			}
+
+			// Min
+			if t.points[i].X < min {
+				min = t.points[i].X
+			}
+			if t.points[i].Y < min {
+				min = t.points[i].Y
+			}
+			if t.points[i].Z < min {
+				min = t.points[i].Z
+			}
+		}
+	}
+	return min, max
 }
