@@ -108,12 +108,12 @@ func (e *Engine) Setup() {
 	aspectY := float64(e.window.height) / float64(e.window.width)
 	fovY := math.Pi / 3.0 // Same as 180/3 or 60deg
 	fovX := math.Atan(math.Tan(fovY/2.0)*aspectX) * 2.0
-	znear := 1.0
-	zfar := 100.0
+	znear := 0.1
+	zfar := 10.0
 
 	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
 	e.frustrum = NewFrustrum(fovX, fovY, znear, zfar)
-	e.camera = NewCamera(Vec3{0, 0, 0}, Vec3{0, 0, 1})
+	e.camera = NewCamera(Vec3{0, 0.5, -1}, Vec3{0, 0, 0})
 
 	e.previous = sdl.GetTicks()
 
@@ -233,7 +233,7 @@ func (e *Engine) Update() {
 
 	// Camera
 	up := Vec3{0, 1, 0}
-	target := e.camera.LookAtTarget(Vec3{0, -0.2, 1})
+	target := e.camera.LookAtTarget()
 	viewMatrix := e.camera.LookAtMatrix(target, up)
 
 	// Project each into 2D

@@ -21,11 +21,12 @@ func NewCamera(position, direction Vec3) Camera {
 		direction: direction,
 		position:  position,
 		worldUp:   Vec3{0, 1, 0},
-		speed:     15.0,
+		speed:     2.0,
 	}
 }
 
-func (c *Camera) LookAtTarget(target Vec3) Vec3 {
+func (c *Camera) LookAtTarget() Vec3 {
+	target := Vec3{0, 0, 1}
 	yawRotation := MatrixMakeRotY(c.yaw)
 	pitchRotation := MatrixMakeRotX(c.pitch)
 
@@ -77,10 +78,10 @@ func (c *Camera) MoveRight(deltaTime float64) {
 
 func (c *Camera) Pan(xrel, yrel int32) {
 	// X
-	velocity := c.right.Mul(float64(xrel) / 50.0)
+	velocity := c.right.Mul(float64(xrel) / 400.0)
 	c.position = c.position.Add(velocity)
 
 	// Y
-	velocity = c.up.Mul(float64(yrel) / 50.0)
+	velocity = c.up.Mul(float64(yrel) / 500.0)
 	c.position = c.position.Add(velocity)
 }
