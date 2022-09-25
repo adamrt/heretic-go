@@ -43,7 +43,7 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 	// Normalize all coordinates to -1.0 - 1.0.
 	min, max := minMaxTriangles(m.triangles)
 	for i := 0; i < len(m.triangles); i++ {
-		m.triangles[i].points = m.triangles[i].normalizedPoints(min, max)
+		m.triangles[i] = normalizeTriangle(m.triangles[i], min, max)
 	}
 
 	// Convert fft Triangles to engine Faces
@@ -56,7 +56,7 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 		Faces:      faces,
 		Texture:    textures[0],
 		Background: m.background,
-		Scale:      heretic.Vec3{1, 1, 1},
+		Scale:      heretic.Vec3{X: 1, Y: 1, Z: 1},
 	}
 
 	return mesh

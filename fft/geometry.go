@@ -29,16 +29,6 @@ func (t triangle) face() heretic.Face {
 	)
 }
 
-func (t triangle) normalizedPoints(min, max float64) [3]heretic.Vec3 {
-	normalized := [3]heretic.Vec3{}
-	for i := 0; i < 3; i++ {
-		normalized[i].X = normalize(t.points[i].X, min, max)
-		normalized[i].Y = normalize(t.points[i].Y, min, max)
-		normalized[i].Z = normalize(t.points[i].Z, min, max)
-	}
-	return normalized
-}
-
 func (t triangle) texcoords() [3]heretic.Tex {
 	return [3]heretic.Tex{
 		t.textureData.a.tex(t.textureData.page),
@@ -92,4 +82,16 @@ func normalize(x, min, max float64) float64 {
 	scaled := (x - min) / (max - min)
 	centered := scaled - 0.5
 	return centered
+}
+
+func normalizeTriangle(t triangle, min, max float64) triangle {
+	normalized := [3]heretic.Vec3{}
+	for i := 0; i < 3; i++ {
+		normalized[i].X = normalize(t.points[i].X, min, max)
+		normalized[i].Y = normalize(t.points[i].Y, min, max)
+		normalized[i].Z = normalize(t.points[i].Z, min, max)
+	}
+
+	t.points = normalized
+	return t
 }
