@@ -64,7 +64,7 @@ type uv struct {
 
 func (t uv) tex(page int) heretic.Tex {
 	y := int(t.y) + page*256
-	return heretic.Tex{float64(t.x) / 255, float64(y) / 1023.0}
+	return heretic.Tex{U: float64(t.x) / 255, V: float64(y) / 1023.0}
 }
 
 type triangleTexData struct {
@@ -86,6 +86,10 @@ func (q quadTexData) split() []triangleTexData {
 	}
 }
 
+// Normalize takes the min/max of all triangle coordinates and normalizes them
+// to 0.0-1.0. Then we center them by shifting them to -0.5-0.5
 func normalize(x, min, max float64) float64 {
-	return ((x - min) / (max - min)) // - 0.5
+	scaled := (x - min) / (max - min)
+	centered := scaled - 0.5
+	return centered
 }
