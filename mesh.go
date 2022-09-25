@@ -19,9 +19,9 @@ type Mesh struct {
 
 	Background Background
 
-	Rotation Vec3
-	Scale    Vec3
-	Trans    Vec3
+	Rotation    Vec3
+	Scale       Vec3
+	Translation Vec3
 }
 
 func NewMesh(faces []Face, texture Texture) Mesh {

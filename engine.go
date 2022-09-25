@@ -224,17 +224,11 @@ func (e *Engine) Update() {
 		e.mesh.Rotation = e.mesh.Rotation.Add(e.rotation.Mul(e.deltaTime))
 	}
 
-	// World matrix. Combination of scale, rotation and translation
+	// World matrix. Combination of scale, rotation and translation.
 	worldMatrix := MatrixIdentity()
-
-	// 1. Scale
-	worldMatrix = worldMatrix.Mul(MatrixMakeScale(e.mesh.Scale))
-
-	// 2. Rotate
-	worldMatrix = worldMatrix.Mul(MatrixMakeRotation(e.mesh.Rotation))
-
-	// 3. Translate
-	worldMatrix = worldMatrix.Mul(MatrixMakeTrans(e.mesh.Trans))
+	worldMatrix = worldMatrix.Mul(NewScaleMatrix(e.mesh.Scale))
+	worldMatrix = worldMatrix.Mul(NewRotationMatrix(e.mesh.Rotation))
+	worldMatrix = worldMatrix.Mul(NewTranslationMatrix(e.mesh.Translation))
 
 	// Setup Camera
 	up := Vec3{0, 1, 0}

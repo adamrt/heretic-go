@@ -58,7 +58,7 @@ func MatrixIdentity() Matrix {
 // |  0 sy  0  0 |
 // |  0  0 sx  0 |
 // |  0  0  0  1 |
-func MatrixMakeScale(v Vec3) Matrix {
+func NewScaleMatrix(v Vec3) Matrix {
 	m := MatrixIdentity()
 	m.m[0][0] = v.X
 	m.m[1][1] = v.Y
@@ -71,7 +71,7 @@ func MatrixMakeScale(v Vec3) Matrix {
 // | 0  1  0  ty |
 // | 0  0  1  tz |
 // | 0  0  0   1 |
-func MatrixMakeTrans(v Vec3) Matrix {
+func NewTranslationMatrix(v Vec3) Matrix {
 	m := MatrixIdentity()
 	m.m[0][3] = v.X
 	m.m[1][3] = v.Y
@@ -80,7 +80,7 @@ func MatrixMakeTrans(v Vec3) Matrix {
 }
 
 // Sugar function to run x, y and z rotation matrix functions.
-func MatrixMakeRotation(v Vec3) Matrix {
+func NewRotationMatrix(v Vec3) Matrix {
 	x := MatrixMakeRotX(v.X)
 	y := MatrixMakeRotY(v.Y)
 	z := MatrixMakeRotZ(v.Z)
