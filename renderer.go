@@ -45,7 +45,6 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 	interpolatedU /= interpolatedReciprocalW
 	interpolatedV /= interpolatedReciprocalW
 
-	// FIXME: Texture Width is hardcoded
 	textureX := int(math.Abs(interpolatedU*float64(texture.width))) % texture.width
 	textureY := int(math.Abs(interpolatedV*float64(texture.height))) % texture.height
 

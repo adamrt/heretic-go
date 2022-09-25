@@ -285,7 +285,10 @@ func (e *Engine) Update() {
 
 			for i, point := range tri.points {
 				projected := e.projMatrix.MulVec4Proj(point)
-				// FIXME: Invert Y to deal with obj coordinates system.
+				// FIXME: Invert Y to deal with obj coordinates
+				// system.  I'd like to get rid of this but its
+				// more complex than it seems. I think it has to
+				// do with the handedness rules.
 				projected.Y *= -1
 
 				// Scale into view (tiny otherwise)
