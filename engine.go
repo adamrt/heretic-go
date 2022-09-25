@@ -37,7 +37,8 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 		ambientLight: DirectionalLight{Direction: Vec3{0, 0, 1}},
 
 		cullMode:   CullModeBackFace,
-		renderMode: RenderModeTexture,
+		renderMode: RenderModeWireFill,
+		scene:      NewScene(),
 
 		// Rotation is set so if the user presses spacebar they get some
 		// rotation. But autoRotation is off by default. Use
@@ -69,8 +70,7 @@ type Engine struct {
 	frustrum   Frustrum
 
 	// Model
-	mesh              *Mesh
-	trianglesToRender []Triangle
+	scene *scene
 
 	MeshReader meshReader
 	currentMap int
@@ -92,7 +92,7 @@ func (e *Engine) NextMap() {
 	if e.currentMap < 125 {
 		e.currentMap++
 		mesh := e.MeshReader.ReadMesh(e.currentMap)
-		e.mesh = &mesh
+		e.SetMesh(mesh)
 		e.Setup()
 	}
 }
@@ -101,7 +101,7 @@ func (e *Engine) PrevMap() {
 	if e.currentMap > 1 {
 		e.currentMap--
 		mesh := e.MeshReader.ReadMesh(e.currentMap)
-		e.mesh = &mesh
+		e.SetMesh(mesh)
 		e.Setup()
 	}
 }
@@ -111,13 +111,15 @@ func (e *Engine) IsRunning() bool {
 }
 
 func (e *Engine) Setup() {
-	if e.mesh == nil {
+	if len(e.scene.Meshes) == 0 {
 		log.Fatalln("no mesh specified")
 	}
 
-	// If there is no texture, change the RenderMode to filled
-	if len(e.mesh.Texture.data) == 0 {
-		e.renderMode = RenderModeWireFill
+	// If there is any texture on any mesh, show it.
+	for _, mesh := range e.scene.Meshes {
+		if len(mesh.Texture.data) != 0 {
+			e.renderMode = RenderModeTexture
+		}
 	}
 	// Projection matrix. We only need this calculate this once.
 	aspectX := float64(e.window.width) / float64(e.window.height)
@@ -218,144 +220,151 @@ func (e *Engine) Update() {
 	e.deltaTime = float64(sdl.GetTicks()-e.previous) / 1000.0
 	e.previous = sdl.GetTicks()
 
-	// Apply the engine's rotation vector. This is for automatic rotation.
-	if e.autoRotation {
-		e.mesh.Rotation = e.mesh.Rotation.Add(e.rotation.Mul(e.deltaTime))
-	}
-
-	// World matrix. Combination of scale, rotation and translation.
-	worldMatrix := MatrixIdentity()
-	worldMatrix = worldMatrix.Mul(NewScaleMatrix(e.mesh.Scale))
-	worldMatrix = worldMatrix.Mul(NewRotationMatrix(e.mesh.Rotation))
-	worldMatrix = worldMatrix.Mul(NewTranslationMatrix(e.mesh.Translation))
-
-	// Setup Camera
-	up := Vec3{0, 1, 0}
-	target := e.camera.LookAtTarget()
-	viewMatrix := e.camera.LookAtMatrix(target, up)
-
-	// Project each into 2D
-	for _, face := range e.mesh.Faces {
-		// Transformation
-		var transformedTri Triangle
-		for i := 0; i < 3; i++ {
-			transformedPoint := worldMatrix.MulVec4(face.points[i].Vec4())
-			transformedPoint = viewMatrix.MulVec4(transformedPoint)
-			transformedTri.points[i] = transformedPoint
+	for _, mesh := range e.scene.Meshes {
+		// Apply the engine's rotation vector. This is for automatic rotation.
+		if e.autoRotation {
+			mesh.Rotation = mesh.Rotation.Add(e.rotation.Mul(e.deltaTime))
 		}
 
-		normal := transformedTri.Normal()
+		// World matrix. Combination of scale, rotation and translation.
+		worldMatrix := MatrixIdentity()
+		worldMatrix = worldMatrix.Mul(NewScaleMatrix(mesh.Scale))
+		worldMatrix = worldMatrix.Mul(NewRotationMatrix(mesh.Rotation))
+		worldMatrix = worldMatrix.Mul(NewTranslationMatrix(mesh.Translation))
 
-		// Backface Culling
-		//
-		// 1. Find the vector between a point in the triangle and the camera origin.
-		// 2. Determine the alignment of the ray and the normal
-		if e.cullMode == CullModeBackFace {
-			// Why is this not the camera.position or
-			// camera.direction?  Testing with the f22 gives
-			// unexpected results, while Vec3{0,0,0} gives us the
-			// expected results, but doesn't seem logical.
-			origin := Vec3{0, 0, 0}
-			cameraRay := origin.Sub(transformedTri.points[0].Vec3())
-			visibility := normal.Dot(cameraRay)
-			if visibility < 0 {
-				continue
-			}
-		}
+		// Setup Camera
+		up := Vec3{0, 1, 0}
+		target := e.camera.LookAtTarget()
+		viewMatrix := e.camera.LookAtMatrix(target, up)
 
-		// Clip Polygons against the frustrum
-		clippedTriangles := e.frustrum.Clip(transformedTri, face.texcoords)
-
-		lightIntensity := -normal.Dot(e.ambientLight.Direction)
-
-		// Projection
-		for _, tri := range clippedTriangles {
-
-			// The final triangle we will render
-			triangleToRender := Triangle{
-				// This is for filled triangles
-				color: applyLightIntensity(face.color, lightIntensity),
-				// This is for textured triangles
-				lightIntensity: lightIntensity,
-				texcoords:      tri.texcoords,
-				palette:        face.palette,
+		// Project each into 2D
+		for _, face := range mesh.Faces {
+			// Transformation
+			var transformedTri Triangle
+			for i := 0; i < 3; i++ {
+				transformedPoint := worldMatrix.MulVec4(face.points[i].Vec4())
+				transformedPoint = viewMatrix.MulVec4(transformedPoint)
+				transformedTri.points[i] = transformedPoint
 			}
 
-			for i, point := range tri.points {
-				projected := e.projMatrix.MulVec4Proj(point)
-				// FIXME: Invert Y to deal with obj coordinates
-				// system.  I'd like to get rid of this but its
-				// more complex than it seems. I think it has to
-				// do with the handedness rules.
-				projected.Y *= -1
+			normal := transformedTri.Normal()
 
-				// Scale into view (tiny otherwise)
-				projected.X *= (float64(e.window.width) / 2.0)
-				projected.Y *= (float64(e.window.height) / 2.0)
-
-				// Translate the projected points to the middle of the screen.
-				projected.X += (float64(e.window.width) / 2.0)
-				projected.Y += (float64(e.window.height) / 2.0)
-
-				triangleToRender.points[i] = projected
+			// Backface Culling
+			//
+			// 1. Find the vector between a point in the triangle and the camera origin.
+			// 2. Determine the alignment of the ray and the normal
+			if e.cullMode == CullModeBackFace {
+				// Why is this not the camera.position or
+				// camera.direction?  Testing with the f22 gives
+				// unexpected results, while Vec3{0,0,0} gives us the
+				// expected results, but doesn't seem logical.
+				origin := Vec3{0, 0, 0}
+				cameraRay := origin.Sub(transformedTri.points[0].Vec3())
+				visibility := normal.Dot(cameraRay)
+				if visibility < 0 {
+					continue
+				}
 			}
 
-			e.trianglesToRender = append(e.trianglesToRender, triangleToRender)
+			// Clip Polygons against the frustrum
+			clippedTriangles := e.frustrum.Clip(transformedTri, face.texcoords)
+
+			lightIntensity := -normal.Dot(e.ambientLight.Direction)
+
+			// Projection
+			for _, tri := range clippedTriangles {
+
+				// The final triangle we will render
+				triangleToRender := Triangle{
+					// This is for filled triangles
+					color: applyLightIntensity(face.color, lightIntensity),
+					// This is for textured triangles
+					lightIntensity: lightIntensity,
+					texcoords:      tri.texcoords,
+					palette:        face.palette,
+				}
+
+				for i, point := range tri.points {
+					projected := e.projMatrix.MulVec4Proj(point)
+					// FIXME: Invert Y to deal with obj coordinates
+					// system.  I'd like to get rid of this but its
+					// more complex than it seems. I think it has to
+					// do with the handedness rules.
+					projected.Y *= -1
+
+					// Scale into view (tiny otherwise)
+					projected.X *= (float64(e.window.width) / 2.0)
+					projected.Y *= (float64(e.window.height) / 2.0)
+
+					// Translate the projected points to the middle of the screen.
+					projected.X += (float64(e.window.width) / 2.0)
+					projected.Y += (float64(e.window.height) / 2.0)
+
+					triangleToRender.points[i] = projected
+				}
+
+				mesh.trianglesToRender = append(mesh.trianglesToRender, triangleToRender)
+			}
 		}
 	}
 }
 
 func (e *Engine) Render() {
-	e.renderer.ColorBufferBackground(e.mesh.Background)
-	e.renderer.ZBufferClear()
-	// e.renderer.DrawGrid(ColorGrey)
-
-	for _, tri := range e.trianglesToRender {
-		a := tri.points[0]
-		b := tri.points[1]
-		c := tri.points[2]
-
-		if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
-			if tri.HasTexture() {
-				e.renderer.DrawTexturedTriangle(
-					int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W, tri.texcoords[0],
-					int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W, tri.texcoords[1],
-					int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W, tri.texcoords[2],
-					tri.lightIntensity,
-					e.mesh.Texture,
-					tri.palette,
-				)
-			} else {
-				e.renderer.DrawFilledTriangle(
-					int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W,
-					int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W,
-					int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W,
-					ColorBlack,
-				)
-			}
-
-		}
-		if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
-			e.renderer.DrawFilledTriangle(
-				int(a.X), int(a.Y), a.Z, a.W,
-				int(b.X), int(b.Y), b.Z, b.W,
-				int(c.X), int(c.Y), c.Z, c.W,
-				tri.color)
-		}
-
-		if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
-			e.renderer.DrawTriangle(int(a.X), int(a.Y), int(b.X), int(b.Y), int(c.X), int(c.Y), ColorWhite)
-		}
-
-		if e.renderMode == RenderModeWireVertex {
-			for _, point := range tri.points {
-				e.renderer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
-			}
-		}
+	if e.scene.Background() != nil {
+		e.renderer.ColorBufferBackground(*e.scene.Background())
+	} else {
+		e.renderer.ColorBufferColor(ColorBlack)
+		e.renderer.DrawGrid(ColorGrey)
 	}
+	e.renderer.ZBufferClear()
 
-	// Clear the slice while retaining memory
-	e.trianglesToRender = e.trianglesToRender[:0]
+	for _, mesh := range e.scene.Meshes {
+		for _, tri := range mesh.trianglesToRender {
+			a := tri.points[0]
+			b := tri.points[1]
+			c := tri.points[2]
+
+			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
+				if tri.HasTexture() {
+					e.renderer.DrawTexturedTriangle(
+						int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W, tri.texcoords[0],
+						int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W, tri.texcoords[1],
+						int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W, tri.texcoords[2],
+						tri.lightIntensity,
+						mesh.Texture,
+						tri.palette,
+					)
+				} else {
+					e.renderer.DrawFilledTriangle(
+						int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W,
+						int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W,
+						int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W,
+						ColorBlack,
+					)
+				}
+
+			}
+			if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
+				e.renderer.DrawFilledTriangle(
+					int(a.X), int(a.Y), a.Z, a.W,
+					int(b.X), int(b.Y), b.Z, b.W,
+					int(c.X), int(c.Y), c.Z, c.W,
+					tri.color)
+			}
+
+			if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
+				e.renderer.DrawTriangle(int(a.X), int(a.Y), int(b.X), int(b.Y), int(c.X), int(c.Y), ColorWhite)
+			}
+
+			if e.renderMode == RenderModeWireVertex {
+				for _, point := range tri.points {
+					e.renderer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
+				}
+			}
+		}
+		// Clear the slice while retaining memory
+		mesh.trianglesToRender = mesh.trianglesToRender[:0]
+	}
 
 	// Render ColorBuffer
 	e.window.Update(e.renderer.colorBuffer)
@@ -364,9 +373,9 @@ func (e *Engine) Render() {
 // LoadCubeMesh loads the cube geometry into the Engine.mesh
 func (e *Engine) LoadMesh(objFile string) {
 	// Temporary spot for vertices
-	e.mesh = NewMeshFromFile(objFile)
+	e.scene.Meshes = []*Mesh{NewMeshFromFile(objFile)}
 }
 
 func (e *Engine) SetMesh(mesh Mesh) {
-	e.mesh = &mesh
+	e.scene.Meshes = []*Mesh{&mesh}
 }

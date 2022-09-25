@@ -14,14 +14,15 @@ import (
 type Mesh struct {
 	// This is just a slice of a slice, but for naming purposes, triangles
 	// makes more sense, since that is what it represents.
-	Faces   []Face
-	Texture Texture
-
-	Background Background
+	Faces      []Face
+	Texture    Texture
+	Background *Background
 
 	Rotation    Vec3
 	Scale       Vec3
 	Translation Vec3
+
+	trianglesToRender []Triangle
 }
 
 func NewMesh(faces []Face, texture Texture) Mesh {

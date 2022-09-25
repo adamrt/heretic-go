@@ -55,7 +55,7 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 	mesh := heretic.Mesh{
 		Faces:      faces,
 		Texture:    textures[0],
-		Background: m.background,
+		Background: &m.background,
 		Scale:      heretic.Vec3{X: 1, Y: 1, Z: 1},
 	}
 
