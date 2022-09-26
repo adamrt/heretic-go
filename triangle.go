@@ -1,6 +1,8 @@
 package heretic
 
-import "image/color"
+import (
+	"image/color"
+)
 
 type Triangle struct {
 	// Points represents a vertices before rasterization.
@@ -25,12 +27,14 @@ type Triangle struct {
 	LightIntensity float64
 }
 
+// Normal calculates and returns the face normal for the triangle.
+// This is a left handed system.
 func (t Triangle) Normal() Vec3 {
 	a := t.Projected[0].Vec3()
 	b := t.Projected[1].Vec3()
 	c := t.Projected[2].Vec3()
 	vectorAB := b.Sub(a).Normalize()
 	vectorAC := c.Sub(a).Normalize()
-	normal := vectorAB.Cross(vectorAC).Normalize() // Left handed system
+	normal := vectorAB.Cross(vectorAC).Normalize()
 	return normal
 }

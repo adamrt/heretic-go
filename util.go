@@ -9,3 +9,9 @@ func abs(i int) int {
 func lerp(a, b, t float64) float64 {
 	return a + t*(b-a)
 }
+
+// Normalize takes the min/max of face coordinates in a mesh and then normalizes
+// them to the 0.0-1.0 space.
+func normalize(x, min, max float64) float64 {
+	return (x - min) / (max - min)
+}

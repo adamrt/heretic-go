@@ -7,7 +7,6 @@ package fft
 
 import (
 	"log"
-	"math"
 
 	"github.com/adamrt/heretic"
 )
@@ -40,22 +39,6 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 		}
 	}
 
-	// Normalize all coordinates to 0.0 - 1.0.
-	min, max := minMaxTriangles(m.triangles)
-	for i := 0; i < len(m.triangles); i++ {
-		m.triangles[i] = normalizeTriangle(m.triangles[i], min, max)
-	}
-
-	// Center all coordinates so the center of the model is the model is
-	// the origin point.
-	translate := centerTraslation(m.triangles)
-	tmx := heretic.NewTranslationMatrix(translate)
-	for i := 0; i < len(m.triangles); i++ {
-		for j := 0; j < 3; j++ {
-			m.triangles[i].points[j] = tmx.MulVec4(m.triangles[i].points[j].Vec4()).Vec3()
-		}
-	}
-
 	// Convert fft Triangles to engine Faces
 	triangles := make([]heretic.Triangle, len(m.triangles))
 	for i, tri := range m.triangles {
@@ -69,6 +52,8 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 		Scale:      heretic.Vec3{X: 1, Y: 1, Z: 1},
 	}
 
+	mesh.NormalizeCoordinates()
+	mesh.CenterCoordinates()
 	return mesh
 }
 
@@ -202,38 +187,4 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 		ambientLight:      ambientLight,
 		background:        background,
 	}
-}
-
-func minMaxTriangles(triangles []triangle) (float64, float64) {
-	var min float64 = math.MaxInt16
-	var max float64 = math.MinInt16
-
-	for _, t := range triangles {
-
-		// Each point for max
-		for i := 0; i < 3; i++ {
-			// Max
-			if t.points[i].X > max {
-				max = t.points[i].X
-			}
-			if t.points[i].Y > max {
-				max = t.points[i].Y
-			}
-			if t.points[i].Z > max {
-				max = t.points[i].Z
-			}
-
-			// Min
-			if t.points[i].X < min {
-				min = t.points[i].X
-			}
-			if t.points[i].Y < min {
-				min = t.points[i].Y
-			}
-			if t.points[i].Z < min {
-				min = t.points[i].Z
-			}
-		}
-	}
-	return min, max
 }
