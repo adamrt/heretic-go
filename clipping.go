@@ -32,38 +32,26 @@ type Frustrum struct {
 }
 
 func (f Frustrum) Clip(triangle Triangle) []Triangle {
-	polygon := Polygon{
-		vertices: []Vec3{
-			triangle.Projected[0].Vec3(),
-			triangle.Projected[1].Vec3(),
-			triangle.Projected[2].Vec3(),
-		},
-		texcoords: []Tex{
-			triangle.Texcoords[0],
-			triangle.Texcoords[1],
-			triangle.Texcoords[2],
-		},
-	}
 	for _, plane := range f.planes {
-		if len(polygon.vertices) > 0 {
-			polygon = f.clipAgainstPlane(polygon, plane)
+		if len(triangle.Projected) > 0 {
+			triangle = f.clipAgainstPlane(triangle, plane)
 		}
 	}
-	return polygon.AsTriangles()
+	return splitTriangle(triangle)
 }
 
-func (f Frustrum) clipAgainstPlane(polygon Polygon, plane Plane) Polygon {
+func (f Frustrum) clipAgainstPlane(triangle Triangle, plane Plane) Triangle {
 	insideVertices := []Vec3{}
 	insideTexcoords := []Tex{}
 
-	previousVertex := polygon.vertices[len(polygon.vertices)-1]
-	previousTexcoord := polygon.texcoords[len(polygon.texcoords)-1]
+	previousVertex := triangle.Projected[len(triangle.Projected)-1].Vec3()
+	previousTexcoord := triangle.Texcoords[len(triangle.Texcoords)-1]
 
 	previousDot := previousVertex.Sub(plane.point).Dot(plane.normal)
 
-	for i := 0; i < len(polygon.vertices); i++ {
-		currentVertex := polygon.vertices[i]
-		currentTexcoord := polygon.texcoords[i]
+	for i := 0; i < len(triangle.Projected); i++ {
+		currentVertex := triangle.Projected[i].Vec3()
+		currentTexcoord := triangle.Texcoords[i]
 
 		currentDot := currentVertex.Sub(plane.point).Dot(plane.normal)
 
@@ -93,7 +81,19 @@ func (f Frustrum) clipAgainstPlane(polygon Polygon, plane Plane) Polygon {
 		previousTexcoord = currentTexcoord
 
 	}
-	return Polygon{insideVertices, insideTexcoords}
+
+	// Convert these back to Vec4's
+	projected := make([]Vec4, 0, len(insideVertices))
+	for _, v := range insideVertices {
+		projected = append(projected, v.Vec4())
+	}
+
+	// Update the original triangle so we retain the other fields of the
+	// triangle (Palette, Color, etc).
+	triangle.Projected = projected
+	triangle.Texcoords = insideTexcoords
+
+	return triangle
 }
 
 type Plane struct {
@@ -101,30 +101,30 @@ type Plane struct {
 	normal Vec3
 }
 
-type Polygon struct {
-	vertices  []Vec3
-	texcoords []Tex
-}
-
-func (p Polygon) AsTriangles() []Triangle {
-	tt := []Triangle{}
-	for i := 0; i < len(p.vertices)-2; i++ {
+// splitTriangle splits a triangle into 1 or more triangles depending on how
+// many projected points it has after being clipped.
+func splitTriangle(triangle Triangle) []Triangle {
+	triangles := []Triangle{}
+	for i := 0; i < len(triangle.Projected)-2; i++ {
 		index0 := 0
 		index1 := i + 1
 		index2 := i + 2
-		t := Triangle{
-			Projected: []Vec4{
-				p.vertices[index0].Vec4(),
-				p.vertices[index1].Vec4(),
-				p.vertices[index2].Vec4(),
-			},
-			Texcoords: []Tex{
-				p.texcoords[index0],
-				p.texcoords[index1],
-				p.texcoords[index2],
-			},
+
+		// Copy the original so we retain the properties of the triangle.
+		t := triangle
+
+		t.Projected = []Vec4{
+			triangle.Projected[index0],
+			triangle.Projected[index1],
+			triangle.Projected[index2],
 		}
-		tt = append(tt, t)
+		t.Texcoords = []Tex{
+			triangle.Texcoords[index0],
+			triangle.Texcoords[index1],
+			triangle.Texcoords[index2],
+		}
+
+		triangles = append(triangles, t)
 	}
-	return tt
+	return triangles
 }
