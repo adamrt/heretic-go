@@ -102,7 +102,7 @@ func (e *Engine) Setup() {
 	aspectY := float64(e.window.height) / float64(e.window.width)
 	fovY := math.Pi / 3.0 // Same as 180/3 or 60deg
 	fovX := math.Atan(math.Tan(fovY/2.0)*aspectX) * 2.0
-	znear := 0.1
+	znear := 0.3
 	zfar := 100.0
 
 	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
