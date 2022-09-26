@@ -1,5 +1,7 @@
 package heretic
 
+import "image/color"
+
 // Triangle represents a triangle after rasterization.
 type Triangle struct {
 	points    [3]Vec4
@@ -15,7 +17,7 @@ type Triangle struct {
 
 	// Color is used when there is no texture or when there is a texture,
 	// but the polygon has no palette.
-	color Color
+	color color.NRGBA
 
 	lightIntensity float64
 }

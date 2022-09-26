@@ -8,6 +8,7 @@ package fft
 
 import (
 	"encoding/binary"
+	"image/color"
 	"log"
 	"math"
 	"os"
@@ -86,8 +87,8 @@ func (r ISOReader) readInt8() int8   { return int8(r.readUint8()) }
 func (r ISOReader) readInt16() int16 { return int16(r.readUint16()) }
 func (r ISOReader) readInt32() int32 { return int32(r.readUint32()) }
 
-func (r ISOReader) readRGB8() heretic.Color {
-	return heretic.Color{
+func (r ISOReader) readRGB8() color.NRGBA {
+	return color.NRGBA{
 		R: r.readUint8(),
 		G: r.readUint8(),
 		B: r.readUint8(),
@@ -95,7 +96,7 @@ func (r ISOReader) readRGB8() heretic.Color {
 	}
 }
 
-func (mr ISOReader) readRGB15() heretic.Color {
+func (mr ISOReader) readRGB15() color.NRGBA {
 	val := mr.readUint16()
 	var a uint8
 	if val == 0 {
@@ -107,7 +108,7 @@ func (mr ISOReader) readRGB15() heretic.Color {
 	b := uint8((val & 0b01111100_00000000) >> 7)
 	g := uint8((val & 0b00000011_11100000) >> 2)
 	r := uint8((val & 0b00000000_00011111) << 3)
-	return heretic.Color{R: r, G: g, B: b, A: a}
+	return color.NRGBA{R: r, G: g, B: b, A: a}
 }
 
 func (r ISOReader) readVertex() heretic.Vec3 {
@@ -197,9 +198,9 @@ func (r ISOReader) readDirectionalLights() []heretic.DirectionalLight {
 	l1g, l2g, l3g := r.readLightColor(), r.readLightColor(), r.readLightColor()
 	l1b, l2b, l3b := r.readLightColor(), r.readLightColor(), r.readLightColor()
 
-	l1color := heretic.Color{R: l1r, G: l1g, B: l1b, A: 255}
-	l2color := heretic.Color{R: l2r, G: l2g, B: l2b, A: 255}
-	l3color := heretic.Color{R: l3r, G: l3g, B: l3b, A: 255}
+	l1color := color.NRGBA{R: l1r, G: l1g, B: l1b, A: 255}
+	l2color := color.NRGBA{R: l2r, G: l2g, B: l2b, A: 255}
+	l3color := color.NRGBA{R: l3r, G: l3g, B: l3b, A: 255}
 
 	l1pos, l2pos, l3pos := r.readVertex(), r.readVertex(), r.readVertex()
 

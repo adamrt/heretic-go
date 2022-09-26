@@ -1,6 +1,9 @@
 package heretic
 
-import "math"
+import (
+	"image/color"
+	"math"
+)
 
 func NewRenderer(width, height int) *Renderer {
 	return &Renderer{
@@ -18,7 +21,7 @@ type Renderer struct {
 }
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
-func (r Renderer) DrawPixel(x, y int, color Color) {
+func (r Renderer) DrawPixel(x, y int, color color.NRGBA) {
 	if x > 0 && x < int(r.width) && y > 0 && y < int(r.height) {
 		r.colorBuffer.Set(x, y, color)
 	}
@@ -65,7 +68,7 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 		// textureWithLightColor := applyLightIntensity(textureColor, lightIntensity)
 
 		// This handels transparent colors when there is a palette (FFT).
-		if textureColor.IsTransparent() && palette != nil {
+		if isTransparent(textureColor) && palette != nil {
 			return
 		}
 		r.DrawPixel(x, y, textureColorWithLight)
@@ -73,7 +76,12 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 	}
 }
 
-func (r Renderer) DrawTrianglePixel(x, y int, a, b, c Vec4, color Color) {
+func isTransparent(c color.Color) bool {
+	r, g, b, a := c.RGBA()
+	return r+g+b+a == 0
+}
+
+func (r Renderer) DrawTrianglePixel(x, y int, a, b, c Vec4, color color.NRGBA) {
 	pointP := Vec2{float64(x), float64(y)}
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
@@ -97,7 +105,7 @@ func (r Renderer) DrawTrianglePixel(x, y int, a, b, c Vec4, color Color) {
 }
 
 // DrawLine draws a solid line using the DDA algorithm.
-func (r Renderer) DrawLine(x0, y0, x1, y1 int, color Color) {
+func (r Renderer) DrawLine(x0, y0, x1, y1 int, color color.NRGBA) {
 	deltaX := x1 - x0
 	deltaY := y1 - y0
 
@@ -122,7 +130,7 @@ func (r Renderer) DrawLine(x0, y0, x1, y1 int, color Color) {
 }
 
 // DrawGrid draws a dotted grid across entire buffer.
-func (r Renderer) DrawGrid(color Color) {
+func (r Renderer) DrawGrid(color color.NRGBA) {
 	for y := 0; y < r.height; y += 10 {
 		for x := 0; x < r.width; x += 10 {
 			r.DrawPixel(x, y, color)
@@ -131,7 +139,7 @@ func (r Renderer) DrawGrid(color Color) {
 }
 
 // DrawGrid draws a rectangle to the buffer.
-func (r Renderer) DrawRectangle(x, y, width, height int, color Color) {
+func (r Renderer) DrawRectangle(x, y, width, height int, color color.NRGBA) {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			currentX := x + i
@@ -141,7 +149,7 @@ func (r Renderer) DrawRectangle(x, y, width, height int, color Color) {
 	}
 }
 
-func (r Renderer) DrawTriangle(x0, y0, x1, y1, x2, y2 int, color Color) {
+func (r Renderer) DrawTriangle(x0, y0, x1, y1, x2, y2 int, color color.NRGBA) {
 	r.DrawLine(x0, y0, x1, y1, color)
 	r.DrawLine(x1, y1, x2, y2, color)
 	r.DrawLine(x2, y2, x0, y0, color)
@@ -170,7 +178,7 @@ func (r Renderer) DrawFilledTriangle(
 	x0, y0 int, z0 float64, w0 float64,
 	x1, y1 int, z1 float64, w1 float64,
 	x2, y2 int, z2 float64, w2 float64,
-	color Color,
+	color color.NRGBA,
 ) {
 	if y0 > y1 {
 		y0, y1 = y1, y0

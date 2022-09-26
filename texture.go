@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"image"
+	"image/color"
 	"log"
 	"os"
 )
@@ -19,21 +20,21 @@ func (t Tex) IsEmpty() bool {
 
 type Texture struct {
 	width, height int
-	data          []Color
+	data          []color.NRGBA
 }
 
-func NewTexture(width, height int, data []Color) Texture {
+func NewTexture(width, height int, data []color.NRGBA) Texture {
 	return Texture{width, height, data}
 }
 
 func NewTextureFromImage(image image.Image) Texture {
 	width := image.Bounds().Dx()
 	height := image.Bounds().Dy()
-	data := make([]Color, width*height)
+	data := make([]color.NRGBA, width*height)
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			r, g, b, a := image.At(x, y).RGBA()
-			color := Color{
+			color := color.NRGBA{
 				R: uint8(r >> 8),
 				G: uint8(g >> 8),
 				B: uint8(b >> 8),

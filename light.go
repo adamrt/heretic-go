@@ -1,22 +1,25 @@
 package heretic
 
-import "math"
+import (
+	"image/color"
+	"math"
+)
 
 type AmbientLight struct {
-	Color Color
+	Color color.NRGBA
 }
 
 type DirectionalLight struct {
 	Direction Vec3
 	Position  Vec3
-	Color     Color
+	Color     color.NRGBA
 }
 
-func applyLightIntensity(orig Color, factor float64) Color {
+func applyLightIntensity(orig color.NRGBA, factor float64) color.NRGBA {
 	// Clamp from 0.0 to 1.0
 	factor = math.Max(0, math.Min(factor, 1.0))
 
-	return Color{
+	return color.NRGBA{
 		R: uint8(float64(orig.R) * factor),
 		G: uint8(float64(orig.G) * factor),
 		B: uint8(float64(orig.B) * factor),

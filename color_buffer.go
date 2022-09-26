@@ -1,26 +1,28 @@
 package heretic
 
+import "image/color"
+
 func NewColorBuffer(width, height int) ColorBuffer {
 	return ColorBuffer{
 		width:  width,
 		height: height,
-		buf:    make([]Color, height*width),
+		buf:    make([]color.NRGBA, height*width),
 	}
 }
 
 type ColorBuffer struct {
 	height, width int
-	buf           []Color
+	buf           []color.NRGBA
 }
 
-func (b ColorBuffer) Set(x, y int, color Color) {
+func (b ColorBuffer) Set(x, y int, color color.NRGBA) {
 	if x > 0 && x < int(b.width) && y > 0 && y < int(b.height) {
 		b.buf[(b.width*y)+x] = color
 	}
 }
 
 // Clear writes over every color in the buffer
-func (b ColorBuffer) Clear(color Color) {
+func (b ColorBuffer) Clear(color color.NRGBA) {
 	for x := 0; x < b.width; x++ {
 		for y := 0; y < b.height; y++ {
 			b.Set(x, y, color)
