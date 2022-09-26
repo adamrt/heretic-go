@@ -40,10 +40,20 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 		}
 	}
 
-	// Normalize all coordinates to -1.0 - 1.0.
+	// Normalize all coordinates to 0.0 - 1.0.
 	min, max := minMaxTriangles(m.triangles)
 	for i := 0; i < len(m.triangles); i++ {
 		m.triangles[i] = normalizeTriangle(m.triangles[i], min, max)
+	}
+
+	// Center all coordinates so the center of the model is the model is
+	// the origin point.
+	translate := centerTraslation(m.triangles)
+	tmx := heretic.NewTranslationMatrix(translate)
+	for i := 0; i < len(m.triangles); i++ {
+		for j := 0; j < 3; j++ {
+			m.triangles[i].points[j] = tmx.MulVec4(m.triangles[i].points[j].Vec4()).Vec3()
+		}
 	}
 
 	// Convert fft Triangles to engine Faces
