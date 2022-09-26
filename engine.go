@@ -337,7 +337,7 @@ func (e *Engine) Render() {
 						int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W,
 						int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W,
 						int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W,
-						ColorBlack,
+						tri.color,
 					)
 				}
 

@@ -25,7 +25,7 @@ func (t triangle) face() heretic.Face {
 		t.points,
 		t.texcoords(),
 		t.palette,
-		heretic.ColorWhite,
+		heretic.ColorBlack,
 	)
 }
 
