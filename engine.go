@@ -294,7 +294,7 @@ func (e *Engine) Render() {
 			c := triangle.Projected[2]
 
 			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
-				if triangle.HasTexture() {
+				if triangle.Texcoords != nil {
 					e.renderer.DrawTexturedTriangle(
 						int(a.X), int(a.Y), a.Z, a.W, triangle.Texcoords[0],
 						int(b.X), int(b.Y), b.Z, b.W, triangle.Texcoords[1],

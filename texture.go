@@ -14,10 +14,6 @@ type Tex struct {
 	U, V float64
 }
 
-func (t Tex) IsEmpty() bool {
-	return t.U == 0.0 && t.V == 0.0
-}
-
 type Texture struct {
 	width, height int
 	data          []color.NRGBA
