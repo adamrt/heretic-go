@@ -3,7 +3,7 @@ package heretic
 import "image/color"
 
 // Palette represents the 16-color palette to use during rendering a polygon.
-type Palette [16]color.NRGBA
+type Palette []color.NRGBA
 
 var (
 	ColorBlack = color.NRGBA{0, 0, 0, 255}

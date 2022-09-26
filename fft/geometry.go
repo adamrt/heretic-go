@@ -21,7 +21,7 @@ type normal struct {
 type triangle struct {
 	points      [3]heretic.Vec3
 	textureData triangleTexData
-	palette     *heretic.Palette
+	palette     heretic.Palette
 }
 
 func (t triangle) face() heretic.Face {

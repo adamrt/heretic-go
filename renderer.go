@@ -27,7 +27,7 @@ func (r Renderer) DrawPixel(x, y int, color color.NRGBA) {
 	}
 }
 
-func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, texture Texture, palette *Palette) {
+func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, texture Texture, palette Palette) {
 	pointP := Vec2{float64(x), float64(y)}
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
@@ -269,7 +269,7 @@ func (r Renderer) DrawTexturedTriangle(
 	x2, y2 int, z2, w2 float64, ct Tex,
 	lightIntensity float64,
 	texture Texture,
-	palette *Palette,
+	palette Palette,
 ) {
 
 	if y0 > y1 {
