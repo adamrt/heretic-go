@@ -31,17 +31,17 @@ type Frustrum struct {
 	planes []Plane
 }
 
-func (f Frustrum) Clip(tri Triangle, texcoords []Tex) []Triangle {
+func (f Frustrum) Clip(triangle Triangle) []Triangle {
 	polygon := Polygon{
 		vertices: []Vec3{
-			tri.Projected[0].Vec3(),
-			tri.Projected[1].Vec3(),
-			tri.Projected[2].Vec3(),
+			triangle.Projected[0].Vec3(),
+			triangle.Projected[1].Vec3(),
+			triangle.Projected[2].Vec3(),
 		},
 		texcoords: []Tex{
-			texcoords[0],
-			texcoords[1],
-			texcoords[2],
+			triangle.Texcoords[0],
+			triangle.Texcoords[1],
+			triangle.Texcoords[2],
 		},
 	}
 	for _, plane := range f.planes {

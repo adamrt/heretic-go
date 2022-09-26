@@ -243,7 +243,7 @@ func (e *Engine) Update() {
 			lightIntensity := -triangle.Normal().Dot(e.ambientLight.Direction)
 
 			// Clip Polygons against the frustrum
-			clippedTriangles := e.frustrum.Clip(triangle, triangle.Texcoords)
+			clippedTriangles := e.frustrum.Clip(triangle)
 
 			// Projection
 			for _, tri := range clippedTriangles {
