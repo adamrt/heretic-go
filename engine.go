@@ -276,12 +276,10 @@ func (e *Engine) Update() {
 
 				// The final triangle we will render
 				triangleToRender := Triangle{
-					// This is for filled triangles
-					color: applyLightIntensity(face.color, lightIntensity),
-					// This is for textured triangles
 					lightIntensity: lightIntensity,
 					texcoords:      tri.texcoords,
 					palette:        face.palette,
+					color:          face.color, // This is for filled triangles
 				}
 
 				for i, point := range tri.points {
