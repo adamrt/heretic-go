@@ -6,21 +6,21 @@ func NewRenderer(width, height int) *Renderer {
 	return &Renderer{
 		width:       width,
 		height:      height,
-		colorBuffer: make([]Color, width*height),
-		zBuffer:     make([]float64, width*height),
+		colorBuffer: NewColorBuffer(width, height),
+		zBuffer:     NewZBuffer(width, height),
 	}
 }
 
 type Renderer struct {
 	width, height int
-	colorBuffer   []Color
-	zBuffer       []float64
+	colorBuffer   ColorBuffer
+	zBuffer       ZBuffer
 }
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
 func (r Renderer) DrawPixel(x, y int, color Color) {
 	if x > 0 && x < int(r.width) && y > 0 && y < int(r.height) {
-		r.colorBuffer[(r.width*y)+x] = color
+		r.colorBuffer.Set(x, y, color)
 	}
 }
 
@@ -52,7 +52,7 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 	interpolatedReciprocalW = 1.0 - interpolatedReciprocalW
 
 	// Only draw pixel if depth value is less than one previously stored in zbuffer.
-	if interpolatedReciprocalW < r.ZBufferAt(x, y) {
+	if interpolatedReciprocalW < r.zBuffer.At(x, y) {
 		textureColor := texture.data[(textureY*texture.width)+textureX]
 		// If there is a palette, the current color components will
 		// represent the index into the palette.
@@ -69,7 +69,7 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 			return
 		}
 		r.DrawPixel(x, y, textureColorWithLight)
-		r.ZBufferSet(x, y, interpolatedReciprocalW)
+		r.zBuffer.Set(x, y, interpolatedReciprocalW)
 	}
 }
 
@@ -90,9 +90,9 @@ func (r Renderer) DrawTrianglePixel(x, y int, a, b, c Vec4, color Color) {
 	interpolatedReciprocalW = 1.0 - interpolatedReciprocalW
 
 	// Only draw pixel if depth value is less than one previously stored in zbuffer.
-	if interpolatedReciprocalW < r.ZBufferAt(x, y) {
+	if interpolatedReciprocalW < r.zBuffer.At(x, y) {
 		r.DrawPixel(x, y, color)
-		r.ZBufferSet(x, y, interpolatedReciprocalW)
+		r.zBuffer.Set(x, y, interpolatedReciprocalW)
 	}
 }
 
@@ -351,48 +351,6 @@ func (r Renderer) DrawTexturedTriangle(
 			}
 		}
 	}
-}
-
-// Clear writes over every color in the buffer
-func (r Renderer) ColorBufferColor(color Color) {
-	for x := 0; x < r.width; x++ {
-		for y := 0; y < r.height; y++ {
-			r.DrawPixel(x, y, color)
-		}
-	}
-}
-
-// Clear writes over every color in the buffer
-func (r Renderer) ColorBufferBackground(bg Background) {
-	for y := 0; y < r.height; y++ {
-		color := bg.At(y, r.height)
-		for x := 0; x < r.width; x++ {
-			r.DrawPixel(x, y, color)
-		}
-	}
-}
-
-// Clear writes over every color in the buffer
-func (r Renderer) ZBufferClear() {
-	for x := 0; x < r.width; x++ {
-		for y := 0; y < r.height; y++ {
-			r.zBuffer[(y*r.width)+x] = 1.0
-		}
-	}
-}
-
-func (r Renderer) ZBufferAt(x, y int) float64 {
-	if x < 0 || x >= r.width || y < 0 || y >= r.height {
-		return 1.0
-	}
-	return r.zBuffer[(y*r.width)+x]
-}
-
-func (r Renderer) ZBufferSet(x, y int, v float64) {
-	if x < 0 || x >= r.width || y < 0 || y >= r.height {
-		return
-	}
-	r.zBuffer[(y*r.width)+x] = v
 }
 
 func barycentricWeights(a, b, c, p Vec2) Vec3 {

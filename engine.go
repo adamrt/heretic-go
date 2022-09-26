@@ -285,12 +285,12 @@ func (e *Engine) Update() {
 
 func (e *Engine) Render() {
 	if e.scene.Background() != nil {
-		e.renderer.ColorBufferBackground(*e.scene.Background())
+		e.renderer.colorBuffer.SetBackground(*e.scene.Background())
 	} else {
-		e.renderer.ColorBufferColor(ColorBlack)
+		e.renderer.colorBuffer.Clear(ColorBlack)
 		e.renderer.DrawGrid(ColorGrey)
 	}
-	e.renderer.ZBufferClear()
+	e.renderer.zBuffer.Clear()
 
 	for _, mesh := range e.scene.Meshes {
 		for _, tri := range mesh.trianglesToRender {
