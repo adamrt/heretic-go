@@ -59,23 +59,31 @@ func (h meshFileHeader) VisibilityAngles() int64     { return h.ptr(ptrVisibilit
 
 // meshHeader contains the number of triangles and quads, textured and
 // untextured. The numbers are represented by 16-bit unsigned integers.
+//
+// These method names have been used as a references to FFHacktics naming.
 type meshHeader []byte
 
 // meshHeaderLen is the length in bytes.
 const meshHeaderLen = 8
 
-func (h meshHeader) numTexturedTriangles() int {
+func (h meshHeader) N() int {
 	return int(binary.LittleEndian.Uint16(h[0:2]))
 }
 
-func (h meshHeader) numTexturedQuads() int {
+func (h meshHeader) P() int {
 	return int(binary.LittleEndian.Uint16(h[2:4]))
 }
 
-func (h meshHeader) numUntexturedTriangles() int {
+func (h meshHeader) Q() int {
 	return int(binary.LittleEndian.Uint16(h[4:6]))
 }
 
-func (h meshHeader) numUntexturedQuads() int {
+func (h meshHeader) R() int {
 	return int(binary.LittleEndian.Uint16(h[6:8]))
+}
+
+// totalTexTris returns the count of all textured triangles after quads have
+// been split.
+func (h meshHeader) TT() int {
+	return h.N() + h.P()*2
 }

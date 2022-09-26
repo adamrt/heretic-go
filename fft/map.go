@@ -108,8 +108,8 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	r.iso.seekSector(record.Sector())
 
 	// File header contains intra-file pointers to areas of mesh data.
-	meshFileHeader := make(meshFileHeader, meshFileHeaderLen)
-	n, err := r.iso.file.Read(meshFileHeader)
+	fileHeader := make(meshFileHeader, meshFileHeaderLen)
+	n, err := r.iso.file.Read(fileHeader)
 	if err != nil || int64(n) != meshFileHeaderLen {
 		log.Fatalf("read mesh file header: %v", err)
 	}
@@ -118,7 +118,7 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	// think this is always 196 as it starts directly after the header,
 	// which has a size of 196. Keep dynamic here as pointer access will
 	// grow and this keeps it consistent.
-	primaryMeshPointer := meshFileHeader.PrimaryMesh()
+	primaryMeshPointer := fileHeader.PrimaryMesh()
 	if primaryMeshPointer == 0 || primaryMeshPointer != 196 {
 		log.Fatal("missing primary mesh pointer")
 	}
@@ -127,23 +127,23 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	r.iso.seekPointer(record.Sector(), primaryMeshPointer)
 
 	// Mesh header contains the number of triangles and quads that exist.
-	meshHeader := make(meshHeader, meshHeaderLen)
-	n, err = r.iso.file.Read(meshHeader)
+	header := make(meshHeader, meshHeaderLen)
+	n, err = r.iso.file.Read(header)
 	if err != nil || int64(n) != meshHeaderLen {
 		log.Fatalf("read mesh file header: %v", err)
 	}
 
 	triangles := make([]triangle, 0)
-	for i := 0; i < meshHeader.numTexturedTriangles(); i++ {
+	for i := 0; i < header.N(); i++ {
 		triangles = append(triangles, r.triangle())
 	}
-	for i := 0; i < meshHeader.numTexturedQuads(); i++ {
+	for i := 0; i < header.P(); i++ {
 		triangles = append(triangles, r.quad().split()...)
 	}
-	for i := 0; i < meshHeader.numUntexturedTriangles(); i++ {
+	for i := 0; i < header.Q(); i++ {
 		triangles = append(triangles, r.triangle())
 	}
-	for i := 0; i < meshHeader.numUntexturedQuads(); i++ {
+	for i := 0; i < header.R(); i++ {
 		triangles = append(triangles, r.quad().split()...)
 	}
 
@@ -152,18 +152,18 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	// iso read position moves forward, so we can read polygon texture data
 	// next.  This could be cleaned up as a seek, but we may eventually use
 	// the normal data here.
-	for i := 0; i < meshHeader.numTexturedTriangles(); i++ {
+	for i := 0; i < header.N(); i++ {
 		r.triNormal()
 	}
-	for i := 0; i < meshHeader.numTexturedQuads(); i++ {
+	for i := 0; i < header.P(); i++ {
 		r.quadNormal()
 	}
 
 	// Polygon texture data
-	for i := 0; i < meshHeader.numTexturedTriangles(); i++ {
+	for i := 0; i < header.N(); i++ {
 		triangles[i].textureData = r.triUV()
 	}
-	for i := meshHeader.numTexturedTriangles(); i < meshHeader.numTexturedTriangles()+(meshHeader.numTexturedQuads()*2); i = i + 2 {
+	for i := header.N(); i < header.TT(); i = i + 2 {
 		textureData := r.quadUV().split()
 		triangles[i].textureData = textureData[0]
 		triangles[i+1].textureData = textureData[1]
@@ -174,7 +174,7 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	//
 
 	// Skip ahead to color palettes
-	r.iso.seekPointer(record.Sector(), meshFileHeader.TexturePalettesColor())
+	r.iso.seekPointer(record.Sector(), fileHeader.TexturePalettesColor())
 
 	palettes := [16]*heretic.Palette{}
 	for i := 0; i < 16; i++ {
@@ -190,7 +190,7 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	}
 
 	// Skip ahead to lights
-	r.iso.seekPointer(record.Sector(), meshFileHeader.LightsAndBackground())
+	r.iso.seekPointer(record.Sector(), fileHeader.LightsAndBackground())
 
 	directionalLights := r.directionalLights()
 	ambientLight := r.ambientLight()
