@@ -240,24 +240,14 @@ func (e *Engine) Update() {
 				}
 			}
 
-			lightIntensity := -triangle.Normal().Dot(e.ambientLight.Direction)
+			triangle.LightIntensity = -triangle.Normal().Dot(e.ambientLight.Direction)
 
 			// Clip Polygons against the frustrum
 			clippedTriangles := e.frustrum.Clip(triangle)
 
 			// Projection
-			for _, tri := range clippedTriangles {
-
-				// The final triangle we will render
-				triangleToRender := Triangle{
-					LightIntensity: lightIntensity,
-					Texcoords:      tri.Texcoords,
-					Palette:        triangle.Palette,
-					Color:          triangle.Color, // This is for filled triangles
-					Projected:      make([]Vec4, 3),
-				}
-
-				for i, point := range tri.Projected {
+			for _, triangleToRender := range clippedTriangles {
+				for i, point := range triangleToRender.Projected {
 					projected := e.projMatrix.MulVec4Proj(point)
 					// FIXME: Invert Y to deal with obj coordinates
 					// system.  I'd like to get rid of this but its
@@ -269,7 +259,13 @@ func (e *Engine) Update() {
 					projected.X *= (float64(e.window.width) / 2.0)
 					projected.Y *= (float64(e.window.height) / 2.0)
 
-					// Translate the projected points to the middle of the screen.
+					// Translate the projected points to the
+					// middle of the screen.  FIXME: If this
+					// is removed, the viewport is the top
+					// left only.  I understand the model
+					// would be in top left, but I don't
+					// understand why the viewport/frustrum
+					// is changed.
 					projected.X += (float64(e.window.width) / 2.0)
 					projected.Y += (float64(e.window.height) / 2.0)
 
@@ -292,27 +288,27 @@ func (e *Engine) Render() {
 	e.renderer.zBuffer.Clear()
 
 	for _, mesh := range e.scene.Meshes {
-		for _, tri := range mesh.trianglesToRender {
-			a := tri.Projected[0]
-			b := tri.Projected[1]
-			c := tri.Projected[2]
+		for _, triangle := range mesh.trianglesToRender {
+			a := triangle.Projected[0]
+			b := triangle.Projected[1]
+			c := triangle.Projected[2]
 
 			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
-				if tri.HasTexture() {
+				if triangle.HasTexture() {
 					e.renderer.DrawTexturedTriangle(
-						int(a.X), int(a.Y), a.Z, a.W, tri.Texcoords[0],
-						int(b.X), int(b.Y), b.Z, b.W, tri.Texcoords[1],
-						int(c.X), int(c.Y), c.Z, c.W, tri.Texcoords[2],
-						tri.LightIntensity,
+						int(a.X), int(a.Y), a.Z, a.W, triangle.Texcoords[0],
+						int(b.X), int(b.Y), b.Z, b.W, triangle.Texcoords[1],
+						int(c.X), int(c.Y), c.Z, c.W, triangle.Texcoords[2],
+						triangle.LightIntensity,
 						mesh.Texture,
-						tri.Palette,
+						triangle.Palette,
 					)
 				} else {
 					e.renderer.DrawFilledTriangle(
 						int(a.X), int(a.Y), a.Z, a.W,
 						int(b.X), int(b.Y), b.Z, b.W,
 						int(c.X), int(c.Y), c.Z, c.W,
-						tri.Color,
+						triangle.Color,
 					)
 				}
 
@@ -322,7 +318,7 @@ func (e *Engine) Render() {
 					int(a.X), int(a.Y), a.Z, a.W,
 					int(b.X), int(b.Y), b.Z, b.W,
 					int(c.X), int(c.Y), c.Z, c.W,
-					tri.Color)
+					triangle.Color)
 			}
 
 			if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
@@ -330,7 +326,7 @@ func (e *Engine) Render() {
 			}
 
 			if e.renderMode == RenderModeWireVertex {
-				for _, point := range tri.Projected {
+				for _, point := range triangle.Projected {
 					e.renderer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
 				}
 			}
