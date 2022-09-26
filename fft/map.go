@@ -135,16 +135,16 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 
 	triangles := make([]triangle, 0)
 	for i := 0; i < header.N(); i++ {
-		triangles = append(triangles, r.triangle())
+		triangles = append(triangles, r.iso.readTriangle())
 	}
 	for i := 0; i < header.P(); i++ {
-		triangles = append(triangles, r.quad().split()...)
+		triangles = append(triangles, r.iso.readQuad().split()...)
 	}
 	for i := 0; i < header.Q(); i++ {
-		triangles = append(triangles, r.triangle())
+		triangles = append(triangles, r.iso.readTriangle())
 	}
 	for i := 0; i < header.R(); i++ {
-		triangles = append(triangles, r.quad().split()...)
+		triangles = append(triangles, r.iso.readQuad().split()...)
 	}
 
 	// Normals
@@ -153,18 +153,18 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	// next.  This could be cleaned up as a seek, but we may eventually use
 	// the normal data here.
 	for i := 0; i < header.N(); i++ {
-		r.triNormal()
+		r.iso.readTriNormal()
 	}
 	for i := 0; i < header.P(); i++ {
-		r.quadNormal()
+		r.iso.readQuadNormal()
 	}
 
 	// Polygon texture data
 	for i := 0; i < header.N(); i++ {
-		triangles[i].textureData = r.triUV()
+		triangles[i].textureData = r.iso.readTriUV()
 	}
 	for i := header.N(); i < header.TT(); i = i + 2 {
-		textureData := r.quadUV().split()
+		textureData := r.iso.readQuadUV().split()
 		triangles[i].textureData = textureData[0]
 		triangles[i+1].textureData = textureData[1]
 	}
@@ -180,7 +180,7 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	for i := 0; i < 16; i++ {
 		palette := &heretic.Palette{}
 		for j := 0; j < 16; j++ {
-			palette[j] = r.rgb15()
+			palette[j] = r.iso.readRGB15()
 		}
 		palettes[i] = palette
 	}
@@ -192,9 +192,9 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	// Skip ahead to lights
 	r.iso.seekPointer(record.Sector(), fileHeader.LightsAndBackground())
 
-	directionalLights := r.directionalLights()
-	ambientLight := r.ambientLight()
-	background := r.background()
+	directionalLights := r.iso.readDirectionalLights()
+	ambientLight := r.iso.readAmbientLight()
+	background := r.iso.readBackground()
 
 	return mesh{
 		triangles:         triangles,
@@ -202,142 +202,6 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 		ambientLight:      ambientLight,
 		background:        background,
 	}
-}
-
-func (r MeshReader) rgb8() heretic.Color {
-	return heretic.Color{
-		R: r.iso.uint8(),
-		G: r.iso.uint8(),
-		B: r.iso.uint8(),
-		A: 255,
-	}
-}
-
-func (mr MeshReader) rgb15() heretic.Color {
-	val := mr.iso.uint16()
-	var a uint8
-	if val == 0 {
-		a = 0x00
-	} else {
-		a = 0xFF
-	}
-
-	b := uint8((val & 0b01111100_00000000) >> 7)
-	g := uint8((val & 0b00000011_11100000) >> 2)
-	r := uint8((val & 0b00000000_00011111) << 3)
-	return heretic.Color{R: r, G: g, B: b, A: a}
-}
-
-func (r MeshReader) vertex() heretic.Vec3 {
-	x := float64(r.iso.int16())
-	y := float64(r.iso.int16())
-	z := float64(r.iso.int16())
-	return heretic.Vec3{x, -y, z}
-}
-
-func (r MeshReader) triangle() triangle {
-	a := r.vertex()
-	b := r.vertex()
-	c := r.vertex()
-	return triangle{points: [3]heretic.Vec3{a, b, c}}
-}
-
-func (r MeshReader) quad() quad {
-	a := r.vertex()
-	b := r.vertex()
-	c := r.vertex()
-	d := r.vertex()
-	return quad{a, b, c, d}
-}
-
-func (r MeshReader) f1x3x12() float64 {
-	return float64(r.iso.int16()) / 4096.0
-}
-
-func (r MeshReader) normal() normal {
-	x := r.f1x3x12()
-	y := r.f1x3x12()
-	z := r.f1x3x12()
-	return normal{x, -y, z}
-}
-
-func (r MeshReader) triNormal() []normal {
-	a := r.normal()
-	b := r.normal()
-	c := r.normal()
-	return []normal{a, b, c}
-}
-
-func (r MeshReader) quadNormal() []normal {
-	a := r.normal()
-	b := r.normal()
-	c := r.normal()
-	d := r.normal()
-	return []normal{a, b, c, d}
-}
-
-func (r MeshReader) uv() uv {
-	x := r.iso.uint8()
-	y := r.iso.uint8()
-	return uv{x: x, y: y}
-}
-
-func (r MeshReader) triUV() triangleTexData {
-	a := r.uv()
-	palette := int(r.iso.uint8() & 0b1111)
-	r.iso.uint8() // padding
-	b := r.uv()
-	page := int(r.iso.uint8() & 0b11) // only 2 bits
-	r.iso.uint8()                     // padding
-	c := r.uv()
-	return triangleTexData{a: a, b: b, c: c, palette: palette, page: page}
-}
-
-func (r MeshReader) quadUV() quadTexData {
-	a := r.uv()
-	palette := int(r.iso.uint8() & 0b1111)
-	r.iso.uint8() // padding
-	b := r.uv()
-	page := int(r.iso.uint8() & 0b11) // only 2 bits
-	r.iso.uint8()                     // padding
-	c := r.uv()
-	d := r.uv()
-	return quadTexData{a: a, b: b, c: c, d: d, palette: palette, page: page}
-}
-
-func (r MeshReader) lightColor() uint8 {
-	val := r.f1x3x12()
-	return uint8(255 * math.Min(math.Max(0.0, val), 1.0))
-}
-
-func (r MeshReader) directionalLights() []heretic.DirectionalLight {
-	l1r, l2r, l3r := r.lightColor(), r.lightColor(), r.lightColor()
-	l1g, l2g, l3g := r.lightColor(), r.lightColor(), r.lightColor()
-	l1b, l2b, l3b := r.lightColor(), r.lightColor(), r.lightColor()
-
-	l1color := heretic.Color{R: l1r, G: l1g, B: l1b, A: 255}
-	l2color := heretic.Color{R: l2r, G: l2g, B: l2b, A: 255}
-	l3color := heretic.Color{R: l3r, G: l3g, B: l3b, A: 255}
-
-	l1pos, l2pos, l3pos := r.vertex(), r.vertex(), r.vertex()
-
-	return []heretic.DirectionalLight{
-		{Position: l1pos, Color: l1color},
-		{Position: l2pos, Color: l2color},
-		{Position: l3pos, Color: l3color},
-	}
-}
-
-func (r MeshReader) ambientLight() heretic.AmbientLight {
-	color := r.rgb8()
-	return heretic.AmbientLight{Color: color}
-
-}
-
-func (r MeshReader) background() heretic.Background {
-	top := r.rgb8()
-	bottom := r.rgb8()
-	return heretic.Background{Top: top, Bottom: bottom}
 }
 
 func minMaxTriangles(triangles []triangle) (float64, float64) {
