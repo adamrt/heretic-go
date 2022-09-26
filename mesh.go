@@ -94,7 +94,7 @@ func NewMeshFromFile(objFilename string) Mesh {
 					log.Fatalf("face: only %d matches on line %q\n", matches, line)
 				}
 				mesh.Triangles = append(mesh.Triangles, Triangle{
-					Points: [3]Vec3{
+					Points: []Vec3{
 						vertices[vertex_indices[0]-1],
 						vertices[vertex_indices[1]-1],
 						vertices[vertex_indices[2]-1],
@@ -111,12 +111,12 @@ func NewMeshFromFile(objFilename string) Mesh {
 					log.Fatalf("face: only %d matches on line %q\n", matches, line)
 				}
 				mesh.Triangles = append(mesh.Triangles, Triangle{
-					Points: [3]Vec3{
+					Points: []Vec3{
 						vertices[vertex_indices[0]-1],
 						vertices[vertex_indices[1]-1],
 						vertices[vertex_indices[2]-1],
 					},
-					Texcoords: [3]Tex{
+					Texcoords: []Tex{
 						vts[texture_indices[0]-1],
 						vts[texture_indices[1]-1],
 						vts[texture_indices[2]-1],

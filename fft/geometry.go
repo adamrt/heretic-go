@@ -19,7 +19,7 @@ type normal struct {
 }
 
 type triangle struct {
-	points      [3]heretic.Vec3
+	points      []heretic.Vec3
 	textureData triangleTexData
 	palette     heretic.Palette
 }
@@ -33,8 +33,8 @@ func (t triangle) triangle() heretic.Triangle {
 	}
 }
 
-func (t triangle) texcoords() [3]heretic.Tex {
-	return [3]heretic.Tex{
+func (t triangle) texcoords() []heretic.Tex {
+	return []heretic.Tex{
 		t.textureData.a.tex(t.textureData.page),
 		t.textureData.b.tex(t.textureData.page),
 		t.textureData.c.tex(t.textureData.page),
@@ -47,8 +47,8 @@ type quad struct {
 
 func (q quad) split() []triangle {
 	return []triangle{
-		{points: [3]heretic.Vec3{q.a, q.b, q.c}},
-		{points: [3]heretic.Vec3{q.b, q.d, q.c}},
+		{points: []heretic.Vec3{q.a, q.b, q.c}},
+		{points: []heretic.Vec3{q.b, q.d, q.c}},
 	}
 }
 
@@ -85,7 +85,7 @@ func (q quadTexData) split() []triangleTexData {
 // during import.  This is primary used for loading FFT maps since they have
 // very large coordinates.
 func normalizeTriangle(t triangle, min, max float64) triangle {
-	normalized := [3]heretic.Vec3{}
+	normalized := make([]heretic.Vec3, 3)
 	for i := 0; i < 3; i++ {
 		normalized[i].X = normalize(t.points[i].X, min, max)
 		normalized[i].Y = normalize(t.points[i].Y, min, max)

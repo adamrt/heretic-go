@@ -31,7 +31,7 @@ type Frustrum struct {
 	planes []Plane
 }
 
-func (f Frustrum) Clip(tri Triangle, texcoords [3]Tex) []Triangle {
+func (f Frustrum) Clip(tri Triangle, texcoords []Tex) []Triangle {
 	polygon := Polygon{
 		vertices: []Vec3{
 			tri.Projected[0].Vec3(),
@@ -113,12 +113,12 @@ func (p Polygon) AsTriangles() []Triangle {
 		index1 := i + 1
 		index2 := i + 2
 		t := Triangle{
-			Projected: [3]Vec4{
+			Projected: []Vec4{
 				p.vertices[index0].Vec4(),
 				p.vertices[index1].Vec4(),
 				p.vertices[index2].Vec4(),
 			},
-			Texcoords: [3]Tex{
+			Texcoords: []Tex{
 				p.texcoords[index0],
 				p.texcoords[index1],
 				p.texcoords[index2],

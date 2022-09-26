@@ -122,7 +122,7 @@ func (r ISOReader) readTriangle() triangle {
 	a := r.readVertex()
 	b := r.readVertex()
 	c := r.readVertex()
-	return triangle{points: [3]heretic.Vec3{a, b, c}}
+	return triangle{points: []heretic.Vec3{a, b, c}}
 }
 
 func (r ISOReader) readQuad() quad {

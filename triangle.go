@@ -4,12 +4,12 @@ import "image/color"
 
 type Triangle struct {
 	// Points represents a vertices before rasterization.
-	Points [3]Vec3
+	Points []Vec3
 
 	// Projected represents a vertices after rasterization.
-	Projected [3]Vec4
+	Projected []Vec4
 
-	Texcoords [3]Tex
+	Texcoords []Tex
 
 	// Palette represents the 16-color Palette to use during rendering a
 	// polygon.  This is due to FFT texture storage. The raw texture pixel

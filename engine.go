@@ -215,15 +215,13 @@ func (e *Engine) Update() {
 
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {
+			triangle.Projected = make([]Vec4, 3)
 			// Transformation
-			var transformedTri Triangle
 			for i := 0; i < 3; i++ {
 				transformedPoint := worldMatrix.MulVec4(triangle.Points[i].Vec4())
 				transformedPoint = viewMatrix.MulVec4(transformedPoint)
-				transformedTri.Projected[i] = transformedPoint
+				triangle.Projected[i] = transformedPoint
 			}
-
-			normal := transformedTri.Normal()
 
 			// Backface Culling
 			//
@@ -235,17 +233,17 @@ func (e *Engine) Update() {
 				// unexpected results, while Vec3{0,0,0} gives us the
 				// expected results, but doesn't seem logical.
 				origin := Vec3{0, 0, 0}
-				cameraRay := origin.Sub(transformedTri.Projected[0].Vec3())
-				visibility := normal.Dot(cameraRay)
+				cameraRay := origin.Sub(triangle.Projected[0].Vec3())
+				visibility := triangle.Normal().Dot(cameraRay)
 				if visibility < 0 {
 					continue
 				}
 			}
 
-			// Clip Polygons against the frustrum
-			clippedTriangles := e.frustrum.Clip(transformedTri, triangle.Texcoords)
+			lightIntensity := -triangle.Normal().Dot(e.ambientLight.Direction)
 
-			lightIntensity := -normal.Dot(e.ambientLight.Direction)
+			// Clip Polygons against the frustrum
+			clippedTriangles := e.frustrum.Clip(triangle, triangle.Texcoords)
 
 			// Projection
 			for _, tri := range clippedTriangles {
@@ -256,6 +254,7 @@ func (e *Engine) Update() {
 					Texcoords:      tri.Texcoords,
 					Palette:        triangle.Palette,
 					Color:          triangle.Color, // This is for filled triangles
+					Projected:      make([]Vec4, 3),
 				}
 
 				for i, point := range tri.Projected {
