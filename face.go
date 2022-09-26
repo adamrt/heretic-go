@@ -22,11 +22,3 @@ type Face struct {
 	// but the polygon has no palette.
 	color Color
 }
-
-type Tex struct {
-	U, V float64
-}
-
-func (t Tex) IsEmpty() bool {
-	return t.U == 0.0 && t.V == 0.0
-}

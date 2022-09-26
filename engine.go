@@ -14,12 +14,15 @@ const (
 )
 
 type CullMode int
-type RenderMode int
 
 const (
 	CullModeNone     CullMode = 0
 	CullModeBackFace CullMode = 1
+)
 
+type RenderMode int
+
+const (
 	RenderModeWire        RenderMode = 1
 	RenderModeWireVertex  RenderMode = 2
 	RenderModeWireFill    RenderMode = 3
@@ -32,7 +35,7 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 	return &Engine{
 		window:    window,
 		renderer:  renderer,
-		isRunning: true,
+		IsRunning: true,
 
 		ambientLight: DirectionalLight{Direction: Vec3{0, 0, 1}},
 
@@ -56,11 +59,11 @@ type Engine struct {
 	window   *Window
 	renderer *Renderer
 
+	IsRunning bool
+
 	// Timing
 	previous  uint32
 	deltaTime float64
-
-	isRunning bool
 
 	// Rendering
 	cullMode   CullMode
@@ -81,33 +84,6 @@ type Engine struct {
 	// The amount can be set by SetAutoRotation().
 	autoRotation bool
 	rotation     Vec3
-}
-
-func (e *Engine) SetAutoRotation(v Vec3) {
-	e.rotation = v
-	e.autoRotation = true
-}
-
-func (e *Engine) NextMap() {
-	if e.currentMap < 125 {
-		e.currentMap++
-		mesh := e.MeshReader.ReadMesh(e.currentMap)
-		e.SetMesh(mesh)
-		e.Setup()
-	}
-}
-
-func (e *Engine) PrevMap() {
-	if e.currentMap > 1 {
-		e.currentMap--
-		mesh := e.MeshReader.ReadMesh(e.currentMap)
-		e.SetMesh(mesh)
-		e.Setup()
-	}
-}
-
-func (e *Engine) IsRunning() bool {
-	return e.isRunning
 }
 
 func (e *Engine) Setup() {
@@ -158,7 +134,7 @@ func (e *Engine) ProcessInput() {
 			}
 			switch t.Keysym.Sym {
 			case sdl.K_ESCAPE:
-				e.isRunning = false
+				e.IsRunning = false
 				break
 
 			case sdl.K_1:
@@ -185,7 +161,7 @@ func (e *Engine) ProcessInput() {
 				e.autoRotation = !e.autoRotation
 			}
 		case *sdl.QuitEvent:
-			e.isRunning = false
+			e.IsRunning = false
 			break
 		case *sdl.MouseWheelEvent:
 			e.camera.MoveForward(float64(t.PreciseY) * e.deltaTime)
@@ -325,18 +301,18 @@ func (e *Engine) Render() {
 			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
 				if tri.HasTexture() {
 					e.renderer.DrawTexturedTriangle(
-						int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W, tri.texcoords[0],
-						int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W, tri.texcoords[1],
-						int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W, tri.texcoords[2],
+						int(a.X), int(a.Y), a.Z, a.W, tri.texcoords[0],
+						int(b.X), int(b.Y), b.Z, b.W, tri.texcoords[1],
+						int(c.X), int(c.Y), c.Z, c.W, tri.texcoords[2],
 						tri.lightIntensity,
 						mesh.Texture,
 						tri.palette,
 					)
 				} else {
 					e.renderer.DrawFilledTriangle(
-						int(tri.points[0].X), int(tri.points[0].Y), tri.points[0].Z, tri.points[0].W,
-						int(tri.points[1].X), int(tri.points[1].Y), tri.points[1].Z, tri.points[1].W,
-						int(tri.points[2].X), int(tri.points[2].Y), tri.points[2].Z, tri.points[2].W,
+						int(a.X), int(a.Y), a.Z, a.W,
+						int(b.X), int(b.Y), b.Z, b.W,
+						int(c.X), int(c.Y), c.Z, c.W,
 						tri.color,
 					)
 				}
@@ -368,12 +344,33 @@ func (e *Engine) Render() {
 	e.window.Update(e.renderer.colorBuffer)
 }
 
-// LoadCubeMesh loads the cube geometry into the Engine.mesh
-func (e *Engine) LoadMesh(objFile string) {
-	// Temporary spot for vertices
-	e.scene.Meshes = []*Mesh{NewMeshFromFile(objFile)}
-}
-
 func (e *Engine) SetMesh(mesh Mesh) {
 	e.scene.Meshes = []*Mesh{&mesh}
+}
+
+func (e *Engine) AppendMesh(mesh Mesh) {
+	e.scene.Meshes = append(e.scene.Meshes, &mesh)
+}
+
+func (e *Engine) SetAutoRotation(v Vec3) {
+	e.rotation = v
+	e.autoRotation = true
+}
+
+func (e *Engine) NextMap() {
+	if e.currentMap < 125 {
+		e.currentMap++
+		mesh := e.MeshReader.ReadMesh(e.currentMap)
+		e.SetMesh(mesh)
+		e.Setup()
+	}
+}
+
+func (e *Engine) PrevMap() {
+	if e.currentMap > 1 {
+		e.currentMap--
+		mesh := e.MeshReader.ReadMesh(e.currentMap)
+		e.SetMesh(mesh)
+		e.Setup()
+	}
 }

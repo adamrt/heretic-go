@@ -29,7 +29,7 @@ func NewMesh(faces []Face, texture Texture) Mesh {
 	return Mesh{Faces: faces, Texture: texture}
 }
 
-func NewMeshFromFile(objFilename string) *Mesh {
+func NewMeshFromFile(objFilename string) Mesh {
 	objFile, err := os.Open(objFilename)
 	if err != nil {
 		panic(err)
@@ -131,5 +131,5 @@ func NewMeshFromFile(objFilename string) *Mesh {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-	return &mesh
+	return mesh
 }

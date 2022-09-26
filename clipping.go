@@ -4,39 +4,6 @@ import (
 	"math"
 )
 
-type Plane struct {
-	point  Vec3
-	normal Vec3
-}
-
-type Polygon struct {
-	vertices  []Vec3
-	texcoords []Tex
-}
-
-func (p Polygon) AsTriangles() []Triangle {
-	tt := []Triangle{}
-	for i := 0; i < len(p.vertices)-2; i++ {
-		index0 := 0
-		index1 := i + 1
-		index2 := i + 2
-		t := Triangle{
-			points: [3]Vec4{
-				p.vertices[index0].Vec4(),
-				p.vertices[index1].Vec4(),
-				p.vertices[index2].Vec4(),
-			},
-			texcoords: [3]Tex{
-				p.texcoords[index0],
-				p.texcoords[index1],
-				p.texcoords[index2],
-			},
-		}
-		tt = append(tt, t)
-	}
-	return tt
-}
-
 func NewFrustrum(fovX, fovY, znear, zfar float64) Frustrum {
 	sinHalfFovX := math.Sin(fovX / 2.0)
 	cosHalfFovX := math.Cos(fovX / 2.0)
@@ -44,17 +11,17 @@ func NewFrustrum(fovX, fovY, znear, zfar float64) Frustrum {
 	cosHalfFovY := math.Cos(fovY / 2.0)
 	return Frustrum{
 		planes: []Plane{
-			// PlaneLeft
+			// Left Plane
 			{point: Vec3{0, 0, 0}, normal: Vec3{cosHalfFovX, 0, sinHalfFovX}},
-			// PlaneRight
+			// Right Plane
 			{point: Vec3{0, 0, 0}, normal: Vec3{-cosHalfFovX, 0, sinHalfFovX}},
-			// PlaneTop
+			// Top Plane
 			{point: Vec3{0, 0, 0}, normal: Vec3{0, -cosHalfFovY, sinHalfFovY}},
-			// PlaneBottom
+			// Bottom Plane
 			{point: Vec3{0, 0, 0}, normal: Vec3{0, cosHalfFovY, sinHalfFovY}},
-			// PlaneNear
+			// Near Plane
 			{point: Vec3{0, 0, znear}, normal: Vec3{0, 0, 1}},
-			// PlaneFar
+			// Far Plane
 			{point: Vec3{0, 0, zfar}, normal: Vec3{0, 0, -1}},
 		},
 	}
@@ -127,4 +94,37 @@ func (f Frustrum) clipAgainstPlane(polygon Polygon, plane Plane) Polygon {
 
 	}
 	return Polygon{insideVertices, insideTexcoords}
+}
+
+type Plane struct {
+	point  Vec3
+	normal Vec3
+}
+
+type Polygon struct {
+	vertices  []Vec3
+	texcoords []Tex
+}
+
+func (p Polygon) AsTriangles() []Triangle {
+	tt := []Triangle{}
+	for i := 0; i < len(p.vertices)-2; i++ {
+		index0 := 0
+		index1 := i + 1
+		index2 := i + 2
+		t := Triangle{
+			points: [3]Vec4{
+				p.vertices[index0].Vec4(),
+				p.vertices[index1].Vec4(),
+				p.vertices[index2].Vec4(),
+			},
+			texcoords: [3]Tex{
+				p.texcoords[index0],
+				p.texcoords[index1],
+				p.texcoords[index2],
+			},
+		}
+		tt = append(tt, t)
+	}
+	return tt
 }

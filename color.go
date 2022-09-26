@@ -30,7 +30,8 @@ type Background struct {
 	Bottom Color
 }
 
-// These are vertical gradients so we don't care about x.
+// These are vertical gradients so we don't care about x.  The colors need to be
+// float64s before subtraction so there isn't uint8 overflow.
 func (bg Background) At(y int, height int) Color {
 	d := float64(y) / float64(height)
 	r := float64(bg.Bottom.R) + d*(float64(bg.Top.R)-float64(bg.Bottom.R))

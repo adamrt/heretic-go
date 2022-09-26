@@ -25,7 +25,7 @@ func main() {
 	engine.NextMap()
 
 	engine.Setup()
-	for engine.IsRunning() {
+	for engine.IsRunning {
 		engine.ProcessInput()
 		engine.Update()
 		engine.Render()
