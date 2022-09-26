@@ -15,7 +15,7 @@ func main() {
 	defer window.Destroy()
 
 	engine := heretic.NewEngine(window, renderer)
-	mesh := heretic.NewMeshFromFile("assets/drone.obj")
+	mesh := heretic.NewMeshFromObj("assets/drone.obj")
 	engine.SetMesh(mesh)
 
 	engine.SetAutoRotation(heretic.Vec3{Y: 0.5})
