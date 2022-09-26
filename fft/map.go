@@ -57,13 +57,13 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 	}
 
 	// Convert fft Triangles to engine Faces
-	faces := make([]heretic.Face, len(m.triangles))
+	triangles := make([]heretic.Triangle, len(m.triangles))
 	for i, tri := range m.triangles {
-		faces[i] = tri.face()
+		triangles[i] = tri.triangle()
 	}
 
 	mesh := heretic.Mesh{
-		Faces:      faces,
+		Triangles:  triangles,
 		Texture:    textures[0],
 		Background: &m.background,
 		Scale:      heretic.Vec3{X: 1, Y: 1, Z: 1},

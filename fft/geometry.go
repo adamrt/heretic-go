@@ -24,13 +24,13 @@ type triangle struct {
 	palette     heretic.Palette
 }
 
-func (t triangle) face() heretic.Face {
-	return heretic.NewFace(
-		t.points,
-		t.texcoords(),
-		t.palette,
-		heretic.ColorBlack,
-	)
+func (t triangle) triangle() heretic.Triangle {
+	return heretic.Triangle{
+		Points:    t.points,
+		Texcoords: t.texcoords(),
+		Palette:   t.palette,
+		Color:     heretic.ColorBlack,
+	}
 }
 
 func (t triangle) texcoords() [3]heretic.Tex {

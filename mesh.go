@@ -14,7 +14,7 @@ import (
 type Mesh struct {
 	// This is just a slice of a slice, but for naming purposes, triangles
 	// makes more sense, since that is what it represents.
-	Faces      []Face
+	Triangles  []Triangle
 	Texture    Texture
 	Background *Background
 
@@ -25,8 +25,8 @@ type Mesh struct {
 	trianglesToRender []Triangle
 }
 
-func NewMesh(faces []Face, texture Texture) Mesh {
-	return Mesh{Faces: faces, Texture: texture}
+func NewMesh(triangles []Triangle, texture Texture) Mesh {
+	return Mesh{Triangles: triangles, Texture: texture}
 }
 
 func NewMeshFromFile(objFilename string) Mesh {
@@ -93,13 +93,13 @@ func NewMeshFromFile(objFilename string) Mesh {
 				if err != nil || matches != 3 {
 					log.Fatalf("face: only %d matches on line %q\n", matches, line)
 				}
-				mesh.Faces = append(mesh.Faces, Face{
-					points: [3]Vec3{
+				mesh.Triangles = append(mesh.Triangles, Triangle{
+					Points: [3]Vec3{
 						vertices[vertex_indices[0]-1],
 						vertices[vertex_indices[1]-1],
 						vertices[vertex_indices[2]-1],
 					},
-					color: ColorWhite,
+					Color: ColorWhite,
 				})
 			} else {
 				matches, err := fmt.Fscanf(f, "f %d/%d/%d %d/%d/%d %d/%d/%d",
@@ -110,18 +110,18 @@ func NewMeshFromFile(objFilename string) Mesh {
 				if err != nil || matches != 9 {
 					log.Fatalf("face: only %d matches on line %q\n", matches, line)
 				}
-				mesh.Faces = append(mesh.Faces, Face{
-					points: [3]Vec3{
+				mesh.Triangles = append(mesh.Triangles, Triangle{
+					Points: [3]Vec3{
 						vertices[vertex_indices[0]-1],
 						vertices[vertex_indices[1]-1],
 						vertices[vertex_indices[2]-1],
 					},
-					texcoords: [3]Tex{
+					Texcoords: [3]Tex{
 						vts[texture_indices[0]-1],
 						vts[texture_indices[1]-1],
 						vts[texture_indices[2]-1],
 					},
-					color: ColorWhite,
+					Color: ColorWhite,
 				})
 			}
 

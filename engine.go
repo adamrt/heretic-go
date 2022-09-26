@@ -214,13 +214,13 @@ func (e *Engine) Update() {
 		viewMatrix := e.camera.LookAtMatrix(target, up)
 
 		// Project each into 2D
-		for _, face := range mesh.Faces {
+		for _, triangle := range mesh.Triangles {
 			// Transformation
 			var transformedTri Triangle
 			for i := 0; i < 3; i++ {
-				transformedPoint := worldMatrix.MulVec4(face.points[i].Vec4())
+				transformedPoint := worldMatrix.MulVec4(triangle.Points[i].Vec4())
 				transformedPoint = viewMatrix.MulVec4(transformedPoint)
-				transformedTri.points[i] = transformedPoint
+				transformedTri.Projected[i] = transformedPoint
 			}
 
 			normal := transformedTri.Normal()
@@ -235,7 +235,7 @@ func (e *Engine) Update() {
 				// unexpected results, while Vec3{0,0,0} gives us the
 				// expected results, but doesn't seem logical.
 				origin := Vec3{0, 0, 0}
-				cameraRay := origin.Sub(transformedTri.points[0].Vec3())
+				cameraRay := origin.Sub(transformedTri.Projected[0].Vec3())
 				visibility := normal.Dot(cameraRay)
 				if visibility < 0 {
 					continue
@@ -243,7 +243,7 @@ func (e *Engine) Update() {
 			}
 
 			// Clip Polygons against the frustrum
-			clippedTriangles := e.frustrum.Clip(transformedTri, face.texcoords)
+			clippedTriangles := e.frustrum.Clip(transformedTri, triangle.Texcoords)
 
 			lightIntensity := -normal.Dot(e.ambientLight.Direction)
 
@@ -252,13 +252,13 @@ func (e *Engine) Update() {
 
 				// The final triangle we will render
 				triangleToRender := Triangle{
-					lightIntensity: lightIntensity,
-					texcoords:      tri.texcoords,
-					palette:        face.palette,
-					color:          face.color, // This is for filled triangles
+					LightIntensity: lightIntensity,
+					Texcoords:      tri.Texcoords,
+					Palette:        triangle.Palette,
+					Color:          triangle.Color, // This is for filled triangles
 				}
 
-				for i, point := range tri.points {
+				for i, point := range tri.Projected {
 					projected := e.projMatrix.MulVec4Proj(point)
 					// FIXME: Invert Y to deal with obj coordinates
 					// system.  I'd like to get rid of this but its
@@ -274,7 +274,7 @@ func (e *Engine) Update() {
 					projected.X += (float64(e.window.width) / 2.0)
 					projected.Y += (float64(e.window.height) / 2.0)
 
-					triangleToRender.points[i] = projected
+					triangleToRender.Projected[i] = projected
 				}
 
 				mesh.trianglesToRender = append(mesh.trianglesToRender, triangleToRender)
@@ -294,26 +294,26 @@ func (e *Engine) Render() {
 
 	for _, mesh := range e.scene.Meshes {
 		for _, tri := range mesh.trianglesToRender {
-			a := tri.points[0]
-			b := tri.points[1]
-			c := tri.points[2]
+			a := tri.Projected[0]
+			b := tri.Projected[1]
+			c := tri.Projected[2]
 
 			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
 				if tri.HasTexture() {
 					e.renderer.DrawTexturedTriangle(
-						int(a.X), int(a.Y), a.Z, a.W, tri.texcoords[0],
-						int(b.X), int(b.Y), b.Z, b.W, tri.texcoords[1],
-						int(c.X), int(c.Y), c.Z, c.W, tri.texcoords[2],
-						tri.lightIntensity,
+						int(a.X), int(a.Y), a.Z, a.W, tri.Texcoords[0],
+						int(b.X), int(b.Y), b.Z, b.W, tri.Texcoords[1],
+						int(c.X), int(c.Y), c.Z, c.W, tri.Texcoords[2],
+						tri.LightIntensity,
 						mesh.Texture,
-						tri.palette,
+						tri.Palette,
 					)
 				} else {
 					e.renderer.DrawFilledTriangle(
 						int(a.X), int(a.Y), a.Z, a.W,
 						int(b.X), int(b.Y), b.Z, b.W,
 						int(c.X), int(c.Y), c.Z, c.W,
-						tri.color,
+						tri.Color,
 					)
 				}
 
@@ -323,7 +323,7 @@ func (e *Engine) Render() {
 					int(a.X), int(a.Y), a.Z, a.W,
 					int(b.X), int(b.Y), b.Z, b.W,
 					int(c.X), int(c.Y), c.Z, c.W,
-					tri.color)
+					tri.Color)
 			}
 
 			if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
@@ -331,7 +331,7 @@ func (e *Engine) Render() {
 			}
 
 			if e.renderMode == RenderModeWireVertex {
-				for _, point := range tri.points {
+				for _, point := range tri.Projected {
 					e.renderer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
 				}
 			}

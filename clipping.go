@@ -34,9 +34,9 @@ type Frustrum struct {
 func (f Frustrum) Clip(tri Triangle, texcoords [3]Tex) []Triangle {
 	polygon := Polygon{
 		vertices: []Vec3{
-			tri.points[0].Vec3(),
-			tri.points[1].Vec3(),
-			tri.points[2].Vec3(),
+			tri.Projected[0].Vec3(),
+			tri.Projected[1].Vec3(),
+			tri.Projected[2].Vec3(),
 		},
 		texcoords: []Tex{
 			texcoords[0],
@@ -113,12 +113,12 @@ func (p Polygon) AsTriangles() []Triangle {
 		index1 := i + 1
 		index2 := i + 2
 		t := Triangle{
-			points: [3]Vec4{
+			Projected: [3]Vec4{
 				p.vertices[index0].Vec4(),
 				p.vertices[index1].Vec4(),
 				p.vertices[index2].Vec4(),
 			},
-			texcoords: [3]Tex{
+			Texcoords: [3]Tex{
 				p.texcoords[index0],
 				p.texcoords[index1],
 				p.texcoords[index2],
