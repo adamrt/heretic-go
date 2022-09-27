@@ -137,26 +137,26 @@ func (r ISOReader) readF1x3x12() float64 {
 	return float64(r.readInt16()) / 4096.0
 }
 
-func (r ISOReader) readNormal() normal {
+func (r ISOReader) readNormal() heretic.Vec3 {
 	x := r.readF1x3x12()
 	y := r.readF1x3x12()
 	z := r.readF1x3x12()
-	return normal{x, -y, z}
+	return heretic.Vec3{x, -y, z}
 }
 
-func (r ISOReader) readTriNormal() []normal {
+func (r ISOReader) readTriNormal() []heretic.Vec3 {
 	a := r.readNormal()
 	b := r.readNormal()
 	c := r.readNormal()
-	return []normal{a, b, c}
+	return []heretic.Vec3{a, b, c}
 }
 
-func (r ISOReader) readQuadNormal() []normal {
+func (r ISOReader) readQuadNormal() []heretic.Vec3 {
 	a := r.readNormal()
 	b := r.readNormal()
 	c := r.readNormal()
 	d := r.readNormal()
-	return []normal{a, b, c, d}
+	return []heretic.Vec3{a, b, c, d}
 }
 
 func (r ISOReader) readUV() uv {

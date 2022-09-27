@@ -12,10 +12,6 @@ import (
 	"github.com/adamrt/heretic"
 )
 
-type normal struct {
-	x, y, z float64
-}
-
 type triangle struct {
 	points      []heretic.Vec3
 	textureData triangleTexData
