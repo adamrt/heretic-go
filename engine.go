@@ -218,9 +218,14 @@ func (e *Engine) Update() {
 			triangle.Projected = make([]Vec4, 3)
 			// Transformation
 			for i := 0; i < 3; i++ {
-				transformedPoint := worldMatrix.MulVec4(triangle.Points[i].Vec4())
-				transformedPoint = viewMatrix.MulVec4(transformedPoint)
-				triangle.Projected[i] = transformedPoint
+				transformedVertex := triangle.Points[i].Vec4()
+
+				// Transform to world space
+				transformedVertex = worldMatrix.MulVec4(transformedVertex)
+				// Transform to view space
+				transformedVertex = viewMatrix.MulVec4(transformedVertex)
+
+				triangle.Projected[i] = transformedVertex
 			}
 
 			// Backface Culling
@@ -228,10 +233,8 @@ func (e *Engine) Update() {
 			// 1. Find the vector between a point in the triangle and the camera origin.
 			// 2. Determine the alignment of the ray and the normal
 			if e.cullMode == CullModeBackFace {
-				// Why is this not the camera.position or
-				// camera.direction?  Testing with the f22 gives
-				// unexpected results, while Vec3{0,0,0} gives us the
-				// expected results, but doesn't seem logical.
+				// origin is always {0,0,0} since the camera is
+				// at in view space. It shouldn't be eye.
 				origin := Vec3{0, 0, 0}
 				cameraRay := origin.Sub(triangle.Projected[0].Vec3())
 				visibility := triangle.Normal().Dot(cameraRay)
