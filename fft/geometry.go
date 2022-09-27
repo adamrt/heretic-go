@@ -29,9 +29,9 @@ func (t triangle) triangle() heretic.Triangle {
 
 func (t triangle) texcoords() []heretic.Tex {
 	return []heretic.Tex{
-		t.textureData.a.tex(t.textureData.page),
-		t.textureData.b.tex(t.textureData.page),
-		t.textureData.c.tex(t.textureData.page),
+		t.textureData.a,
+		t.textureData.b,
+		t.textureData.c,
 	}
 }
 
@@ -46,30 +46,24 @@ func (q quad) split() []triangle {
 	}
 }
 
-type uv struct {
-	x, y uint8
-}
-
-func (t uv) tex(page int) heretic.Tex {
-	y := int(t.y) + page*256
-	return heretic.Tex{U: float64(t.x) / 255, V: float64(y) / 1023.0}
+func texWithPage(uv heretic.Tex, page int) heretic.Tex {
+	v := float64(int(uv.V) + page*256)
+	return heretic.Tex{U: uv.U / 255, V: v / 1023.0}
 }
 
 type triangleTexData struct {
-	a, b, c uv
+	a, b, c heretic.Tex
 	palette int
-	page    int
 }
 
 type quadTexData struct {
-	a, b, c, d uv
+	a, b, c, d heretic.Tex
 	palette    int
-	page       int
 }
 
 func (q quadTexData) split() []triangleTexData {
 	return []triangleTexData{
-		{a: q.a, b: q.b, c: q.c, palette: q.palette, page: q.page},
-		{a: q.b, b: q.d, c: q.c, palette: q.palette, page: q.page},
+		{a: q.a, b: q.b, c: q.c, palette: q.palette},
+		{a: q.b, b: q.d, c: q.c, palette: q.palette},
 	}
 }

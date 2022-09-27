@@ -159,10 +159,10 @@ func (r ISOReader) readQuadNormal() []heretic.Vec3 {
 	return []heretic.Vec3{a, b, c, d}
 }
 
-func (r ISOReader) readUV() uv {
-	x := r.readUint8()
-	y := r.readUint8()
-	return uv{x: x, y: y}
+func (r ISOReader) readUV() heretic.Tex {
+	x := float64(r.readUint8())
+	y := float64(r.readUint8())
+	return heretic.Tex{U: x, V: y}
 }
 
 func (r ISOReader) readTriUV() triangleTexData {
@@ -173,7 +173,12 @@ func (r ISOReader) readTriUV() triangleTexData {
 	page := int(r.readUint8() & 0b11) // only 2 bits
 	r.readUint8()                     // padding
 	c := r.readUV()
-	return triangleTexData{a: a, b: b, c: c, palette: palette, page: page}
+
+	a = texWithPage(a, page)
+	b = texWithPage(b, page)
+	c = texWithPage(c, page)
+
+	return triangleTexData{a: a, b: b, c: c, palette: palette}
 }
 
 func (r ISOReader) readQuadUV() quadTexData {
@@ -185,7 +190,13 @@ func (r ISOReader) readQuadUV() quadTexData {
 	r.readUint8()                     // padding
 	c := r.readUV()
 	d := r.readUV()
-	return quadTexData{a: a, b: b, c: c, d: d, palette: palette, page: page}
+
+	a = texWithPage(a, page)
+	b = texWithPage(b, page)
+	c = texWithPage(c, page)
+	d = texWithPage(d, page)
+
+	return quadTexData{a: a, b: b, c: c, d: d, palette: palette}
 }
 
 func (r ISOReader) readLightColor() uint8 {
