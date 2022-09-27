@@ -326,8 +326,8 @@ func (e *Engine) Render() {
 						int(b.X), int(b.Y), b.Z, b.W, triangle.Texcoords[1],
 						int(c.X), int(c.Y), c.Z, c.W, triangle.Texcoords[2],
 						triangle.LightIntensity,
-						mesh.Texture,
 						triangle.Palette,
+						mesh.Texture,
 					)
 				} else {
 					e.renderer.DrawFilledTriangle(

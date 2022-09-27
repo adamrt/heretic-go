@@ -28,7 +28,7 @@ func (r Renderer) DrawPixel(x, y int, color color.NRGBA) {
 }
 
 // DrawTexel draws a single textured pixels at the specified coordinates.
-func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, texture Texture, palette Palette) {
+func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, palette Palette, texture Texture) {
 	pointP := Vec2{float64(x), float64(y)}
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
@@ -264,8 +264,8 @@ func (r Renderer) DrawTexturedTriangle(
 	x1, y1 int, z1, w1 float64, bt Tex,
 	x2, y2 int, z2, w2 float64, ct Tex,
 	lightIntensity float64,
-	texture Texture,
 	palette Palette,
+	texture Texture,
 ) {
 
 	if y0 > y1 {
@@ -323,7 +323,7 @@ func (r Renderer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				r.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, texture, palette)
+				r.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, palette, texture)
 			}
 		}
 	}
@@ -351,7 +351,7 @@ func (r Renderer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				r.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, texture, palette)
+				r.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, palette, texture)
 			}
 		}
 	}
