@@ -382,7 +382,7 @@ func (e *Engine) SetAutoRotation(v Vec3) {
 	e.autoRotation = true
 }
 
-// Nove to the next FFT map. This is pretty hacky.
+// Move to the next FFT map. This is pretty hacky.
 func (e *Engine) NextMap() {
 	if e.currentMap < 125 {
 		e.currentMap++
@@ -392,7 +392,7 @@ func (e *Engine) NextMap() {
 	}
 }
 
-// Nove to the previous FFT map. This is pretty hacky.
+// Move to the previous FFT map. This is pretty hacky.
 func (e *Engine) PrevMap() {
 	if e.currentMap > 1 {
 		e.currentMap--

@@ -3,9 +3,6 @@
 // FFT mesh data is primarily represented by quads, but our home grown engine
 // only handles triangles. The quads are read in then split into two triangles.
 // This has to be done for geometry, normals and texture coordinates.
-//
-// There are methods such as vertex.vec3() that will convert the local type to
-// the engine type.
 package fft
 
 import (
