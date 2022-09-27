@@ -211,7 +211,7 @@ func (e *Engine) Update() {
 		// Setup Camera
 		up := Vec3{0, 1, 0}
 		target := e.camera.LookAtTarget()
-		viewMatrix := e.camera.LookAtMatrix(target, up)
+		viewMatrix := e.camera.LookAt(e.camera.position, target, up)
 
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {

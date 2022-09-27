@@ -42,7 +42,7 @@ func (c *Camera) LookAtTarget() Vec3 {
 	return target
 }
 
-func (c *Camera) LookAtMatrix(target, up Vec3) Matrix {
+func (c *Camera) LookAt(eye, target, up Vec3) Matrix {
 	z := target.Sub(c.position).Normalize()
 	x := up.Cross(z).Normalize()
 	y := z.Cross(x)
