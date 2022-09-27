@@ -9,8 +9,6 @@ func NewMesh(triangles []Triangle, texture Texture) Mesh {
 }
 
 type Mesh struct {
-	// This is just a slice of a slice, but for naming purposes, triangles
-	// makes more sense, since that is what it represents.
 	Triangles  []Triangle
 	Texture    Texture
 	Background *Background
@@ -59,25 +57,13 @@ func (m *Mesh) coordMinMax() (float64, float64) {
 	for _, t := range m.Triangles {
 		for i := 0; i < 3; i++ {
 			// Min
-			if t.Points[i].X < min {
-				min = t.Points[i].X
-			}
-			if t.Points[i].Y < min {
-				min = t.Points[i].Y
-			}
-			if t.Points[i].Z < min {
-				min = t.Points[i].Z
-			}
+			min = math.Min(t.Points[i].X, min)
+			min = math.Min(t.Points[i].Y, min)
+			min = math.Min(t.Points[i].Z, min)
 			// Max
-			if t.Points[i].X > max {
-				max = t.Points[i].X
-			}
-			if t.Points[i].Y > max {
-				max = t.Points[i].Y
-			}
-			if t.Points[i].Z > max {
-				max = t.Points[i].Z
-			}
+			max = math.Max(t.Points[i].X, max)
+			max = math.Max(t.Points[i].Y, max)
+			max = math.Max(t.Points[i].Z, max)
 		}
 	}
 	return min, max
@@ -95,25 +81,13 @@ func (m *Mesh) coordCenter() Vec3 {
 	for _, t := range m.Triangles {
 		for i := 0; i < 3; i++ {
 			// Min
-			if t.Points[i].X < minx {
-				minx = t.Points[i].X
-			}
-			if t.Points[i].Y < miny {
-				miny = t.Points[i].Y
-			}
-			if t.Points[i].Z < minz {
-				minz = t.Points[i].Z
-			}
+			minx = math.Min(t.Points[i].X, minx)
+			miny = math.Min(t.Points[i].Y, miny)
+			minz = math.Min(t.Points[i].Z, minz)
 			// Max
-			if t.Points[i].X > maxx {
-				maxx = t.Points[i].X
-			}
-			if t.Points[i].Y > maxy {
-				maxy = t.Points[i].Y
-			}
-			if t.Points[i].Z > maxz {
-				maxz = t.Points[i].Z
-			}
+			maxx = math.Max(t.Points[i].X, maxx)
+			maxy = math.Max(t.Points[i].Y, maxy)
+			maxz = math.Max(t.Points[i].Z, maxz)
 		}
 	}
 

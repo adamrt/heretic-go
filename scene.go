@@ -1,5 +1,6 @@
 package heretic
 
+// scene is currently just a way for the engine to render multiple meshes.
 type scene struct {
 	Meshes []*Mesh
 }

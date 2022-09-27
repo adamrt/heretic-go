@@ -1,3 +1,6 @@
+// This file contains the zbuffer that will be used to determine what pixels are
+// in front of the other during rendering. It's to overcome the shortcomings of
+// the painters algorithm.
 package heretic
 
 func NewZBuffer(width, height int) ZBuffer {

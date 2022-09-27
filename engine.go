@@ -51,10 +51,22 @@ func NewEngine(window *Window, renderer *Renderer) *Engine {
 	}
 }
 
+// meshReader is a temporary interface to avoid circular imports with the fft
+// package. It will be removed once the project is better organized.
 type meshReader interface {
 	ReadMesh(mapNum int) Mesh
 }
 
+// Engine is the top level object that contains windows, renderers, etc.
+// It has a basic game loop and in the typical for is run like so:
+//
+// engine.Setup()
+// for engine.IsRunning() {
+//   engine.ProcessInput()
+//   engine.Update()
+//   engine.Render()
+// }
+//
 type Engine struct {
 	window   *Window
 	renderer *Renderer
@@ -97,6 +109,7 @@ func (e *Engine) Setup() {
 			e.renderMode = RenderModeTexture
 		}
 	}
+
 	// Projection matrix. We only need this calculate this once.
 	aspectX := float64(e.window.width) / float64(e.window.height)
 	aspectY := float64(e.window.height) / float64(e.window.width)
@@ -110,10 +123,12 @@ func (e *Engine) Setup() {
 	e.camera = NewCamera(Vec3{0, 0.5, -1}, Vec3{0, 0, 0})
 
 	e.previous = sdl.GetTicks()
-
 }
 
 func (e *Engine) ProcessInput() {
+	// WASD keys are polled with keyboard state instead of polling for
+	// events to create much smoother movement and to disregard key-repeat
+	// functionality. Example: If we hold left, just smoothly move left.
 	state := sdl.GetKeyboardState()
 	switch {
 	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
@@ -126,12 +141,15 @@ func (e *Engine) ProcessInput() {
 		e.camera.MoveRight(e.deltaTime)
 	}
 
+	// The other mouse/keyboard functionality can be handled via polling.
+	// Moving the keys into keyboard state polling (above) will appear to be
+	// multiple presses in a row when we just want one.
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) {
+		case *sdl.QuitEvent:
+			e.IsRunning = false
+			break
 		case *sdl.KeyboardEvent:
-			if event.GetType() != sdl.KEYDOWN {
-				continue
-			}
 			switch t.Keysym.Sym {
 			case sdl.K_ESCAPE:
 				e.IsRunning = false
@@ -160,9 +178,6 @@ func (e *Engine) ProcessInput() {
 			case sdl.K_SPACE:
 				e.autoRotation = !e.autoRotation
 			}
-		case *sdl.QuitEvent:
-			e.IsRunning = false
-			break
 		case *sdl.MouseWheelEvent:
 			e.camera.MoveForward(float64(t.PreciseY) * e.deltaTime)
 		case *sdl.MouseButtonEvent:
@@ -190,9 +205,9 @@ func (e *Engine) Update() {
 		sdl.Delay(wait)
 	}
 
-	// Getting the deltaTime and multiplying the transformation keep
-	// animation speed consistent regardless of FPS. It basically changes it
-	// from tranforms per second instead of transforms per frame.
+	// Using a deltaTime for transformations keeps animation speed
+	// consistent regardless of FPS. It basically changes the engine
+	// transforms-per-frame to tranforms-per-second.
 	e.deltaTime = float64(sdl.GetTicks()-e.previous) / 1000.0
 	e.previous = sdl.GetTicks()
 
@@ -216,15 +231,14 @@ func (e *Engine) Update() {
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {
 			triangle.Projected = make([]Vec4, 3)
+
 			// Transformation
 			for i := 0; i < 3; i++ {
 				transformedVertex := triangle.Points[i].Vec4()
-
 				// Transform to world space
 				transformedVertex = worldMatrix.MulVec4(transformedVertex)
 				// Transform to view space
 				transformedVertex = viewMatrix.MulVec4(transformedVertex)
-
 				triangle.Projected[i] = transformedVertex
 			}
 
@@ -232,9 +246,10 @@ func (e *Engine) Update() {
 			//
 			// 1. Find the vector between a point in the triangle and the camera origin.
 			// 2. Determine the alignment of the ray and the normal
+			//
+			// Origin is always {0,0,0} since the camera is at in
+			// view space. It shouldn't be eye/position.
 			if e.cullMode == CullModeBackFace {
-				// origin is always {0,0,0} since the camera is
-				// at in view space. It shouldn't be eye.
 				origin := Vec3{0, 0, 0}
 				cameraRay := origin.Sub(triangle.Projected[0].Vec3())
 				visibility := triangle.Normal().Dot(cameraRay)
@@ -243,7 +258,8 @@ func (e *Engine) Update() {
 				}
 			}
 
-			triangle.LightIntensity = -triangle.Normal().Dot(e.ambientLight.Direction)
+			// Currently unused until we improve our lighting.
+			// triangle.LightIntensity = -triangle.Normal().Dot(e.ambientLight.Direction)
 
 			// Clip Polygons against the frustrum
 			clippedTriangles := e.frustrum.Clip(triangle)
@@ -282,12 +298,15 @@ func (e *Engine) Update() {
 }
 
 func (e *Engine) Render() {
+	// Draw a nice gradient background if we have one (typically from a FFT
+	// Map) or fallback to just a black background with a grid.
 	if e.scene.Background() != nil {
 		e.renderer.colorBuffer.SetBackground(*e.scene.Background())
 	} else {
 		e.renderer.colorBuffer.Clear(ColorBlack)
 		e.renderer.DrawGrid(ColorGrey)
 	}
+
 	e.renderer.zBuffer.Clear()
 
 	for _, mesh := range e.scene.Meshes {
@@ -295,6 +314,10 @@ func (e *Engine) Render() {
 			a := triangle.Projected[0]
 			b := triangle.Projected[1]
 			c := triangle.Projected[2]
+
+			//
+			// Draw the triangles depending on the rendering mode.
+			//
 
 			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
 				if triangle.HasTexture() {
@@ -334,7 +357,11 @@ func (e *Engine) Render() {
 				}
 			}
 		}
-		// Clear the slice while retaining memory
+
+		// Clear the slice while retaining capacity so we don't have to
+		// keep allocating each frame. The number of triangles can
+		// change due to frustrum clipping and backface culling, but
+		// keeping the capacity at the maximum seems reasonable.
 		mesh.trianglesToRender = mesh.trianglesToRender[:0]
 	}
 
@@ -355,6 +382,7 @@ func (e *Engine) SetAutoRotation(v Vec3) {
 	e.autoRotation = true
 }
 
+// Nove to the next FFT map. This is pretty hacky.
 func (e *Engine) NextMap() {
 	if e.currentMap < 125 {
 		e.currentMap++
@@ -364,6 +392,7 @@ func (e *Engine) NextMap() {
 	}
 }
 
+// Nove to the previous FFT map. This is pretty hacky.
 func (e *Engine) PrevMap() {
 	if e.currentMap > 1 {
 		e.currentMap--

@@ -1,3 +1,4 @@
+// This file contains a perspective camera. It's very basic currently.
 package heretic
 
 type Camera struct {

@@ -2,7 +2,13 @@ package heretic
 
 import "image/color"
 
-// Palette represents the 16-color palette to use during rendering a polygon.
+func isTransparent(c color.Color) bool {
+	r, g, b, a := c.RGBA()
+	return r+g+b+a == 0
+}
+
+// Palette represents the multi-color palette to use during rendering a triangle.
+// FFT palettes are always 16 colors.
 type Palette []color.NRGBA
 
 var (

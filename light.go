@@ -1,3 +1,7 @@
+// This file contains our different lighting types.
+//
+// Our lighting system is virtually non-existent currently, and is not being
+// used. Coming soon!
 package heretic
 
 import (

@@ -1,3 +1,4 @@
+// This file is for loading wavefront obj files as meshes.
 package heretic
 
 import (

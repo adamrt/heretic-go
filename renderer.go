@@ -27,6 +27,7 @@ func (r Renderer) DrawPixel(x, y int, color color.NRGBA) {
 	}
 }
 
+// DrawTexel draws a single textured pixels at the specified coordinates.
 func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, texture Texture, palette Palette) {
 	pointP := Vec2{float64(x), float64(y)}
 
@@ -74,11 +75,6 @@ func (r Renderer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightInte
 		r.DrawPixel(x, y, textureColorWithLight)
 		r.zBuffer.Set(x, y, interpolatedReciprocalW)
 	}
-}
-
-func isTransparent(c color.Color) bool {
-	r, g, b, a := c.RGBA()
-	return r+g+b+a == 0
 }
 
 func (r Renderer) DrawTrianglePixel(x, y int, a, b, c Vec4, color color.NRGBA) {

@@ -2,8 +2,10 @@ package heretic
 
 import "math"
 
+// Matrix is a 4x4 row-major matrix
 type Matrix [4][4]float64
 
+// Mul multiplies a matrix a by matrix b.
 func (a Matrix) Mul(b Matrix) Matrix {
 	var m Matrix
 	for i := 0; i < 4; i++ {
@@ -14,6 +16,7 @@ func (a Matrix) Mul(b Matrix) Matrix {
 	return m
 }
 
+// MulVec4 multiples a matrix by a Vec4 and returns a Vec4.
 func (m Matrix) MulVec4(v Vec4) Vec4 {
 	return Vec4{
 		m[0][0]*v.X + m[0][1]*v.Y + m[0][2]*v.Z + m[0][3]*v.W,
@@ -23,6 +26,8 @@ func (m Matrix) MulVec4(v Vec4) Vec4 {
 	}
 }
 
+// MulVec4Proj multiples a matrix by a Vec4 and does perspective divide.
+// The matrix calling this should be a projection matrix.
 func (m Matrix) MulVec4Proj(v Vec4) Vec4 {
 	// Multiply the original projection matrix by the vector
 	result := m.MulVec4(v)

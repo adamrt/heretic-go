@@ -1,3 +1,5 @@
+// This file contains the color buffer that will be sent to the renderer to
+// display. Each color represents a pixel on-screen.
 package heretic
 
 import "image/color"
