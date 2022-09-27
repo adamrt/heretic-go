@@ -50,12 +50,12 @@ func (c *Camera) LookAt(eye, target, up Vec3) Matrix {
 	// Up
 	y := z.Cross(x).Normalize()
 
-	viewMatrix := Matrix{m: [4][4]float64{
+	viewMatrix := Matrix{
 		{x.X, x.Y, x.Z, -x.Dot(eye)},
 		{y.X, y.Y, y.Z, -y.Dot(eye)},
 		{z.X, z.Y, z.Z, -z.Dot(eye)},
 		{0, 0, 0, 1},
-	}}
+	}
 
 	return viewMatrix
 }
