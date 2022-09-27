@@ -38,3 +38,16 @@ func (t Triangle) Normal() Vec3 {
 	normal := vectorAB.Cross(vectorAC).Normalize()
 	return normal
 }
+
+// FIXME: This is a clunky check. We should have triangle.Texcoords be nil
+// instead of this. But the fft importer currently returns 3 empty texcoords
+// regardless of whats in them. You cant just return nil until we add additional
+// checks into the clipping functionality because it indexes texcoords.
+func (t Triangle) HasTexture() bool {
+	for _, tc := range t.Texcoords {
+		if !tc.IsEmpty() {
+			return true
+		}
+	}
+	return false
+}
