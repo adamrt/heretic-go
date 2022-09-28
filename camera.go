@@ -2,9 +2,9 @@
 package heretic
 
 type Camera struct {
-	position  Vec3
-	direction Vec3
-	worldUp   Vec3
+	eye     Vec3
+	front   Vec3
+	worldUp Vec3
 
 	yaw   float64
 	pitch float64
@@ -15,12 +15,12 @@ type Camera struct {
 	leftButtonPressed  bool
 }
 
-func NewCamera(position, direction Vec3) Camera {
+func NewCamera(eye, front Vec3) Camera {
 	return Camera{
-		direction: direction,
-		position:  position,
-		worldUp:   Vec3{0, 1, 0},
-		speed:     2.0,
+		front:   front,
+		eye:     eye,
+		worldUp: Vec3{0, 1, 0},
+		speed:   2.0,
 	}
 }
 
@@ -43,23 +43,23 @@ func (c *Camera) LookAt(eye, target, up Vec3) Matrix {
 }
 
 func (c *Camera) MoveForward(deltaTime float64) {
-	velocity := c.direction.Mul(c.speed * deltaTime)
-	c.position = c.position.Add(velocity)
+	velocity := c.front.Mul(c.speed * deltaTime)
+	c.eye = c.eye.Add(velocity)
 }
 
 func (c *Camera) MoveBackward(deltaTime float64) {
-	velocity := c.direction.Mul(c.speed * deltaTime)
-	c.position = c.position.Sub(velocity)
+	velocity := c.front.Mul(c.speed * deltaTime)
+	c.eye = c.eye.Sub(velocity)
 }
 
 func (c *Camera) MoveLeft(deltaTime float64) {
 	velocity := c.right().Mul(c.speed * deltaTime)
-	c.position = c.position.Add(velocity)
+	c.eye = c.eye.Add(velocity)
 }
 
 func (c *Camera) MoveRight(deltaTime float64) {
 	velocity := c.right().Mul(c.speed * deltaTime)
-	c.position = c.position.Sub(velocity)
+	c.eye = c.eye.Sub(velocity)
 }
 
 func (c *Camera) Look(xrel, yrel int32) {
@@ -70,17 +70,17 @@ func (c *Camera) Look(xrel, yrel int32) {
 func (c *Camera) Pan(xrel, yrel int32) {
 	// X
 	velocity := c.right().Mul(float64(xrel) / 400.0)
-	c.position = c.position.Add(velocity)
+	c.eye = c.eye.Add(velocity)
 
 	// Y
 	velocity = c.up().Mul(float64(yrel) / 500.0)
-	c.position = c.position.Add(velocity)
+	c.eye = c.eye.Add(velocity)
 }
 
 func (c *Camera) right() Vec3 {
-	return c.direction.Cross(c.worldUp).Normalize()
+	return c.front.Cross(c.worldUp).Normalize()
 }
 
 func (c *Camera) up() Vec3 {
-	return c.right().Cross(c.direction).Normalize()
+	return c.right().Cross(c.front).Normalize()
 }
