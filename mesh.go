@@ -13,6 +13,9 @@ type Mesh struct {
 	Texture    Texture
 	Background *Background
 
+	DirectionalLights []DirectionalLight
+	AmbientLight      AmbientLight
+
 	Rotation    Vec3
 	Scale       Vec3
 	Translation Vec3

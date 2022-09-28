@@ -1,6 +1,11 @@
+// This file contains types that we read from the ISO.
 package fft
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+
+	"github.com/adamrt/heretic"
+)
 
 // Table of pointers contained in the meshFileHeader.
 const (
@@ -86,4 +91,46 @@ func (h meshHeader) R() int {
 // been split.
 func (h meshHeader) TT() int {
 	return h.N() + h.P()*2
+}
+
+// Below are types that the ISO file contains. We use them to read the data and
+// turn them into native engine types.
+//
+// FFT mesh data is primarily represented by quads, but our home grown engine
+// only handles triangles. The quads are read in then split into two triangles.
+// This has to be done for geometry, normals and texture coordinates.
+type quad struct {
+	a, b, c, d heretic.Vec3
+}
+
+// split will split a quad into two triangles.
+func (q quad) split() []heretic.Triangle {
+	// This allocation is only currently necessary because of the
+	// clipping.go code that indexes the len(coords)-1. We could do the
+	// check over there and remove this. Not sure if worth it.
+	// We also do this in readTriangle()
+	empty := make([]heretic.Tex, 3)
+	return []heretic.Triangle{
+		{Points: []heretic.Vec3{q.a, q.b, q.c}, Texcoords: empty},
+		{Points: []heretic.Vec3{q.b, q.d, q.c}, Texcoords: empty},
+	}
+}
+
+// This can be for a triangle or a quad, depending on the len of texCoords.
+type textureData struct {
+	texCoords []heretic.Tex
+	palette   int
+}
+
+// split will split quad textures data into two separate textureDatas (one for
+// each triangle).
+func (q textureData) split() []textureData {
+	if len(q.texCoords) != 4 {
+		panic("expected 4 texture coordinates")
+	}
+	qt := q.texCoords
+	return []textureData{
+		{texCoords: []heretic.Tex{qt[0], qt[1], qt[2]}, palette: q.palette},
+		{texCoords: []heretic.Tex{qt[1], qt[3], qt[2]}, palette: q.palette},
+	}
 }

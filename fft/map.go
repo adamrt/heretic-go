@@ -15,12 +15,6 @@ func NewMeshReader(iso ISOReader) MeshReader {
 	return MeshReader{iso}
 }
 
-type mesh struct {
-	triangles         []triangle
-	directionalLights []heretic.DirectionalLight
-	ambientLight      heretic.AmbientLight
-	background        heretic.Background
-}
 type MeshReader struct {
 	iso ISOReader
 }
@@ -29,28 +23,18 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 	records := r.readGNSRecords(mapNum)
 
 	textures := []heretic.Texture{}
-	m := mesh{}
+	mesh := heretic.Mesh{}
 	for _, record := range records {
 		if record.Type() == RecordTypeTexture {
 			texture := r.parseTexture(record)
 			textures = append(textures, texture)
 		} else if record.Type() == RecordTypeMeshPrimary {
-			m = r.parsePrimaryMesh(record)
+			mesh = r.parsePrimaryMesh(record)
 		}
 	}
 
-	// Convert fft Triangles to engine Faces
-	triangles := make([]heretic.Triangle, len(m.triangles))
-	for i, tri := range m.triangles {
-		triangles[i] = tri.triangle()
-	}
-
-	mesh := heretic.Mesh{
-		Triangles:  triangles,
-		Texture:    textures[0],
-		Background: &m.background,
-		Scale:      heretic.Vec3{X: 1, Y: 1, Z: 1},
-	}
+	mesh.Scale = heretic.Vec3{X: 1, Y: 1, Z: 1}
+	mesh.Texture = textures[0]
 
 	mesh.NormalizeCoordinates()
 	mesh.CenterCoordinates()
@@ -89,7 +73,7 @@ func (r MeshReader) parseTexture(record GNSRecord) heretic.Texture {
 }
 
 // parseTexture reads and returns an FFT mesh as an engine Mesh.
-func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
+func (r MeshReader) parsePrimaryMesh(record GNSRecord) heretic.Mesh {
 	r.iso.seekSector(record.Sector())
 
 	// File header contains intra-file pointers to areas of mesh data.
@@ -108,6 +92,18 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 		log.Fatal("missing primary mesh pointer")
 	}
 
+	// Skip ahead to color palettes
+	r.iso.seekPointer(record.Sector(), fileHeader.TexturePalettesColor())
+
+	palettes := make([]heretic.Palette, 16)
+	for i := 0; i < 16; i++ {
+		palette := make(heretic.Palette, 16)
+		for j := 0; j < 16; j++ {
+			palette[j] = r.iso.readRGB15()
+		}
+		palettes[i] = palette
+	}
+
 	// Seek to the primary mesh data.
 	r.iso.seekPointer(record.Sector(), primaryMeshPointer)
 
@@ -118,7 +114,8 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 		log.Fatalf("read mesh file header: %v", err)
 	}
 
-	triangles := make([]triangle, 0)
+	// FIXME: Change capacity from TT to total with untextured.
+	triangles := make([]heretic.Triangle, 0, header.TT())
 	for i := 0; i < header.N(); i++ {
 		triangles = append(triangles, r.iso.readTriangle())
 	}
@@ -146,32 +143,17 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 
 	// Polygon texture data
 	for i := 0; i < header.N(); i++ {
-		triangles[i].textureData = r.iso.readTriUV()
+		uvData := r.iso.readTriUV()
+		triangles[i].Texcoords = uvData.texCoords
+		triangles[i].Palette = palettes[uvData.palette]
 	}
 	for i := header.N(); i < header.TT(); i = i + 2 {
-		textureData := r.iso.readQuadUV().split()
-		triangles[i].textureData = textureData[0]
-		triangles[i+1].textureData = textureData[1]
-	}
+		uvDatas := r.iso.readQuadUV().split()
+		triangles[i].Texcoords = uvDatas[0].texCoords
+		triangles[i].Palette = palettes[uvDatas[0].palette]
 
-	//
-	// We skip an unknown chunk and the polygon tile locations for now
-	//
-
-	// Skip ahead to color palettes
-	r.iso.seekPointer(record.Sector(), fileHeader.TexturePalettesColor())
-
-	palettes := make([]heretic.Palette, 16)
-	for i := 0; i < 16; i++ {
-		palette := make(heretic.Palette, 16)
-		for j := 0; j < 16; j++ {
-			palette[j] = r.iso.readRGB15()
-		}
-		palettes[i] = palette
-	}
-
-	for i := 0; i < len(triangles); i++ {
-		triangles[i].palette = palettes[triangles[i].textureData.palette]
+		triangles[i+1].Texcoords = uvDatas[1].texCoords
+		triangles[i+1].Palette = palettes[uvDatas[1].palette]
 	}
 
 	// Skip ahead to lights
@@ -181,10 +163,10 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) mesh {
 	ambientLight := r.iso.readAmbientLight()
 	background := r.iso.readBackground()
 
-	return mesh{
-		triangles:         triangles,
-		directionalLights: directionalLights,
-		ambientLight:      ambientLight,
-		background:        background,
+	return heretic.Mesh{
+		Triangles:         triangles,
+		Background:        &background,
+		DirectionalLights: directionalLights,
+		AmbientLight:      ambientLight,
 	}
 }

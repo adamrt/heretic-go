@@ -115,14 +115,19 @@ func (r ISOReader) readVertex() heretic.Vec3 {
 	x := float64(r.readInt16())
 	y := float64(r.readInt16())
 	z := float64(r.readInt16())
-	return heretic.Vec3{x, -y, z}
+	return heretic.Vec3{X: x, Y: -y, Z: z}
 }
 
-func (r ISOReader) readTriangle() triangle {
+func (r ISOReader) readTriangle() heretic.Triangle {
 	a := r.readVertex()
 	b := r.readVertex()
 	c := r.readVertex()
-	return triangle{points: []heretic.Vec3{a, b, c}}
+	// This allocation is only currently necessary because of the
+	// clipping.go code that indexes the len(coords)-1. We could do the
+	// check over there and remove this. Not sure if worth it.
+	// We also do this in quad.split().
+	empty := make([]heretic.Tex, 3)
+	return heretic.Triangle{Points: []heretic.Vec3{a, b, c}, Texcoords: empty}
 }
 
 func (r ISOReader) readQuad() quad {
@@ -141,7 +146,7 @@ func (r ISOReader) readNormal() heretic.Vec3 {
 	x := r.readF1x3x12()
 	y := r.readF1x3x12()
 	z := r.readF1x3x12()
-	return heretic.Vec3{x, -y, z}
+	return heretic.Vec3{X: x, Y: -y, Z: z}
 }
 
 func (r ISOReader) readTriNormal() []heretic.Vec3 {
@@ -165,7 +170,7 @@ func (r ISOReader) readUV() heretic.Tex {
 	return heretic.Tex{U: x, V: y}
 }
 
-func (r ISOReader) readTriUV() triangleTexData {
+func (r ISOReader) readTriUV() textureData {
 	a := r.readUV()
 	palette := int(r.readUint8() & 0b1111)
 	r.readUint8() // padding
@@ -174,14 +179,14 @@ func (r ISOReader) readTriUV() triangleTexData {
 	r.readUint8()                     // padding
 	c := r.readUV()
 
-	a = texWithPage(a, page)
-	b = texWithPage(b, page)
-	c = texWithPage(c, page)
+	a = processTexCoords(a, page)
+	b = processTexCoords(b, page)
+	c = processTexCoords(c, page)
 
-	return triangleTexData{a: a, b: b, c: c, palette: palette}
+	return textureData{texCoords: []heretic.Tex{a, b, c}, palette: palette}
 }
 
-func (r ISOReader) readQuadUV() quadTexData {
+func (r ISOReader) readQuadUV() textureData {
 	a := r.readUV()
 	palette := int(r.readUint8() & 0b1111)
 	r.readUint8() // padding
@@ -191,12 +196,12 @@ func (r ISOReader) readQuadUV() quadTexData {
 	c := r.readUV()
 	d := r.readUV()
 
-	a = texWithPage(a, page)
-	b = texWithPage(b, page)
-	c = texWithPage(c, page)
-	d = texWithPage(d, page)
+	a = processTexCoords(a, page)
+	b = processTexCoords(b, page)
+	c = processTexCoords(c, page)
+	d = processTexCoords(d, page)
 
-	return quadTexData{a: a, b: b, c: c, d: d, palette: palette}
+	return textureData{texCoords: []heretic.Tex{a, b, c, d}, palette: palette}
 }
 
 func (r ISOReader) readLightColor() uint8 {
@@ -232,4 +237,17 @@ func (r ISOReader) readBackground() heretic.Background {
 	top := r.readRGB8()
 	bottom := r.readRGB8()
 	return heretic.Background{Top: top, Bottom: bottom}
+}
+
+// processTexCoords has two functions:
+//
+// 1. Update the V coordinate to the specific page of the texture. FFT Textures
+// have 4 pages (256x1024) and the original V specifies the pixel on one of the
+// 4 pages. Multiple the page by the height of a single page (256).
+//
+// 2. Normalize the coordinates that can be U: 0-255 and V: 0-1023. Just divide
+// them by their max to get a 0.0-1.0 value.
+func processTexCoords(uv heretic.Tex, page int) heretic.Tex {
+	v := float64(int(uv.V) + page*256)
+	return heretic.Tex{U: uv.U / 255, V: v / 1023.0}
 }
