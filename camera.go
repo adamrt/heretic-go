@@ -4,8 +4,6 @@ package heretic
 type Camera struct {
 	position  Vec3
 	direction Vec3
-	right     Vec3
-	up        Vec3
 	worldUp   Vec3
 
 	yaw   float64
@@ -24,23 +22,6 @@ func NewCamera(position, direction Vec3) Camera {
 		worldUp:   Vec3{0, 1, 0},
 		speed:     2.0,
 	}
-}
-
-func (c *Camera) LookAtTarget() Vec3 {
-	target := Vec3{0, 0, 1}
-	yawRotation := MatrixMakeRotY(c.yaw)
-	pitchRotation := MatrixMakeRotX(c.pitch)
-
-	cameraRotation := MatrixIdentity()
-	cameraRotation = pitchRotation.Mul(cameraRotation)
-	cameraRotation = yawRotation.Mul(cameraRotation)
-
-	c.direction = cameraRotation.MulVec4(target.Vec4()).Vec3()
-	c.right = c.direction.Cross(c.worldUp).Normalize()
-	c.up = c.right.Cross(c.direction).Normalize()
-
-	target = c.position.Add(c.direction)
-	return target
 }
 
 func (c *Camera) LookAt(eye, target, up Vec3) Matrix {
@@ -72,12 +53,12 @@ func (c *Camera) MoveBackward(deltaTime float64) {
 }
 
 func (c *Camera) MoveLeft(deltaTime float64) {
-	velocity := c.right.Mul(c.speed * deltaTime)
+	velocity := c.right().Mul(c.speed * deltaTime)
 	c.position = c.position.Add(velocity)
 }
 
 func (c *Camera) MoveRight(deltaTime float64) {
-	velocity := c.right.Mul(c.speed * deltaTime)
+	velocity := c.right().Mul(c.speed * deltaTime)
 	c.position = c.position.Sub(velocity)
 }
 
@@ -88,10 +69,18 @@ func (c *Camera) Look(xrel, yrel int32) {
 
 func (c *Camera) Pan(xrel, yrel int32) {
 	// X
-	velocity := c.right.Mul(float64(xrel) / 400.0)
+	velocity := c.right().Mul(float64(xrel) / 400.0)
 	c.position = c.position.Add(velocity)
 
 	// Y
-	velocity = c.up.Mul(float64(yrel) / 500.0)
+	velocity = c.up().Mul(float64(yrel) / 500.0)
 	c.position = c.position.Add(velocity)
+}
+
+func (c *Camera) right() Vec3 {
+	return c.direction.Cross(c.worldUp).Normalize()
+}
+
+func (c *Camera) up() Vec3 {
+	return c.right().Cross(c.direction).Normalize()
 }

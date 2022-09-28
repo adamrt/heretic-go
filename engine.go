@@ -224,9 +224,14 @@ func (e *Engine) Update() {
 		worldMatrix = worldMatrix.Mul(NewTranslationMatrix(mesh.Translation))
 
 		// Setup Camera
-		up := Vec3{0, 1, 0}
-		target := e.camera.LookAtTarget()
-		viewMatrix := e.camera.LookAt(e.camera.position, target, up)
+		// I don't really like this. This should be computed in the camera itself.
+		cameraRotation := MatrixIdentity().Mul(MatrixMakeRotY(e.camera.yaw)).Mul(MatrixMakeRotX(e.camera.pitch))
+
+		// Start by looking down z-axis (left handed)
+		target := Vec3{0, 0, 1}
+		e.camera.direction = cameraRotation.MulVec4(target.Vec4()).Vec3()
+		target = e.camera.position.Add(e.camera.direction)
+		viewMatrix := e.camera.LookAt(e.camera.position, target, e.camera.worldUp)
 
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {
