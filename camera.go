@@ -1,7 +1,7 @@
 // This file contains a perspective camera. It's very basic currently.
 package heretic
 
-type Camera struct {
+type FPSCamera struct {
 	eye     Vec3
 	front   Vec3
 	worldUp Vec3
@@ -15,8 +15,8 @@ type Camera struct {
 	leftButtonPressed  bool
 }
 
-func NewCamera(eye, front Vec3) Camera {
-	return Camera{
+func NewFPSCamera(eye, front Vec3) FPSCamera {
+	return FPSCamera{
 		front:   front,
 		eye:     eye,
 		worldUp: Vec3{0, 1, 0},
@@ -24,7 +24,7 @@ func NewCamera(eye, front Vec3) Camera {
 	}
 }
 
-func (c *Camera) LookAt(eye, target, up Vec3) Matrix {
+func (c *FPSCamera) LookAt(eye, target, up Vec3) Matrix {
 	// Forward
 	z := target.Sub(eye).Normalize()
 	// Right
@@ -42,32 +42,32 @@ func (c *Camera) LookAt(eye, target, up Vec3) Matrix {
 	return viewMatrix
 }
 
-func (c *Camera) MoveForward(deltaTime float64) {
+func (c *FPSCamera) MoveForward(deltaTime float64) {
 	velocity := c.front.Mul(c.speed * deltaTime)
 	c.eye = c.eye.Add(velocity)
 }
 
-func (c *Camera) MoveBackward(deltaTime float64) {
+func (c *FPSCamera) MoveBackward(deltaTime float64) {
 	velocity := c.front.Mul(c.speed * deltaTime)
 	c.eye = c.eye.Sub(velocity)
 }
 
-func (c *Camera) MoveLeft(deltaTime float64) {
+func (c *FPSCamera) MoveLeft(deltaTime float64) {
 	velocity := c.right().Mul(c.speed * deltaTime)
 	c.eye = c.eye.Add(velocity)
 }
 
-func (c *Camera) MoveRight(deltaTime float64) {
+func (c *FPSCamera) MoveRight(deltaTime float64) {
 	velocity := c.right().Mul(c.speed * deltaTime)
 	c.eye = c.eye.Sub(velocity)
 }
 
-func (c *Camera) Look(xrel, yrel int32) {
+func (c *FPSCamera) Look(xrel, yrel int32) {
 	c.yaw += float64(xrel) / 200
 	c.pitch += float64(yrel) / 200
 }
 
-func (c *Camera) Pan(xrel, yrel int32) {
+func (c *FPSCamera) Pan(xrel, yrel int32) {
 	// X
 	velocity := c.right().Mul(float64(xrel) / 400.0)
 	c.eye = c.eye.Add(velocity)
@@ -77,10 +77,10 @@ func (c *Camera) Pan(xrel, yrel int32) {
 	c.eye = c.eye.Add(velocity)
 }
 
-func (c *Camera) right() Vec3 {
+func (c *FPSCamera) right() Vec3 {
 	return c.front.Cross(c.worldUp).Normalize()
 }
 
-func (c *Camera) up() Vec3 {
+func (c *FPSCamera) up() Vec3 {
 	return c.right().Cross(c.front).Normalize()
 }
