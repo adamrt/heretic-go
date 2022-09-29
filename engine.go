@@ -153,6 +153,9 @@ func (e *Engine) ProcessInput() {
 		case *sdl.MouseMotionEvent:
 			e.camera.processMouseMovement(float64(t.XRel), float64(t.YRel), e.deltaTime)
 		case *sdl.KeyboardEvent:
+			if t.Type != sdl.KEYDOWN {
+				continue
+			}
 			switch t.Keysym.Sym {
 			case sdl.K_ESCAPE:
 				e.IsRunning = false
