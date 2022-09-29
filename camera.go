@@ -82,17 +82,19 @@ func (c *FPSCamera) processMouseButton(button MouseButton, pressed bool) {
 }
 
 func (c *FPSCamera) processKeyboardInput(state []uint8, delta float64) {
-	switch {
-	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
+	if state[sdl.GetScancodeFromKey(sdl.K_w)] != 0 {
 		velocity := c.front.Mul(c.speed * delta)
 		c.eye = c.eye.Add(velocity)
-	case state[sdl.GetScancodeFromKey(sdl.K_s)] != 0:
+	}
+	if state[sdl.GetScancodeFromKey(sdl.K_s)] != 0 {
 		velocity := c.front.Mul(c.speed * delta)
 		c.eye = c.eye.Sub(velocity)
-	case state[sdl.GetScancodeFromKey(sdl.K_a)] != 0:
+	}
+	if state[sdl.GetScancodeFromKey(sdl.K_a)] != 0 {
 		velocity := c.right().Mul(c.speed * delta)
 		c.eye = c.eye.Add(velocity)
-	case state[sdl.GetScancodeFromKey(sdl.K_d)] != 0:
+	}
+	if state[sdl.GetScancodeFromKey(sdl.K_d)] != 0 {
 		velocity := c.right().Mul(c.speed * delta)
 		c.eye = c.eye.Sub(velocity)
 	}
