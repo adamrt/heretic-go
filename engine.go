@@ -221,7 +221,7 @@ func (e *Engine) Update() {
 		target := Vec3{0, 0, 1}
 		e.camera.front = cameraRotation.MulVec4(target.Vec4()).Vec3()
 		target = e.camera.eye.Add(e.camera.front)
-		viewMatrix := e.camera.LookAt(e.camera.eye, target, e.camera.worldUp)
+		viewMatrix := LookAt(e.camera.eye, target, e.camera.worldUp)
 
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {

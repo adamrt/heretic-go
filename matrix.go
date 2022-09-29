@@ -154,3 +154,21 @@ func MatrixMakePerspective(fov, aspect, znear, zfar float64) Matrix {
 	m[3][2] = 1.0
 	return m
 }
+
+func LookAt(eye, target, up Vec3) Matrix {
+	// Forward
+	z := target.Sub(eye).Normalize()
+	// Right
+	x := up.Cross(z).Normalize()
+	// Up
+	y := z.Cross(x).Normalize()
+
+	viewMatrix := Matrix{
+		{x.X, x.Y, x.Z, -x.Dot(eye)},
+		{y.X, y.Y, y.Z, -y.Dot(eye)},
+		{z.X, z.Y, z.Z, -z.Dot(eye)},
+		{0, 0, 0, 1},
+	}
+
+	return viewMatrix
+}
