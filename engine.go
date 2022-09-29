@@ -130,16 +130,7 @@ func (e *Engine) ProcessInput() {
 	// events to create much smoother movement and to disregard key-repeat
 	// functionality. Example: If we hold left, just smoothly move left.
 	state := sdl.GetKeyboardState()
-	switch {
-	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
-		e.camera.MoveForward(e.deltaTime)
-	case state[sdl.GetScancodeFromKey(sdl.K_s)] != 0:
-		e.camera.MoveBackward(e.deltaTime)
-	case state[sdl.GetScancodeFromKey(sdl.K_a)] != 0:
-		e.camera.MoveLeft(e.deltaTime)
-	case state[sdl.GetScancodeFromKey(sdl.K_d)] != 0:
-		e.camera.MoveRight(e.deltaTime)
-	}
+	e.camera.processKeyboardInput(state, e.deltaTime)
 
 	// The other mouse/keyboard functionality can be handled via polling.
 	// Moving the keys into keyboard state polling (above) will appear to be
@@ -149,6 +140,18 @@ func (e *Engine) ProcessInput() {
 		case *sdl.QuitEvent:
 			e.IsRunning = false
 			break
+		case *sdl.MouseWheelEvent:
+			e.camera.processMouseWheel(float64(t.PreciseY), e.deltaTime)
+		case *sdl.MouseButtonEvent:
+			down := t.Type == sdl.MOUSEBUTTONDOWN
+			if t.Button == sdl.BUTTON_RIGHT {
+				e.camera.processMouseButton(MouseButtonRight, down)
+			}
+			if t.Button == sdl.BUTTON_LEFT {
+				e.camera.processMouseButton(MouseButtonLeft, down)
+			}
+		case *sdl.MouseMotionEvent:
+			e.camera.processMouseMovement(float64(t.XRel), float64(t.YRel), e.deltaTime)
 		case *sdl.KeyboardEvent:
 			switch t.Keysym.Sym {
 			case sdl.K_ESCAPE:
@@ -177,22 +180,6 @@ func (e *Engine) ProcessInput() {
 				e.PrevMap()
 			case sdl.K_SPACE:
 				e.autoRotation = !e.autoRotation
-			}
-		case *sdl.MouseWheelEvent:
-			e.camera.MoveForward(float64(t.PreciseY) * e.deltaTime)
-		case *sdl.MouseButtonEvent:
-			if t.Button == sdl.BUTTON_RIGHT {
-				e.camera.rightButtonPressed = t.Type == sdl.MOUSEBUTTONDOWN
-			}
-			if t.Button == sdl.BUTTON_LEFT {
-				e.camera.leftButtonPressed = t.Type == sdl.MOUSEBUTTONDOWN
-			}
-		case *sdl.MouseMotionEvent:
-			if e.camera.leftButtonPressed {
-				e.camera.Look(t.XRel, t.YRel)
-			}
-			if e.camera.rightButtonPressed {
-				e.camera.Pan(t.XRel, t.YRel)
 			}
 		}
 	}

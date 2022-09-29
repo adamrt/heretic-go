@@ -1,6 +1,16 @@
 // This file contains a perspective camera. It's very basic currently.
 package heretic
 
+import "github.com/veandco/go-sdl2/sdl"
+
+type MouseButton int
+
+const (
+	MouseButtonLeft MouseButton = iota
+	MouseButtonMiddle
+	MouseButtonRight
+)
+
 type FPSCamera struct {
 	eye     Vec3
 	front   Vec3
@@ -11,8 +21,8 @@ type FPSCamera struct {
 
 	speed float64
 
-	rightButtonPressed bool
-	leftButtonPressed  bool
+	rightButtonHeld bool
+	leftButtonHeld  bool
 }
 
 func NewFPSCamera(eye, front Vec3) FPSCamera {
@@ -42,39 +52,50 @@ func (c *FPSCamera) LookAt(eye, target, up Vec3) Matrix {
 	return viewMatrix
 }
 
-func (c *FPSCamera) MoveForward(deltaTime float64) {
-	velocity := c.front.Mul(c.speed * deltaTime)
+func (c *FPSCamera) processMouseMovement(xrel, yrel, delta float64) {
+	if c.leftButtonHeld {
+		c.yaw += xrel * delta / 4
+		c.pitch += yrel * delta / 4
+	} else if c.rightButtonHeld {
+		// X
+		velocity := c.right().Mul(float64(xrel) / 400.0)
+		c.eye = c.eye.Add(velocity)
+
+		// Y
+		velocity = c.up().Mul(float64(yrel) / 500.0)
+		c.eye = c.eye.Add(velocity)
+	}
+}
+
+func (c *FPSCamera) processMouseWheel(y float64, delta float64) {
+	velocity := c.front.Mul(c.speed * y * delta)
 	c.eye = c.eye.Add(velocity)
 }
 
-func (c *FPSCamera) MoveBackward(deltaTime float64) {
-	velocity := c.front.Mul(c.speed * deltaTime)
-	c.eye = c.eye.Sub(velocity)
+func (c *FPSCamera) processMouseButton(button MouseButton, pressed bool) {
+	if button == MouseButtonLeft {
+		c.leftButtonHeld = pressed
+	}
+	if button == MouseButtonRight {
+		c.rightButtonHeld = pressed
+	}
 }
 
-func (c *FPSCamera) MoveLeft(deltaTime float64) {
-	velocity := c.right().Mul(c.speed * deltaTime)
-	c.eye = c.eye.Add(velocity)
-}
-
-func (c *FPSCamera) MoveRight(deltaTime float64) {
-	velocity := c.right().Mul(c.speed * deltaTime)
-	c.eye = c.eye.Sub(velocity)
-}
-
-func (c *FPSCamera) Look(xrel, yrel int32) {
-	c.yaw += float64(xrel) / 200
-	c.pitch += float64(yrel) / 200
-}
-
-func (c *FPSCamera) Pan(xrel, yrel int32) {
-	// X
-	velocity := c.right().Mul(float64(xrel) / 400.0)
-	c.eye = c.eye.Add(velocity)
-
-	// Y
-	velocity = c.up().Mul(float64(yrel) / 500.0)
-	c.eye = c.eye.Add(velocity)
+func (c *FPSCamera) processKeyboardInput(state []uint8, delta float64) {
+	switch {
+	case state[sdl.GetScancodeFromKey(sdl.K_w)] != 0:
+		velocity := c.front.Mul(c.speed * delta)
+		c.eye = c.eye.Add(velocity)
+	case state[sdl.GetScancodeFromKey(sdl.K_s)] != 0:
+		velocity := c.front.Mul(c.speed * delta)
+		c.eye = c.eye.Sub(velocity)
+	case state[sdl.GetScancodeFromKey(sdl.K_a)] != 0:
+		velocity := c.right().Mul(c.speed * delta)
+		c.eye = c.eye.Add(velocity)
+	case state[sdl.GetScancodeFromKey(sdl.K_d)] != 0:
+		velocity := c.right().Mul(c.speed * delta)
+		c.eye = c.eye.Sub(velocity)
+	}
 }
 
 func (c *FPSCamera) right() Vec3 {
