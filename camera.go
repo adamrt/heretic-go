@@ -42,11 +42,11 @@ func (c *FPSCamera) processMouseMovement(xrel, yrel, delta float64) {
 		c.yaw += xrel * sensitiviy * delta
 		c.pitch += yrel * sensitiviy * delta
 
-		if c.pitch > 89.0 {
-			c.pitch = 89.0
+		if c.pitch > 1.5 {
+			c.pitch = 1.5
 		}
-		if c.pitch < -89.0 {
-			c.pitch = -89.0
+		if c.pitch < -1.5 {
+			c.pitch = -1.5
 		}
 
 		target := Vec3{0, 0, 1}
