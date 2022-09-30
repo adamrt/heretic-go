@@ -120,8 +120,8 @@ func (e *Engine) Setup() {
 
 	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
 	e.frustrum = NewFrustrum(fovX, fovY, znear, zfar)
-	e.camera = NewFPSCamera(Vec3{0, 0.5, -1}, Vec3{0, 0, 0})
 
+	e.camera = NewFPSCamera(Vec3{0.0, 0.5, -1.0}, Vec3{0.0, 0.0, 1.0}, Vec3{0.0, 1.0, 0.0})
 	e.previous = sdl.GetTicks()
 }
 
@@ -215,13 +215,9 @@ func (e *Engine) Update() {
 
 		// Setup Camera
 		// I don't really like this. This should be computed in the camera itself.
-		cameraRotation := MatrixIdentity().Mul(MatrixMakeRotY(e.camera.yaw)).Mul(MatrixMakeRotX(e.camera.pitch))
 
 		// Start by looking down z-axis (left handed)
-		target := Vec3{0, 0, 1}
-		e.camera.front = cameraRotation.MulVec4(target.Vec4()).Vec3()
-		target = e.camera.eye.Add(e.camera.front)
-		viewMatrix := LookAt(e.camera.eye, target, e.camera.worldUp)
+		viewMatrix := LookAt(e.camera.eye, e.camera.eye.Add(e.camera.front), e.camera.up)
 
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {

@@ -1,7 +1,9 @@
 // This file contains a perspective camera. It's very basic currently.
 package heretic
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 type MouseButton int
 
@@ -12,9 +14,9 @@ const (
 )
 
 type FPSCamera struct {
-	eye     Vec3
-	front   Vec3
-	worldUp Vec3
+	eye   Vec3
+	front Vec3
+	up    Vec3
 
 	yaw   float64
 	pitch float64
@@ -25,12 +27,12 @@ type FPSCamera struct {
 	leftButtonHeld  bool
 }
 
-func NewFPSCamera(eye, front Vec3) FPSCamera {
+func NewFPSCamera(eye, front, up Vec3) FPSCamera {
 	return FPSCamera{
-		front:   front,
-		eye:     eye,
-		worldUp: Vec3{0, 1, 0},
-		speed:   2.0,
+		front: front,
+		eye:   eye,
+		up:    up,
+		speed: 2.0,
 	}
 }
 
@@ -53,17 +55,30 @@ func (c *FPSCamera) LookAt(eye, target, up Vec3) Matrix {
 }
 
 func (c *FPSCamera) processMouseMovement(xrel, yrel, delta float64) {
+	sensitiviy := 0.3
 	if c.leftButtonHeld {
-		c.yaw += xrel * delta / 4
-		c.pitch += yrel * delta / 4
+		c.yaw += xrel * sensitiviy * delta
+		c.pitch += yrel * sensitiviy * delta
+
+		if c.pitch > 89.0 {
+			c.pitch = 89.0
+		}
+		if c.pitch < -89.0 {
+			c.pitch = -89.0
+		}
+
+		target := Vec3{0, 0, 1}
+		cameraRotation := MatrixIdentity().Mul(MatrixMakeRotY(c.yaw)).Mul(MatrixMakeRotX(c.pitch))
+		direction := cameraRotation.MulVec4(target.Vec4()).Vec3()
+		c.front = direction
+
 	} else if c.rightButtonHeld {
 		// X
-		velocity := c.right().Mul(float64(xrel) / 400.0)
-		c.eye = c.eye.Add(velocity)
+		c.eye = c.eye.Add(c.right().Mul(xrel * delta * sensitiviy))
 
 		// Y
-		velocity = c.up().Mul(float64(yrel) / 500.0)
-		c.eye = c.eye.Add(velocity)
+		c.eye = c.eye.Add(c.up.Mul(yrel * delta * sensitiviy))
+
 	}
 }
 
@@ -83,27 +98,19 @@ func (c *FPSCamera) processMouseButton(button MouseButton, pressed bool) {
 
 func (c *FPSCamera) processKeyboardInput(state []uint8, delta float64) {
 	if state[sdl.GetScancodeFromKey(sdl.K_w)] != 0 {
-		velocity := c.front.Mul(c.speed * delta)
-		c.eye = c.eye.Add(velocity)
+		c.eye = c.eye.Add(c.front.Mul(c.speed * delta))
 	}
 	if state[sdl.GetScancodeFromKey(sdl.K_s)] != 0 {
-		velocity := c.front.Mul(c.speed * delta)
-		c.eye = c.eye.Sub(velocity)
+		c.eye = c.eye.Sub(c.front.Mul(c.speed * delta))
 	}
 	if state[sdl.GetScancodeFromKey(sdl.K_a)] != 0 {
-		velocity := c.right().Mul(c.speed * delta)
-		c.eye = c.eye.Add(velocity)
+		c.eye = c.eye.Add(c.front.Cross(c.up).Normalize().Mul(c.speed * delta))
 	}
 	if state[sdl.GetScancodeFromKey(sdl.K_d)] != 0 {
-		velocity := c.right().Mul(c.speed * delta)
-		c.eye = c.eye.Sub(velocity)
+		c.eye = c.eye.Sub(c.front.Cross(c.up).Normalize().Mul(c.speed * delta))
 	}
 }
 
 func (c *FPSCamera) right() Vec3 {
-	return c.front.Cross(c.worldUp).Normalize()
-}
-
-func (c *FPSCamera) up() Vec3 {
-	return c.right().Cross(c.front).Normalize()
+	return c.front.Cross(c.up).Normalize()
 }
