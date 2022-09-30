@@ -5,6 +5,14 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type Camera interface {
+	ProcessMouseMovement(xrel, yrel, delta float64)
+	ProcessMouseWheel(y float64, delta float64)
+	ProcessMouseButton(button MouseButton, pressed bool)
+	ProcessKeyboardInput(state []uint8, delta float64)
+	ViewMatrix() Matrix
+}
+
 type MouseButton int
 
 const (
@@ -31,7 +39,7 @@ type FPSCamera struct {
 	leftButtonHeld  bool
 }
 
-func NewFPSCamera(eye, front, up Vec3) FPSCamera {
+func NewFPSCamera(eye, front, up Vec3) *FPSCamera {
 	c := FPSCamera{
 		front: front,
 		eye:   eye,
@@ -39,7 +47,7 @@ func NewFPSCamera(eye, front, up Vec3) FPSCamera {
 		speed: 2.0,
 	}
 	c.updateViewMatrix()
-	return c
+	return &c
 }
 
 func (c *FPSCamera) ViewMatrix() Matrix {

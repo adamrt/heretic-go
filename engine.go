@@ -81,7 +81,7 @@ type Engine struct {
 	cullMode   CullMode
 	renderMode RenderMode
 	projMatrix Matrix
-	camera     FPSCamera
+	camera     Camera
 	frustrum   Frustrum
 
 	// Model
@@ -130,7 +130,7 @@ func (e *Engine) ProcessInput() {
 	// events to create much smoother movement and to disregard key-repeat
 	// functionality. Example: If we hold left, just smoothly move left.
 	state := sdl.GetKeyboardState()
-	e.camera.processKeyboardInput(state, e.deltaTime)
+	e.camera.ProcessKeyboardInput(state, e.deltaTime)
 
 	// The other mouse/keyboard functionality can be handled via polling.
 	// Moving the keys into keyboard state polling (above) will appear to be
@@ -141,17 +141,17 @@ func (e *Engine) ProcessInput() {
 			e.IsRunning = false
 			break
 		case *sdl.MouseWheelEvent:
-			e.camera.processMouseWheel(float64(t.PreciseY), e.deltaTime)
+			e.camera.ProcessMouseWheel(float64(t.PreciseY), e.deltaTime)
 		case *sdl.MouseButtonEvent:
 			down := t.Type == sdl.MOUSEBUTTONDOWN
 			if t.Button == sdl.BUTTON_RIGHT {
-				e.camera.processMouseButton(MouseButtonRight, down)
+				e.camera.ProcessMouseButton(MouseButtonRight, down)
 			}
 			if t.Button == sdl.BUTTON_LEFT {
-				e.camera.processMouseButton(MouseButtonLeft, down)
+				e.camera.ProcessMouseButton(MouseButtonLeft, down)
 			}
 		case *sdl.MouseMotionEvent:
-			e.camera.processMouseMovement(float64(t.XRel), float64(t.YRel), e.deltaTime)
+			e.camera.ProcessMouseMovement(float64(t.XRel), float64(t.YRel), e.deltaTime)
 		case *sdl.KeyboardEvent:
 			if t.Type != sdl.KEYDOWN {
 				continue
