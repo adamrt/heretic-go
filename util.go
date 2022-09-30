@@ -15,3 +15,13 @@ func lerp(a, b, t float64) float64 {
 func normalize(x, min, max float64) float64 {
 	return (x - min) / (max - min)
 }
+
+func sgn(a float64) float64 {
+	switch {
+	case a < 0:
+		return -1
+	case a > 0:
+		return +1
+	}
+	return 0
+}

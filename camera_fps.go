@@ -1,4 +1,4 @@
-// This file contains a perspective camera. It's very basic currently.
+// This file contains a simple fps camera.
 package heretic
 
 import (
@@ -50,9 +50,7 @@ func NewFPSCamera(eye, front, up Vec3) *FPSCamera {
 	return &c
 }
 
-func (c *FPSCamera) ViewMatrix() Matrix {
-	return c.viewMatrix
-}
+func (c *FPSCamera) ViewMatrix() Matrix { return c.viewMatrix }
 
 func (c *FPSCamera) updateViewMatrix() {
 	c.viewMatrix = LookAt(c.eye, c.eye.Add(c.front), c.up)

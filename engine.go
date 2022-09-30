@@ -121,7 +121,8 @@ func (e *Engine) Setup() {
 	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
 	e.frustrum = NewFrustrum(fovX, fovY, znear, zfar)
 
-	e.camera = NewFPSCamera(Vec3{0.0, 0.5, -1.0}, Vec3{0.0, 0.0, 1.0}, Vec3{0.0, 1.0, 0.0})
+	// e.camera = NewFPSCamera(Vec3{0.0, 0.5, -1.0}, Vec3{0.0, 0.0, 1.0}, Vec3{0.0, 1.0, 0.0})
+	e.camera = NewArcCamera(Vec3{0.0, 0.5, -1.5}, Vec3{0.0, 0.0, 0.0}, Vec3{0.0, 1.0, 0.0}, e.window.width, e.window.height)
 	e.previous = sdl.GetTicks()
 }
 
