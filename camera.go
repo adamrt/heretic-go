@@ -36,24 +36,6 @@ func NewFPSCamera(eye, front, up Vec3) FPSCamera {
 	}
 }
 
-func (c *FPSCamera) LookAt(eye, target, up Vec3) Matrix {
-	// Forward
-	z := target.Sub(eye).Normalize()
-	// Right
-	x := up.Cross(z).Normalize()
-	// Up
-	y := z.Cross(x).Normalize()
-
-	viewMatrix := Matrix{
-		{x.X, x.Y, x.Z, -x.Dot(eye)},
-		{y.X, y.Y, y.Z, -y.Dot(eye)},
-		{z.X, z.Y, z.Z, -z.Dot(eye)},
-		{0, 0, 0, 1},
-	}
-
-	return viewMatrix
-}
-
 func (c *FPSCamera) processMouseMovement(xrel, yrel, delta float64) {
 	sensitiviy := 0.3
 	if c.leftButtonHeld {
