@@ -213,12 +213,6 @@ func (e *Engine) Update() {
 		worldMatrix = worldMatrix.Mul(NewRotationMatrix(mesh.Rotation))
 		worldMatrix = worldMatrix.Mul(NewTranslationMatrix(mesh.Translation))
 
-		// Setup Camera
-		// I don't really like this. This should be computed in the camera itself.
-
-		// Start by looking down z-axis (left handed)
-		viewMatrix := LookAt(e.camera.eye, e.camera.eye.Add(e.camera.front), e.camera.up)
-
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {
 			triangle.Projected = make([]Vec4, 3)
@@ -229,7 +223,7 @@ func (e *Engine) Update() {
 				// Transform to world space
 				transformedVertex = worldMatrix.MulVec4(transformedVertex)
 				// Transform to view space
-				transformedVertex = viewMatrix.MulVec4(transformedVertex)
+				transformedVertex = e.camera.ViewMatrix().MulVec4(transformedVertex)
 				triangle.Projected[i] = transformedVertex
 			}
 
