@@ -29,7 +29,16 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 			texture := r.parseTexture(record)
 			textures = append(textures, texture)
 		} else if record.Type() == RecordTypeMeshPrimary {
-			mesh = r.parsePrimaryMesh(record)
+			mesh = r.parseMesh(record)
+		} else if record.Type() == RecordTypeMeshAlt {
+			// Sometimes there is no primary mesh (ie MAP002.GNS),
+			// there is only an alternate. I'm not sure why. So we
+			// treat this one as the primary, only if the primary
+			// hasn't been set. Kinda Hacky until we start treating
+			// each GNS Record as a Scenario.
+			if len(mesh.Triangles) == 0 {
+				mesh = r.parseMesh(record)
+			}
 		}
 	}
 
@@ -72,8 +81,9 @@ func (r MeshReader) parseTexture(record GNSRecord) heretic.Texture {
 	return heretic.NewTexture(textureWidth, textureHeight, pixels)
 }
 
-// parseTexture reads and returns an FFT mesh as an engine Mesh.
-func (r MeshReader) parsePrimaryMesh(record GNSRecord) heretic.Mesh {
+// parseMesh reads mesh data for primary and alternate meshes.
+//
+func (r MeshReader) parseMesh(record GNSRecord) heretic.Mesh {
 	r.iso.seekSector(record.Sector())
 
 	// File header contains intra-file pointers to areas of mesh data.
@@ -88,8 +98,13 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) heretic.Mesh {
 	// which has a size of 196. Keep dynamic here as pointer access will
 	// grow and this keeps it consistent.
 	primaryMeshPointer := fileHeader.PrimaryMesh()
-	if primaryMeshPointer == 0 || primaryMeshPointer != 196 {
-		log.Fatal("missing primary mesh pointer")
+
+	// Previously we did these pointer checks on every map. But some maps
+	// (ie MAP002.GNS) don't have a primary mesh, only alternative. The location of that mesh
+	if record.Type() == RecordTypeMeshPrimary {
+		if primaryMeshPointer == 0 || primaryMeshPointer != 196 {
+			log.Fatal("missing primary mesh pointer")
+		}
 	}
 
 	// Skip ahead to color palettes
@@ -104,7 +119,7 @@ func (r MeshReader) parsePrimaryMesh(record GNSRecord) heretic.Mesh {
 		palettes[i] = palette
 	}
 
-	// Seek to the primary mesh data.
+	// Seek to the mesh data.
 	r.iso.seekPointer(record.Sector(), primaryMeshPointer)
 
 	// Mesh header contains the number of triangles and quads that exist.
