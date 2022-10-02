@@ -11,11 +11,11 @@ const (
 )
 
 func main() {
-	renderer := heretic.NewRenderer(WindowWidth, WindowHeight)
+	fb := heretic.NewFrameBuffer(WindowWidth, WindowHeight)
 	window := heretic.NewWindow(WindowWidth, WindowHeight)
 	defer window.Destroy()
 
-	engine := heretic.NewEngine(window, renderer)
+	engine := heretic.NewEngine(window, fb)
 	// engine.LoadMesh("assets/f22.obj")
 
 	iso := fft.NewISOReader("/home/adam/tmp/emu/fft.iso")

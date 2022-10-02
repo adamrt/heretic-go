@@ -31,11 +31,11 @@ const (
 	RenderModeTextureWire RenderMode = 6
 )
 
-func NewEngine(window *Window, renderer *Renderer) *Engine {
+func NewEngine(window *Window, framebuffer *FrameBuffer) *Engine {
 	return &Engine{
-		window:    window,
-		renderer:  renderer,
-		IsRunning: true,
+		window:      window,
+		framebuffer: framebuffer,
+		IsRunning:   true,
 
 		ambientLight: DirectionalLight{Direction: Vec3{0, 0, 1}},
 
@@ -68,8 +68,8 @@ type meshReader interface {
 // }
 //
 type Engine struct {
-	window   *Window
-	renderer *Renderer
+	window      *Window
+	framebuffer *FrameBuffer
 
 	IsRunning bool
 
@@ -287,13 +287,13 @@ func (e *Engine) Render() {
 	// Draw a nice gradient background if we have one (typically from a FFT
 	// Map) or fallback to just a black background with a grid.
 	if e.scene.Background() != nil {
-		e.renderer.frameBuffer.SetBackground(*e.scene.Background())
+		e.framebuffer.SetBackground(*e.scene.Background())
 	} else {
-		e.renderer.frameBuffer.Clear(ColorBlack)
-		e.renderer.DrawGrid(ColorGrey)
+		e.framebuffer.Clear(ColorBlack)
+		e.framebuffer.DrawGrid(ColorGrey)
 	}
 
-	e.renderer.frameBuffer.ClearDepth()
+	e.framebuffer.ClearDepth()
 
 	for _, mesh := range e.scene.Meshes {
 		for _, triangle := range mesh.trianglesToRender {
@@ -307,7 +307,7 @@ func (e *Engine) Render() {
 
 			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
 				if triangle.HasTexture() {
-					e.renderer.DrawTexturedTriangle(
+					e.framebuffer.DrawTexturedTriangle(
 						int(a.X), int(a.Y), a.Z, a.W, triangle.Texcoords[0],
 						int(b.X), int(b.Y), b.Z, b.W, triangle.Texcoords[1],
 						int(c.X), int(c.Y), c.Z, c.W, triangle.Texcoords[2],
@@ -316,7 +316,7 @@ func (e *Engine) Render() {
 						mesh.Texture,
 					)
 				} else {
-					e.renderer.DrawFilledTriangle(
+					e.framebuffer.DrawFilledTriangle(
 						int(a.X), int(a.Y), a.Z, a.W,
 						int(b.X), int(b.Y), b.Z, b.W,
 						int(c.X), int(c.Y), c.Z, c.W,
@@ -326,7 +326,7 @@ func (e *Engine) Render() {
 
 			}
 			if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
-				e.renderer.DrawFilledTriangle(
+				e.framebuffer.DrawFilledTriangle(
 					int(a.X), int(a.Y), a.Z, a.W,
 					int(b.X), int(b.Y), b.Z, b.W,
 					int(c.X), int(c.Y), c.Z, c.W,
@@ -334,12 +334,12 @@ func (e *Engine) Render() {
 			}
 
 			if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
-				e.renderer.DrawTriangle(int(a.X), int(a.Y), int(b.X), int(b.Y), int(c.X), int(c.Y), ColorWhite)
+				e.framebuffer.DrawTriangle(int(a.X), int(a.Y), int(b.X), int(b.Y), int(c.X), int(c.Y), ColorWhite)
 			}
 
 			if e.renderMode == RenderModeWireVertex {
 				for _, point := range triangle.Projected {
-					e.renderer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
+					e.framebuffer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
 				}
 			}
 		}
@@ -352,7 +352,7 @@ func (e *Engine) Render() {
 	}
 
 	// Render ColorBuffer
-	e.window.Update(e.renderer.frameBuffer)
+	e.window.Update(e.framebuffer)
 }
 
 func (e *Engine) SetMesh(mesh Mesh) {
