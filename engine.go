@@ -287,13 +287,13 @@ func (e *Engine) Render() {
 	// Draw a nice gradient background if we have one (typically from a FFT
 	// Map) or fallback to just a black background with a grid.
 	if e.scene.Background() != nil {
-		e.renderer.colorBuffer.SetBackground(*e.scene.Background())
+		e.renderer.frameBuffer.SetBackground(*e.scene.Background())
 	} else {
-		e.renderer.colorBuffer.Clear(ColorBlack)
+		e.renderer.frameBuffer.Clear(ColorBlack)
 		e.renderer.DrawGrid(ColorGrey)
 	}
 
-	e.renderer.zBuffer.Clear()
+	e.renderer.frameBuffer.ClearDepth()
 
 	for _, mesh := range e.scene.Meshes {
 		for _, triangle := range mesh.trianglesToRender {
@@ -352,7 +352,7 @@ func (e *Engine) Render() {
 	}
 
 	// Render ColorBuffer
-	e.window.Update(e.renderer.colorBuffer)
+	e.window.Update(e.renderer.frameBuffer)
 }
 
 func (e *Engine) SetMesh(mesh Mesh) {
