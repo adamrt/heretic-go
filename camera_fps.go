@@ -53,7 +53,8 @@ func NewFPSCamera(eye, front, up Vec3) *FPSCamera {
 func (c *FPSCamera) ViewMatrix() Matrix { return c.viewMatrix }
 
 func (c *FPSCamera) updateViewMatrix() {
-	c.viewMatrix = LookAt(c.eye, c.eye.Add(c.front), c.up)
+	target := c.eye.Add(c.front)
+	c.viewMatrix = LookAt(c.eye, target, c.up)
 }
 
 func (c *FPSCamera) ProcessMouseMovement(xrel, yrel, delta float64) {
