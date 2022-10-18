@@ -104,7 +104,7 @@ func (fb *FrameBuffer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, ligh
 
 	// Only draw pixel if depth value is less than one previously stored in zbuffer.
 	if interpolatedReciprocalW < fb.DepthAt(x, y) {
-		textureColor := texture.data[(textureY*texture.width)+textureX]
+		textureColor := texture.Data[(textureY*texture.width)+textureX]
 		// If there is a palette, the current color components will
 		// represent the index into the palette.
 		if palette != nil {

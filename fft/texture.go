@@ -15,8 +15,8 @@ const (
 func textureSplitPixels(buf []byte) []color.NRGBA {
 	data := make([]color.NRGBA, 0)
 	for i := 0; i < textureRawLen; i++ {
-		colorA := uint8(buf[i] & 0x0F)
-		colorB := uint8((buf[i] & 0xF0) >> 4)
+		colorA := uint8(buf[i]&0x0F) * 15
+		colorB := uint8((buf[i]&0xF0)>>4) * 15
 
 		// We dont care about RGB here.
 		// This is just an index to the palette.
@@ -25,5 +25,16 @@ func textureSplitPixels(buf []byte) []color.NRGBA {
 			color.NRGBA{R: colorB, G: colorB, B: colorB, A: 255},
 		)
 	}
+	flipV(data)
 	return data
+}
+
+func flipV(t []color.NRGBA) {
+	for row := 0; row < (textureHeight / 2); row++ {
+		for col := 0; col < textureWidth; col++ {
+			a := textureWidth*row + col
+			b := textureWidth*(textureHeight-row-1) + col
+			t[a], t[b] = t[b], t[a]
+		}
+	}
 }

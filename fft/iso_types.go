@@ -116,6 +116,18 @@ func (q quad) split() []heretic.Triangle {
 	}
 }
 
+// split will split a quad into two triangles.
+func splitNormals(q []heretic.Vec3) [][]heretic.Vec3 {
+	// This allocation is only currently necessary because of the
+	// clipping.go code that indexes the len(coords)-1. We could do the
+	// check over there and remove this. Not sure if worth it.
+	// We also do this in readTriangle()
+	return [][]heretic.Vec3{
+		{q[0], q[1], q[2]},
+		{q[1], q[3], q[2]},
+	}
+}
+
 // This can be for a triangle or a quad, depending on the len of texCoords.
 type textureData struct {
 	texCoords []heretic.Tex

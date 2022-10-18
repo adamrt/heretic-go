@@ -34,6 +34,8 @@ func (m *Mesh) NormalizeCoordinates() {
 			m.Triangles[i].Points[j].X = normalize(m.Triangles[i].Points[j].X, min, max)
 			m.Triangles[i].Points[j].Y = normalize(m.Triangles[i].Points[j].Y, min, max)
 			m.Triangles[i].Points[j].Z = normalize(m.Triangles[i].Points[j].Z, min, max)
+
+			// Don't normalize normals
 		}
 	}
 }

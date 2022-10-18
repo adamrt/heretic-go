@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/png"
 	"log"
 	"os"
 )
@@ -20,7 +21,7 @@ func (t Tex) IsEmpty() bool {
 
 type Texture struct {
 	width, height int
-	data          []color.NRGBA
+	Data          []color.NRGBA
 }
 
 func NewTexture(width, height int, data []color.NRGBA) Texture {
@@ -46,6 +47,27 @@ func NewTextureFromImage(image image.Image) Texture {
 	return Texture{width, height, data}
 }
 
+func (t Texture) RGBA() *image.RGBA {
+	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{256, 1024}})
+	for y := 0; y < 1024; y++ {
+		for x := 0; x < 256; x++ {
+			img.Set(x, y, t.Data[256*y+x])
+		}
+	}
+	return img
+}
+
+func (t Texture) WritePNG(filename string) {
+	f, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	if err = png.Encode(f, t.RGBA()); err != nil {
+		panic(err)
+	}
+}
+
 func (t Texture) WritePPM(filename string) {
 	f, err := os.Create(fmt.Sprintf("./%s", filename))
 	if err != nil {
@@ -65,7 +87,7 @@ func (t Texture) WritePPM(filename string) {
 	}
 
 	// Write pixel data
-	for _, pixel := range t.data {
+	for _, pixel := range t.Data {
 		line := fmt.Sprintf("%d %d %d\n", pixel.R, pixel.G, pixel.B)
 		_, err := bw.WriteString(line)
 		if err != nil {

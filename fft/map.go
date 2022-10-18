@@ -19,17 +19,21 @@ type MeshReader struct {
 	iso ISOReader
 }
 
-func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
+func (r MeshReader) ReadMesh(mapNum int) (heretic.Mesh, error) {
 	records := r.readGNSRecords(mapNum)
 
 	textures := []heretic.Texture{}
 	mesh := heretic.Mesh{}
+	var err error
 	for _, record := range records {
 		if record.Type() == RecordTypeTexture {
 			texture := r.parseTexture(record)
 			textures = append(textures, texture)
 		} else if record.Type() == RecordTypeMeshPrimary {
-			mesh = r.parseMesh(record)
+			mesh, err = r.parseMesh(record)
+			if err != nil {
+				return heretic.Mesh{}, err
+			}
 		} else if record.Type() == RecordTypeMeshAlt {
 			// Sometimes there is no primary mesh (ie MAP002.GNS),
 			// there is only an alternate. I'm not sure why. So we
@@ -37,17 +41,22 @@ func (r MeshReader) ReadMesh(mapNum int) heretic.Mesh {
 			// hasn't been set. Kinda Hacky until we start treating
 			// each GNS Record as a Scenario.
 			if len(mesh.Triangles) == 0 {
-				mesh = r.parseMesh(record)
+				mesh, err = r.parseMesh(record)
+				if err != nil {
+					return heretic.Mesh{}, err
+				}
 			}
 		}
 	}
 
 	mesh.Scale = heretic.Vec3{X: 1, Y: 1, Z: 1}
-	mesh.Texture = textures[0]
+	if len(textures) > 0 {
+		mesh.Texture = textures[0]
+	}
 
 	mesh.NormalizeCoordinates()
 	mesh.CenterCoordinates()
-	return mesh
+	return mesh, nil
 }
 
 func (r MeshReader) readGNSRecords(mapNum int) []GNSRecord {
@@ -83,7 +92,7 @@ func (r MeshReader) parseTexture(record GNSRecord) heretic.Texture {
 
 // parseMesh reads mesh data for primary and alternate meshes.
 //
-func (r MeshReader) parseMesh(record GNSRecord) heretic.Mesh {
+func (r MeshReader) parseMesh(record GNSRecord) (heretic.Mesh, error) {
 	r.iso.seekSector(record.Sector())
 
 	// File header contains intra-file pointers to areas of mesh data.
@@ -103,7 +112,7 @@ func (r MeshReader) parseMesh(record GNSRecord) heretic.Mesh {
 	// (ie MAP002.GNS) don't have a primary mesh, only alternative. The location of that mesh
 	if record.Type() == RecordTypeMeshPrimary {
 		if primaryMeshPointer == 0 || primaryMeshPointer != 196 {
-			log.Fatal("missing primary mesh pointer")
+			return heretic.Mesh{}, err
 		}
 	}
 
@@ -150,10 +159,19 @@ func (r MeshReader) parseMesh(record GNSRecord) heretic.Mesh {
 	// next.  This could be cleaned up as a seek, but we may eventually use
 	// the normal data here.
 	for i := 0; i < header.N(); i++ {
-		r.iso.readTriNormal()
+		triangles[i].Normals = r.iso.readTriNormal()
 	}
-	for i := 0; i < header.P(); i++ {
-		r.iso.readQuadNormal()
+	for i := header.N(); i < header.TT(); i = i + 2 {
+		normals := splitNormals(r.iso.readQuadNormal())
+		triangles[i].Normals = normals[0]
+		triangles[i+1].Normals = normals[1]
+	}
+	for i := header.TT(); i < len(triangles); i++ {
+		triangles[i].Normals = []heretic.Vec3{
+			{0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0},
+		}
 	}
 
 	// Polygon texture data
@@ -183,5 +201,5 @@ func (r MeshReader) parseMesh(record GNSRecord) heretic.Mesh {
 		Background:        &background,
 		DirectionalLights: directionalLights,
 		AmbientLight:      ambientLight,
-	}
+	}, nil
 }

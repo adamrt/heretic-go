@@ -11,6 +11,7 @@ type Triangle struct {
 	// Projected represents a vertices after rasterization.
 	Projected []Vec4
 
+	Normals   []Vec3
 	Texcoords []Tex
 
 	// Palette represents the 16-color Palette to use during rendering a
@@ -30,9 +31,9 @@ type Triangle struct {
 // Normal calculates and returns the face normal for the triangle.
 // This is a left handed system.
 func (t Triangle) Normal() Vec3 {
-	a := t.Projected[0].Vec3()
-	b := t.Projected[1].Vec3()
-	c := t.Projected[2].Vec3()
+	a := t.Points[0]
+	b := t.Points[1]
+	c := t.Points[2]
 	vectorAB := b.Sub(a).Normalize()
 	vectorAC := c.Sub(a).Normalize()
 	normal := vectorAB.Cross(vectorAC).Normalize()

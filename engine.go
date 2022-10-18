@@ -105,7 +105,7 @@ func (e *Engine) Setup() {
 
 	// If there is any texture on any mesh, show it.
 	for _, mesh := range e.scene.Meshes {
-		if len(mesh.Texture.data) != 0 {
+		if len(mesh.Texture.Data) != 0 {
 			e.renderMode = RenderModeTexture
 		}
 	}
