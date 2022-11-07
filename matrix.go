@@ -26,22 +26,6 @@ func (m Matrix) MulVec4(v Vec4) Vec4 {
 	}
 }
 
-// MulVec4Proj multiples a matrix by a Vec4 and does perspective divide.
-// The matrix calling this should be a projection matrix.
-func (m Matrix) MulVec4Proj(v Vec4) Vec4 {
-	// Multiply the original projection matrix by the vector
-	result := m.MulVec4(v)
-
-	// Perspective Divide with original z value (result.w).  The result.w is
-	// populated during MulVec4() because of the projection matrix 3/2==1.
-	if result.W != 0.0 {
-		result.X /= result.W
-		result.Y /= result.W
-		result.Z /= result.W
-	}
-	return result
-}
-
 // Return an Identity Matrix
 // | 1  0  0  0 |
 // | 0  1  0  0 |

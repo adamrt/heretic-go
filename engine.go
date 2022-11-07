@@ -253,7 +253,17 @@ func (e *Engine) Update() {
 			// Projection
 			for _, triangleToRender := range clippedTriangles {
 				for i, point := range triangleToRender.Projected {
-					projected := e.projMatrix.MulVec4Proj(point)
+					// Multiply the original projection matrix by the vector
+					projected := e.projMatrix.MulVec4(point)
+
+					// Perspective Divide with original z value (result.w).  The result.w is
+					// populated during MulVec4() because of the projection matrix 3/2==1.
+					if projected.W != 0.0 {
+						projected.X /= projected.W
+						projected.Y /= projected.W
+						projected.Z /= projected.W
+					}
+
 					// FIXME: Invert Y to deal with obj coordinates
 					// system.  I'd like to get rid of this but its
 					// more complex than it seems. I think it has to
