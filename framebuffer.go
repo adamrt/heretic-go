@@ -192,7 +192,15 @@ func (fb *FrameBuffer) DrawRectangle(x, y, width, height int, color color.NRGBA)
 	}
 }
 
-func (fb *FrameBuffer) DrawTriangle(x0, y0, x1, y1, x2, y2 int, color color.NRGBA) {
+func (fb *FrameBuffer) DrawTriangle(tri Triangle, color color.NRGBA) {
+	a := tri.Projected[0]
+	b := tri.Projected[1]
+	c := tri.Projected[2]
+
+	x0, y0 := int(a.X), int(a.Y)
+	x1, y1 := int(b.X), int(b.Y)
+	x2, y2 := int(c.X), int(c.Y)
+
 	fb.DrawLine(x0, y0, x1, y1, color)
 	fb.DrawLine(x1, y1, x2, y2, color)
 	fb.DrawLine(x2, y2, x0, y0, color)
@@ -217,12 +225,15 @@ func (fb *FrameBuffer) DrawTriangle(x0, y0, x1, y1, x2, y2 int, color color.NRGB
 //                        \_\
 //                           \
 //                         (x2,y2)
-func (fb *FrameBuffer) DrawFilledTriangle(
-	x0, y0 int, z0 float64, w0 float64,
-	x1, y1 int, z1 float64, w1 float64,
-	x2, y2 int, z2 float64, w2 float64,
-	color color.NRGBA,
-) {
+func (fb *FrameBuffer) DrawFilledTriangle(tri Triangle, color color.NRGBA) {
+	a := tri.Projected[0]
+	b := tri.Projected[1]
+	c := tri.Projected[2]
+
+	x0, y0, z0, w0 := int(a.X), int(a.Y), a.Z, a.W
+	x1, y1, z1, w1 := int(b.X), int(b.Y), b.Z, b.W
+	x2, y2, z2, w2 := int(c.X), int(c.Y), c.Z, c.W
+
 	if y0 > y1 {
 		y0, y1 = y1, y0
 		x0, x1 = x1, x0
@@ -245,9 +256,9 @@ func (fb *FrameBuffer) DrawFilledTriangle(
 		w0, w1 = w1, w0
 	}
 
-	a := Vec4{float64(x0), float64(y0), z0, w0}
-	b := Vec4{float64(x1), float64(y1), z1, w1}
-	c := Vec4{float64(x2), float64(y2), z2, w2}
+	a = Vec4{float64(x0), float64(y0), z0, w0}
+	b = Vec4{float64(x1), float64(y1), z1, w1}
+	c = Vec4{float64(x2), float64(y2), z2, w2}
 
 	//
 	// Top part of triangle
@@ -306,14 +317,18 @@ func (fb *FrameBuffer) DrawFilledTriangle(
 	}
 }
 
-func (fb *FrameBuffer) DrawTexturedTriangle(
-	x0, y0 int, z0, w0 float64, at Tex,
-	x1, y1 int, z1, w1 float64, bt Tex,
-	x2, y2 int, z2, w2 float64, ct Tex,
-	lightIntensity float64,
-	palette Palette,
-	texture Texture,
-) {
+func (fb *FrameBuffer) DrawTexturedTriangle(tri Triangle, texture Texture) {
+	ta := tri.Projected[0]
+	tb := tri.Projected[1]
+	tc := tri.Projected[2]
+
+	x0, y0, z0, w0 := int(ta.X), int(ta.Y), ta.Z, ta.W
+	x1, y1, z1, w1 := int(tb.X), int(tb.Y), tb.Z, tb.W
+	x2, y2, z2, w2 := int(tc.X), int(tc.Y), tc.Z, tc.W
+
+	at := tri.Texcoords[0]
+	bt := tri.Texcoords[1]
+	ct := tri.Texcoords[2]
 
 	if y0 > y1 {
 		y0, y1 = y1, y0
@@ -370,7 +385,7 @@ func (fb *FrameBuffer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				fb.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, palette, texture)
+				fb.DrawTexel(x, y, a, b, c, at, bt, ct, tri.LightIntensity, tri.Palette, texture)
 			}
 		}
 	}
@@ -398,7 +413,7 @@ func (fb *FrameBuffer) DrawTexturedTriangle(
 			}
 
 			for x := xStart; x < xEnd; x++ {
-				fb.DrawTexel(x, y, a, b, c, at, bt, ct, lightIntensity, palette, texture)
+				fb.DrawTexel(x, y, a, b, c, at, bt, ct, tri.LightIntensity, tri.Palette, texture)
 			}
 		}
 	}

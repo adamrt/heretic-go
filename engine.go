@@ -307,44 +307,21 @@ func (e *Engine) Render() {
 
 	for _, mesh := range e.scene.Meshes {
 		for _, triangle := range mesh.trianglesToRender {
-			a := triangle.Projected[0]
-			b := triangle.Projected[1]
-			c := triangle.Projected[2]
-
-			//
-			// Draw the triangles depending on the rendering mode.
-			//
-
 			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
 				if triangle.HasTexture() {
-					e.framebuffer.DrawTexturedTriangle(
-						int(a.X), int(a.Y), a.Z, a.W, triangle.Texcoords[0],
-						int(b.X), int(b.Y), b.Z, b.W, triangle.Texcoords[1],
-						int(c.X), int(c.Y), c.Z, c.W, triangle.Texcoords[2],
-						triangle.LightIntensity,
-						triangle.Palette,
-						mesh.Texture,
-					)
+					e.framebuffer.DrawTexturedTriangle(triangle, mesh.Texture)
 				} else {
-					e.framebuffer.DrawFilledTriangle(
-						int(a.X), int(a.Y), a.Z, a.W,
-						int(b.X), int(b.Y), b.Z, b.W,
-						int(c.X), int(c.Y), c.Z, c.W,
-						triangle.Color,
-					)
+					e.framebuffer.DrawFilledTriangle(triangle, triangle.Color)
 				}
 
 			}
+
 			if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
-				e.framebuffer.DrawFilledTriangle(
-					int(a.X), int(a.Y), a.Z, a.W,
-					int(b.X), int(b.Y), b.Z, b.W,
-					int(c.X), int(c.Y), c.Z, c.W,
-					triangle.Color)
+				e.framebuffer.DrawFilledTriangle(triangle, triangle.Color)
 			}
 
 			if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
-				e.framebuffer.DrawTriangle(int(a.X), int(a.Y), int(b.X), int(b.Y), int(c.X), int(c.Y), ColorWhite)
+				e.framebuffer.DrawTriangle(triangle, ColorWhite)
 			}
 
 			if e.renderMode == RenderModeWireVertex {
