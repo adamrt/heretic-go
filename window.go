@@ -59,7 +59,7 @@ type Window struct {
 // Update takes a color buffer, updates the SDL Texture, copies the texture into
 // the SDL Renderer and then updates the screen.
 func (w *Window) Update(framebuffer *FrameBuffer) {
-	w.texture.Update(nil, unsafe.Pointer(&framebuffer.cbuf[0]), w.pitch())
+	w.texture.Update(nil, unsafe.Pointer(&framebuffer.color[0]), w.pitch())
 	w.renderer.Copy(w.texture, nil, nil)
 	w.renderer.Present()
 }

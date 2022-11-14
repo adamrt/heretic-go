@@ -9,15 +9,15 @@ func NewFrameBuffer(width, height int) *FrameBuffer {
 	return &FrameBuffer{
 		width:  width,
 		height: height,
-		zbuf:   make([]float64, height*width),
-		cbuf:   make([]color.NRGBA, height*width),
+		depth:  make([]float64, height*width),
+		color:  make([]color.NRGBA, height*width),
 	}
 }
 
 type FrameBuffer struct {
 	height, width int
-	zbuf          []float64
-	cbuf          []color.NRGBA
+	depth         []float64
+	color         []color.NRGBA
 }
 
 // Clear writes over every color in the buffer
@@ -31,7 +31,7 @@ func (fb *FrameBuffer) Clear(color color.NRGBA) {
 
 func (fb *FrameBuffer) SetColor(x, y int, color color.NRGBA) {
 	if x > 0 && x < int(fb.width) && y > 0 && y < int(fb.height) {
-		fb.cbuf[(fb.width*y)+x] = color
+		fb.color[(fb.width*y)+x] = color
 	}
 }
 
@@ -57,14 +57,14 @@ func (fb *FrameBuffer) DepthAt(x, y int) float64 {
 	if x < 0 || x >= fb.width || y < 0 || y >= fb.height {
 		return 1.0
 	}
-	return fb.zbuf[(y*fb.width)+x]
+	return fb.depth[(y*fb.width)+x]
 }
 
 func (fb *FrameBuffer) SetDepth(x, y int, v float64) {
 	if x < 0 || x >= fb.width || y < 0 || y >= fb.height {
 		return
 	}
-	fb.zbuf[(y*fb.width)+x] = v
+	fb.depth[(y*fb.width)+x] = v
 }
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
