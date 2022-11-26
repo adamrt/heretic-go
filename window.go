@@ -59,7 +59,9 @@ type Window struct {
 // Update takes a color buffer, updates the SDL Texture, copies the texture into
 // the SDL Renderer and then updates the screen.
 func (w *Window) Update(framebuffer *FrameBuffer) {
-	w.texture.Update(nil, unsafe.Pointer(&framebuffer.color[0]), w.pitch())
+	// pitch returns the byte length of a row (width * sizeof(uint32)).
+	pitch := w.width * 4
+	w.texture.Update(nil, unsafe.Pointer(&framebuffer.color[0]), pitch)
 	w.renderer.Copy(w.texture, nil, nil)
 	w.renderer.Present()
 }
@@ -69,6 +71,3 @@ func (w *Window) Destroy() {
 	w.window.Destroy()
 	sdl.Quit()
 }
-
-// pitch returns the byte length of a row (width * sizeof(uint32)).
-func (w *Window) pitch() int { return w.width * 4 }
