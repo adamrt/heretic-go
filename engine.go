@@ -297,7 +297,7 @@ func (e *Engine) Render() {
 	// Draw a nice gradient background if we have one (typically from a FFT
 	// Map) or fallback to just a black background with a grid.
 	if e.scene.Background() != nil {
-		e.framebuffer.SetBackground(*e.scene.Background())
+		e.framebuffer.DrawBackground(*e.scene.Background())
 	} else {
 		e.framebuffer.Clear(ColorBlack)
 		e.framebuffer.DrawGrid(ColorGrey)

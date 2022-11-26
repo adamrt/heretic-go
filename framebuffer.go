@@ -29,15 +29,6 @@ func (fb *Framebuffer) Clear(color color.NRGBA) {
 	}
 }
 
-func (fb *Framebuffer) SetBackground(background Background) {
-	for y := 0; y < fb.height; y++ {
-		color := background.At(y, fb.height)
-		for x := 0; x < fb.width; x++ {
-			fb.DrawPixel(x, y, color)
-		}
-	}
-}
-
 func (fb *Framebuffer) ClearDepth() {
 	for x := 0; x < fb.width; x++ {
 		for y := 0; y < fb.height; y++ {
@@ -46,7 +37,7 @@ func (fb *Framebuffer) ClearDepth() {
 	}
 }
 
-func (fb *Framebuffer) DepthAt(x, y int) float64 {
+func (fb *Framebuffer) Depth(x, y int) float64 {
 	if x < 0 || x >= fb.width || y < 0 || y >= fb.height {
 		return 1.0
 	}
@@ -64,6 +55,15 @@ func (fb *Framebuffer) SetDepth(x, y int, v float64) {
 func (fb *Framebuffer) DrawPixel(x, y int, color color.NRGBA) {
 	if x > 0 && x < int(fb.width) && y > 0 && y < int(fb.height) {
 		fb.color[(fb.width*y)+x] = color
+	}
+}
+
+func (fb *Framebuffer) DrawBackground(background Background) {
+	for y := 0; y < fb.height; y++ {
+		color := background.At(y, fb.height)
+		for x := 0; x < fb.width; x++ {
+			fb.DrawPixel(x, y, color)
+		}
 	}
 }
 
@@ -96,7 +96,7 @@ func (fb *Framebuffer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, ligh
 	interpolatedReciprocalW = 1.0 - interpolatedReciprocalW
 
 	// Only draw pixel if depth value is less than one previously stored in zbuffer.
-	if interpolatedReciprocalW < fb.DepthAt(x, y) {
+	if interpolatedReciprocalW < fb.Depth(x, y) {
 		textureColor := texture.data[(textureY*texture.width)+textureX]
 		// If there is a palette, the current color components will
 		// represent the index into the palette.
@@ -134,7 +134,7 @@ func (fb *Framebuffer) DrawTrianglePixel(x, y int, a, b, c Vec4, color color.NRG
 	interpolatedReciprocalW = 1.0 - interpolatedReciprocalW
 
 	// Only draw pixel if depth value is less than one previously stored in zbuffer.
-	if interpolatedReciprocalW < fb.DepthAt(x, y) {
+	if interpolatedReciprocalW < fb.Depth(x, y) {
 		fb.DrawPixel(x, y, color)
 		fb.SetDepth(x, y, interpolatedReciprocalW)
 	}
