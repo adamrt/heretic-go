@@ -35,7 +35,6 @@ func (fb *FrameBuffer) SetColor(x, y int, color color.NRGBA) {
 	}
 }
 
-// Clear writes over every color in the buffer
 func (fb *FrameBuffer) SetBackground(background Background) {
 	for y := 0; y < fb.height; y++ {
 		color := background.At(y, fb.height)
@@ -69,9 +68,7 @@ func (fb *FrameBuffer) SetDepth(x, y int, v float64) {
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
 func (fb *FrameBuffer) DrawPixel(x, y int, color color.NRGBA) {
-	if x > 0 && x < int(fb.width) && y > 0 && y < int(fb.height) {
-		fb.SetColor(x, y, color)
-	}
+	fb.SetColor(x, y, color)
 }
 
 // DrawTexel draws a single textured pixels at the specified coordinates.
