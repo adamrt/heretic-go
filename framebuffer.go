@@ -5,8 +5,8 @@ import (
 	"math"
 )
 
-func NewFrameBuffer(width, height int) *FrameBuffer {
-	return &FrameBuffer{
+func NewFramebuffer(width, height int) *Framebuffer {
+	return &Framebuffer{
 		width:  width,
 		height: height,
 		depth:  make([]float64, height*width),
@@ -14,14 +14,14 @@ func NewFrameBuffer(width, height int) *FrameBuffer {
 	}
 }
 
-type FrameBuffer struct {
+type Framebuffer struct {
 	height, width int
 	depth         []float64
 	color         []color.NRGBA
 }
 
 // Clear writes over every color in the buffer
-func (fb *FrameBuffer) Clear(color color.NRGBA) {
+func (fb *Framebuffer) Clear(color color.NRGBA) {
 	for x := 0; x < fb.width; x++ {
 		for y := 0; y < fb.height; y++ {
 			fb.DrawPixel(x, y, color)
@@ -29,7 +29,7 @@ func (fb *FrameBuffer) Clear(color color.NRGBA) {
 	}
 }
 
-func (fb *FrameBuffer) SetBackground(background Background) {
+func (fb *Framebuffer) SetBackground(background Background) {
 	for y := 0; y < fb.height; y++ {
 		color := background.At(y, fb.height)
 		for x := 0; x < fb.width; x++ {
@@ -38,7 +38,7 @@ func (fb *FrameBuffer) SetBackground(background Background) {
 	}
 }
 
-func (fb *FrameBuffer) ClearDepth() {
+func (fb *Framebuffer) ClearDepth() {
 	for x := 0; x < fb.width; x++ {
 		for y := 0; y < fb.height; y++ {
 			fb.SetDepth(x, y, 1.0)
@@ -46,14 +46,14 @@ func (fb *FrameBuffer) ClearDepth() {
 	}
 }
 
-func (fb *FrameBuffer) DepthAt(x, y int) float64 {
+func (fb *Framebuffer) DepthAt(x, y int) float64 {
 	if x < 0 || x >= fb.width || y < 0 || y >= fb.height {
 		return 1.0
 	}
 	return fb.depth[(y*fb.width)+x]
 }
 
-func (fb *FrameBuffer) SetDepth(x, y int, v float64) {
+func (fb *Framebuffer) SetDepth(x, y int, v float64) {
 	if x < 0 || x >= fb.width || y < 0 || y >= fb.height {
 		return
 	}
@@ -61,14 +61,14 @@ func (fb *FrameBuffer) SetDepth(x, y int, v float64) {
 }
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
-func (fb *FrameBuffer) DrawPixel(x, y int, color color.NRGBA) {
+func (fb *Framebuffer) DrawPixel(x, y int, color color.NRGBA) {
 	if x > 0 && x < int(fb.width) && y > 0 && y < int(fb.height) {
 		fb.color[(fb.width*y)+x] = color
 	}
 }
 
 // DrawTexel draws a single textured pixels at the specified coordinates.
-func (fb *FrameBuffer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, palette Palette, texture Texture) {
+func (fb *Framebuffer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, lightIntensity float64, palette Palette, texture Texture) {
 	pointP := Vec2{float64(x), float64(y)}
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
@@ -117,7 +117,7 @@ func (fb *FrameBuffer) DrawTexel(x, y int, a, b, c Vec4, auv, buv, cuv Tex, ligh
 	}
 }
 
-func (fb *FrameBuffer) DrawTrianglePixel(x, y int, a, b, c Vec4, color color.NRGBA) {
+func (fb *Framebuffer) DrawTrianglePixel(x, y int, a, b, c Vec4, color color.NRGBA) {
 	pointP := Vec2{float64(x), float64(y)}
 
 	weights := barycentricWeights(a.Vec2(), b.Vec2(), c.Vec2(), pointP)
@@ -141,7 +141,7 @@ func (fb *FrameBuffer) DrawTrianglePixel(x, y int, a, b, c Vec4, color color.NRG
 }
 
 // DrawLine draws a solid line using the DDA algorithm.
-func (fb *FrameBuffer) DrawLine(x0, y0, x1, y1 int, color color.NRGBA) {
+func (fb *Framebuffer) DrawLine(x0, y0, x1, y1 int, color color.NRGBA) {
 	deltaX := x1 - x0
 	deltaY := y1 - y0
 
@@ -166,7 +166,7 @@ func (fb *FrameBuffer) DrawLine(x0, y0, x1, y1 int, color color.NRGBA) {
 }
 
 // DrawGrid draws a dotted grid across entire buffer.
-func (fb *FrameBuffer) DrawGrid(color color.NRGBA) {
+func (fb *Framebuffer) DrawGrid(color color.NRGBA) {
 	for y := 0; y < fb.height; y += 10 {
 		for x := 0; x < fb.width; x += 10 {
 			fb.DrawPixel(x, y, color)
@@ -175,7 +175,7 @@ func (fb *FrameBuffer) DrawGrid(color color.NRGBA) {
 }
 
 // DrawGrid draws a rectangle to the buffer.
-func (fb *FrameBuffer) DrawRectangle(x, y, width, height int, color color.NRGBA) {
+func (fb *Framebuffer) DrawRectangle(x, y, width, height int, color color.NRGBA) {
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
 			currentX := x + i
@@ -185,7 +185,7 @@ func (fb *FrameBuffer) DrawRectangle(x, y, width, height int, color color.NRGBA)
 	}
 }
 
-func (fb *FrameBuffer) DrawTriangle(tri Triangle, color color.NRGBA) {
+func (fb *Framebuffer) DrawTriangle(tri Triangle, color color.NRGBA) {
 	a := tri.Projected[0]
 	b := tri.Projected[1]
 	c := tri.Projected[2]
@@ -218,7 +218,7 @@ func (fb *FrameBuffer) DrawTriangle(tri Triangle, color color.NRGBA) {
 //                        \_\
 //                           \
 //                         (x2,y2)
-func (fb *FrameBuffer) DrawFilledTriangle(tri Triangle, color color.NRGBA) {
+func (fb *Framebuffer) DrawFilledTriangle(tri Triangle, color color.NRGBA) {
 	a := tri.Projected[0]
 	b := tri.Projected[1]
 	c := tri.Projected[2]
@@ -310,7 +310,7 @@ func (fb *FrameBuffer) DrawFilledTriangle(tri Triangle, color color.NRGBA) {
 	}
 }
 
-func (fb *FrameBuffer) DrawTexturedTriangle(tri Triangle, texture Texture) {
+func (fb *Framebuffer) DrawTexturedTriangle(tri Triangle, texture Texture) {
 	ta := tri.Projected[0]
 	tb := tri.Projected[1]
 	tc := tri.Projected[2]

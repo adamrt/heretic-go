@@ -11,7 +11,7 @@ const (
 )
 
 func main() {
-	fb := heretic.NewFrameBuffer(WindowWidth, WindowHeight)
+	fb := heretic.NewFramebuffer(WindowWidth, WindowHeight)
 	window := heretic.NewWindow(WindowWidth, WindowHeight)
 	defer window.Destroy()
 

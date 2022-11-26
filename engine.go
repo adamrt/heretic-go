@@ -31,7 +31,7 @@ const (
 	RenderModeTextureWire RenderMode = 6
 )
 
-func NewEngine(window *Window, framebuffer *FrameBuffer) *Engine {
+func NewEngine(window *Window, framebuffer *Framebuffer) *Engine {
 	return &Engine{
 		window:      window,
 		framebuffer: framebuffer,
@@ -69,7 +69,7 @@ type meshReader interface {
 //
 type Engine struct {
 	window      *Window
-	framebuffer *FrameBuffer
+	framebuffer *Framebuffer
 
 	IsRunning bool
 
