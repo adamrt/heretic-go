@@ -24,14 +24,8 @@ type FrameBuffer struct {
 func (fb *FrameBuffer) Clear(color color.NRGBA) {
 	for x := 0; x < fb.width; x++ {
 		for y := 0; y < fb.height; y++ {
-			fb.SetColor(x, y, color)
+			fb.DrawPixel(x, y, color)
 		}
-	}
-}
-
-func (fb *FrameBuffer) SetColor(x, y int, color color.NRGBA) {
-	if x > 0 && x < int(fb.width) && y > 0 && y < int(fb.height) {
-		fb.color[(fb.width*y)+x] = color
 	}
 }
 
@@ -39,7 +33,7 @@ func (fb *FrameBuffer) SetBackground(background Background) {
 	for y := 0; y < fb.height; y++ {
 		color := background.At(y, fb.height)
 		for x := 0; x < fb.width; x++ {
-			fb.SetColor(x, y, color)
+			fb.DrawPixel(x, y, color)
 		}
 	}
 }
@@ -68,7 +62,9 @@ func (fb *FrameBuffer) SetDepth(x, y int, v float64) {
 
 // DrawPixel draws a single colored pixel at the specified coordinates.
 func (fb *FrameBuffer) DrawPixel(x, y int, color color.NRGBA) {
-	fb.SetColor(x, y, color)
+	if x > 0 && x < int(fb.width) && y > 0 && y < int(fb.height) {
+		fb.color[(fb.width*y)+x] = color
+	}
 }
 
 // DrawTexel draws a single textured pixels at the specified coordinates.
