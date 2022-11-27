@@ -31,6 +31,8 @@ const (
 	RenderModeTextureWire RenderMode = 6
 )
 
+var leftButtonDown bool = false
+
 func NewEngine(window *Window, framebuffer *Framebuffer) *Engine {
 	return &Engine{
 		window:      window,
@@ -81,7 +83,7 @@ type Engine struct {
 	cullMode   CullMode
 	renderMode RenderMode
 	projMatrix Matrix
-	camera     Camera
+	camera     *Camera
 	frustum    Frustum
 
 	// Model
@@ -121,18 +123,11 @@ func (e *Engine) Setup() {
 	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
 	e.frustum = NewFrustum(fovX, fovY, znear, zfar)
 
-	// e.camera = NewFPSCamera(Vec3{0.0, 0.5, -1.0}, Vec3{0.0, 0.0, 1.0}, Vec3{0.0, 1.0, 0.0})
-	e.camera = NewArcCamera(Vec3{-1.0, 1.0, -1.0}, Vec3{0.0, 0.0, 0.0}, Vec3{0.0, 1.0, 0.0}, e.window.width, e.window.height)
+	e.camera = NewCamera(Vec3{-1.0, 1.0, -1.0}, Vec3{0.0, 0.0, 0.0}, Vec3{0.0, 1.0, 0.0}, e.window.width, e.window.height)
 	e.previous = sdl.GetTicks()
 }
 
 func (e *Engine) ProcessInput() {
-	// WASD keys are polled with keyboard state instead of polling for
-	// events to create much smoother movement and to disregard key-repeat
-	// functionality. Example: If we hold left, just smoothly move left.
-	state := sdl.GetKeyboardState()
-	e.camera.ProcessKeyboardInput(state, e.deltaTime)
-
 	// The other mouse/keyboard functionality can be handled via polling.
 	// Moving the keys into keyboard state polling (above) will appear to be
 	// multiple presses in a row when we just want one.
@@ -142,17 +137,21 @@ func (e *Engine) ProcessInput() {
 			e.IsRunning = false
 			break
 		case *sdl.MouseWheelEvent:
-			e.camera.ProcessMouseWheel(float64(t.PreciseY), e.deltaTime)
-		case *sdl.MouseButtonEvent:
-			down := t.Type == sdl.MOUSEBUTTONDOWN
-			if t.Button == sdl.BUTTON_RIGHT {
-				e.camera.ProcessMouseButton(MouseButtonRight, down)
+			for i, mesh := range e.scene.Meshes {
+				if t.PreciseY > 0 {
+					e.scene.Meshes[i].Scale = mesh.Scale.Mul(1.5)
+				} else {
+					e.scene.Meshes[i].Scale = mesh.Scale.Div(1.5)
+				}
 			}
+		case *sdl.MouseButtonEvent:
 			if t.Button == sdl.BUTTON_LEFT {
-				e.camera.ProcessMouseButton(MouseButtonLeft, down)
+				leftButtonDown = t.Type == sdl.MOUSEBUTTONDOWN
 			}
 		case *sdl.MouseMotionEvent:
-			e.camera.ProcessMouseMovement(float64(t.XRel), float64(t.YRel), e.deltaTime)
+			if leftButtonDown {
+				e.camera.ProcessMouseMovement(float64(t.XRel), float64(t.YRel), e.deltaTime)
+			}
 		case *sdl.KeyboardEvent:
 			if t.Type != sdl.KEYDOWN {
 				continue
