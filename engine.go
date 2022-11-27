@@ -137,9 +137,9 @@ func (e *Engine) ProcessInput() {
 		case *sdl.MouseWheelEvent:
 			for i, mesh := range e.scene.Meshes {
 				if t.PreciseY > 0 {
-					e.scene.Meshes[i].Scale = mesh.Scale.Mul(1.5)
+					e.scene.Meshes[i].Scale = mesh.Scale.Mul(1.1)
 				} else {
-					e.scene.Meshes[i].Scale = mesh.Scale.Div(1.5)
+					e.scene.Meshes[i].Scale = mesh.Scale.Div(1.1)
 				}
 			}
 		case *sdl.MouseButtonEvent:
