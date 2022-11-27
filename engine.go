@@ -187,17 +187,7 @@ func (e *Engine) ProcessInput() {
 }
 
 func (e *Engine) Update() {
-	// Target the specified FPS
-	wait := TargetFrameTime - (sdl.GetTicks() - e.previous)
-	if wait > 0 && wait <= TargetFrameTime {
-		sdl.Delay(wait)
-	}
-
-	// Using a deltaTime for transformations keeps animation speed
-	// consistent regardless of FPS. It basically changes the engine
-	// transforms-per-frame to tranforms-per-second.
-	e.deltaTime = float64(sdl.GetTicks()-e.previous) / 1000.0
-	e.previous = sdl.GetTicks()
+	e.timingDelay()
 
 	for _, mesh := range e.scene.Meshes {
 		// Apply the engine's rotation vector. This is for automatic rotation.
@@ -370,4 +360,18 @@ func (e *Engine) PrevMap() {
 		e.SetMesh(mesh)
 		e.Setup()
 	}
+}
+
+func (e *Engine) timingDelay() {
+	// Target the specified FPS
+	wait := TargetFrameTime - (sdl.GetTicks() - e.previous)
+	if wait > 0 && wait <= TargetFrameTime {
+		sdl.Delay(wait)
+	}
+
+	// Using a deltaTime for transformations keeps animation speed
+	// consistent regardless of FPS. It basically changes the engine
+	// transforms-per-frame to tranforms-per-second.
+	e.deltaTime = float64(sdl.GetTicks()-e.previous) / 1000.0
+	e.previous = sdl.GetTicks()
 }
