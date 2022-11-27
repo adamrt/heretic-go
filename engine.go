@@ -34,6 +34,14 @@ const (
 var leftButtonDown bool = false
 
 func NewEngine(window *Window, framebuffer *Framebuffer) *Engine {
+	// Projection matrix. We only need this calculate this once.
+	aspectX := float64(window.width) / float64(window.height)
+	aspectY := float64(window.height) / float64(window.width)
+	fovY := math.Pi / 3.0 // Same as 180/3 or 60deg
+	fovX := math.Atan(math.Tan(fovY/2.0)*aspectX) * 2.0
+	znear := 0.3
+	zfar := 100.0
+
 	return &Engine{
 		window:      window,
 		framebuffer: framebuffer,
@@ -41,10 +49,13 @@ func NewEngine(window *Window, framebuffer *Framebuffer) *Engine {
 
 		ambientLight: DirectionalLight{Direction: Vec3{0, 0, 1}},
 
+		projMatrix: MatrixMakePerspective(fovY, aspectY, znear, zfar),
+		frustum:    NewFrustum(fovX, fovY, znear, zfar),
+		camera:     NewCamera(Vec3{-1.0, 1.0, -1.0}, Vec3{0.0, 0.0, 0.0}, Vec3{0.0, 1.0, 0.0}, window.width, window.height),
 		cullMode:   CullModeBackFace,
 		renderMode: RenderModeWireFill,
-		scene:      NewScene(),
 
+		scene: NewScene(),
 		// Rotation is set so if the user presses spacebar they get some
 		// rotation. But autoRotation is off by default. Use
 		// SetAutoRotation() to override the rotation value.
@@ -111,19 +122,6 @@ func (e *Engine) Setup() {
 			e.renderMode = RenderModeTexture
 		}
 	}
-
-	// Projection matrix. We only need this calculate this once.
-	aspectX := float64(e.window.width) / float64(e.window.height)
-	aspectY := float64(e.window.height) / float64(e.window.width)
-	fovY := math.Pi / 3.0 // Same as 180/3 or 60deg
-	fovX := math.Atan(math.Tan(fovY/2.0)*aspectX) * 2.0
-	znear := 0.3
-	zfar := 100.0
-
-	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
-	e.frustum = NewFrustum(fovX, fovY, znear, zfar)
-
-	e.camera = NewCamera(Vec3{-1.0, 1.0, -1.0}, Vec3{0.0, 0.0, 0.0}, Vec3{0.0, 1.0, 0.0}, e.window.width, e.window.height)
 	e.previous = sdl.GetTicks()
 }
 
