@@ -16,19 +16,21 @@ const (
 type CullMode int
 
 const (
-	CullModeNone     CullMode = 0
-	CullModeBackFace CullMode = 1
+	CullModeNone CullMode = iota
+	CullModeBackFace
+	CullModeMax
 )
 
 type RenderMode int
 
 const (
-	RenderModeWire        RenderMode = 1
-	RenderModeWireVertex  RenderMode = 2
-	RenderModeWireFill    RenderMode = 3
-	RenderModeFill        RenderMode = 4
-	RenderModeTexture     RenderMode = 5
-	RenderModeTextureWire RenderMode = 6
+	RenderModeWire RenderMode = iota
+	RenderModeWireVertex
+	RenderModeWireFill
+	RenderModeFill
+	RenderModeTexture
+	RenderModeTextureWire
+	RenderModeMax
 )
 
 var leftButtonDown bool = false
@@ -159,22 +161,16 @@ func (e *Engine) ProcessInput() {
 				e.IsRunning = false
 				break
 
-			case sdl.K_1:
-				e.renderMode = RenderModeWire
-			case sdl.K_2:
-				e.renderMode = RenderModeWireVertex
-			case sdl.K_3:
-				e.renderMode = RenderModeWireFill
-			case sdl.K_4:
-				e.renderMode = RenderModeFill
-			case sdl.K_5:
-				e.renderMode = RenderModeTexture
-			case sdl.K_6:
-				e.renderMode = RenderModeTextureWire
+			case sdl.K_r:
+				e.renderMode++
+				if e.renderMode == RenderModeMax {
+					e.renderMode = 0
+				}
 			case sdl.K_c:
-				e.cullMode = CullModeNone
-			case sdl.K_b:
-				e.cullMode = CullModeBackFace
+				e.cullMode++
+				if e.cullMode == CullModeMax {
+					e.cullMode = 0
+				}
 			case sdl.K_k:
 				e.NextMap()
 			case sdl.K_j:
