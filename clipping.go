@@ -1,17 +1,17 @@
 // This file contains types and functions for clipping triangles against a
-// frustrum.
+// frustum.
 package heretic
 
 import (
 	"math"
 )
 
-func NewFrustrum(fovX, fovY, znear, zfar float64) Frustrum {
+func NewFrustum(fovX, fovY, znear, zfar float64) Frustum {
 	sinHalfFovX := math.Sin(fovX / 2.0)
 	cosHalfFovX := math.Cos(fovX / 2.0)
 	sinHalfFovY := math.Sin(fovY / 2.0)
 	cosHalfFovY := math.Cos(fovY / 2.0)
-	return Frustrum{
+	return Frustum{
 		planes: []Plane{
 			// Left Plane
 			{point: Vec3{0, 0, 0}, normal: Vec3{cosHalfFovX, 0, sinHalfFovX}},
@@ -29,13 +29,13 @@ func NewFrustrum(fovX, fovY, znear, zfar float64) Frustrum {
 	}
 }
 
-// Frustrum is typically a 6 plane (front, back, right, left, top, bottom) geometry.
-type Frustrum struct {
+// Frustum is typically a 6 plane (front, back, right, left, top, bottom) geometry.
+type Frustum struct {
 	planes []Plane
 }
 
 // Clip clips trianlges against each plane and returns 1 or more triangles.
-func (f Frustrum) Clip(triangle Triangle) []Triangle {
+func (f Frustum) Clip(triangle Triangle) []Triangle {
 	for _, plane := range f.planes {
 		if len(triangle.Projected) > 0 {
 			triangle = f.clipAgainstPlane(triangle, plane)
@@ -47,7 +47,7 @@ func (f Frustrum) Clip(triangle Triangle) []Triangle {
 // clipAgainstPlane tries to clip a triangle against a plane. Instead of
 // returning multiple triangles, it just returns one triangle with extra
 // vertices, if clipped.
-func (f Frustrum) clipAgainstPlane(triangle Triangle, plane Plane) Triangle {
+func (f Frustum) clipAgainstPlane(triangle Triangle, plane Plane) Triangle {
 	insideVertices := []Vec3{}
 	insideTexcoords := []Tex{}
 

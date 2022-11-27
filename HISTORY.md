@@ -150,6 +150,6 @@ Big day.
 ### TODO:
 
 - [ ] Use a bounding box for each mesh to short-circut culling. If the
-      bounding box is outside the frustrum we don't need to check the
+      bounding box is outside the frustum we don't need to check the
       mesh faces at all.
 - [ ] Implement Clipping Space / Homogenous Clipping

@@ -82,7 +82,7 @@ type Engine struct {
 	renderMode RenderMode
 	projMatrix Matrix
 	camera     Camera
-	frustrum   Frustrum
+	frustum    Frustum
 
 	// Model
 	scene *scene
@@ -119,7 +119,7 @@ func (e *Engine) Setup() {
 	zfar := 100.0
 
 	e.projMatrix = MatrixMakePerspective(fovY, aspectY, znear, zfar)
-	e.frustrum = NewFrustrum(fovX, fovY, znear, zfar)
+	e.frustum = NewFrustum(fovX, fovY, znear, zfar)
 
 	// e.camera = NewFPSCamera(Vec3{0.0, 0.5, -1.0}, Vec3{0.0, 0.0, 1.0}, Vec3{0.0, 1.0, 0.0})
 	e.camera = NewArcCamera(Vec3{-1.0, 1.0, -1.0}, Vec3{0.0, 0.0, 0.0}, Vec3{0.0, 1.0, 0.0}, e.window.width, e.window.height)
@@ -247,8 +247,8 @@ func (e *Engine) Update() {
 			// Currently unused until we improve our lighting.
 			// triangle.LightIntensity = -triangle.Normal().Dot(e.ambientLight.Direction)
 
-			// Clip Polygons against the frustrum
-			clippedTriangles := e.frustrum.Clip(triangle)
+			// Clip Polygons against the frustum
+			clippedTriangles := e.frustum.Clip(triangle)
 
 			// Projection
 			for _, triangleToRender := range clippedTriangles {
@@ -279,7 +279,7 @@ func (e *Engine) Update() {
 					// is removed, the viewport is the top
 					// left only.  I understand the model
 					// would be in top left, but I don't
-					// understand why the viewport/frustrum
+					// understand why the viewport/frustum
 					// is changed.
 					projected.X += (float64(e.window.width) / 2.0)
 					projected.Y += (float64(e.window.height) / 2.0)
@@ -333,7 +333,7 @@ func (e *Engine) Render() {
 
 		// Clear the slice while retaining capacity so we don't have to
 		// keep allocating each frame. The number of triangles can
-		// change due to frustrum clipping and backface culling, but
+		// change due to frustum clipping and backface culling, but
 		// keeping the capacity at the maximum seems reasonable.
 		mesh.trianglesToRender = mesh.trianglesToRender[:0]
 	}
