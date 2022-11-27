@@ -139,6 +139,17 @@ func MatrixMakePerspective(fov, aspect, znear, zfar float64) Matrix {
 	return m
 }
 
+func MatrixMakeOrtho(left, right, bottom, top, near, far float64) Matrix {
+	m := MatrixIdentity()
+	m[0][0] = 2 / (right - left)
+	m[1][1] = 2 / (top - bottom)
+	m[2][2] = -2 / (far - near)
+	m[0][3] = -(right + left) / (right - left)
+	m[1][3] = -(top + bottom) / (top - bottom)
+	m[2][3] = -(far + near) / (far - near)
+	return m
+}
+
 func LookAt(eye, target, up Vec3) Matrix {
 	// Forward
 	z := target.Sub(eye).Normalize()
