@@ -13,24 +13,31 @@ const (
 	TargetFrameTime = (1000 / FPS)
 )
 
+var autoWire = false
+
+type RenderMode int
+
+const (
+	RenderModeTexture RenderMode = iota
+	RenderModeFill
+	RenderModeNone
+	RenderModeMax
+)
+
+type WireMode int
+
+const (
+	WireModeOff WireMode = iota
+	WireModeOn
+	WireModeMax
+)
+
 type CullMode int
 
 const (
 	CullModeNone CullMode = iota
 	CullModeBackFace
 	CullModeMax
-)
-
-type RenderMode int
-
-const (
-	RenderModeWire RenderMode = iota
-	RenderModeWireVertex
-	RenderModeWireFill
-	RenderModeFill
-	RenderModeTexture
-	RenderModeTextureWire
-	RenderModeMax
 )
 
 var leftButtonDown bool = false
@@ -55,7 +62,8 @@ func NewEngine(window *Window, framebuffer *Framebuffer) *Engine {
 		frustum:    NewFrustum(fovX, fovY, znear, zfar),
 		camera:     NewCamera(Vec3{-1.0, 1.0, -1.0}, Vec3{0.0, 0.0, 0.0}, Vec3{0.0, 1.0, 0.0}, window.width, window.height),
 		cullMode:   CullModeBackFace,
-		renderMode: RenderModeWireFill,
+		renderMode: RenderModeTexture,
+		wireMode:   WireModeOff,
 
 		scene: NewScene(),
 		// Rotation is set so if the user presses spacebar they get some
@@ -95,6 +103,8 @@ type Engine struct {
 	// Rendering
 	cullMode   CullMode
 	renderMode RenderMode
+	wireMode   WireMode
+
 	projMatrix Matrix
 	camera     *Camera
 	frustum    Frustum
@@ -161,10 +171,30 @@ func (e *Engine) ProcessInput() {
 				e.IsRunning = false
 				break
 
+			case sdl.K_w:
+				e.wireMode++
+				if e.wireMode == WireModeMax {
+					e.wireMode = 0
+				}
 			case sdl.K_r:
+				// Turn off wire if it was turned on automatically because
+				// RenderModeNode was enabled.
+				if e.renderMode == RenderModeNone && autoWire {
+					autoWire = false
+					e.wireMode = WireModeOff
+				}
+
 				e.renderMode++
+
+				// Loop to beginning
 				if e.renderMode == RenderModeMax {
 					e.renderMode = 0
+				}
+
+				// Automatically enable wiremode if we are on render mode none.
+				if e.renderMode == RenderModeNone && e.wireMode == WireModeOff {
+					autoWire = true
+					e.wireMode = WireModeOn
 				}
 			case sdl.K_c:
 				e.cullMode++
@@ -290,27 +320,15 @@ func (e *Engine) Render() {
 
 	for _, mesh := range e.scene.Meshes {
 		for _, triangle := range mesh.trianglesToRender {
-			if e.renderMode == RenderModeTexture || e.renderMode == RenderModeTextureWire {
-				if triangle.HasTexture() {
-					e.framebuffer.DrawTexturedTriangle(triangle, mesh.Texture)
-				} else {
-					e.framebuffer.DrawFilledTriangle(triangle, triangle.Color)
-				}
 
-			}
-
-			if e.renderMode == RenderModeFill || e.renderMode == RenderModeWireFill {
+			if e.renderMode == RenderModeTexture && triangle.HasTexture() {
+				e.framebuffer.DrawTexturedTriangle(triangle, mesh.Texture)
+			} else if e.renderMode != RenderModeNone {
 				e.framebuffer.DrawFilledTriangle(triangle, triangle.Color)
 			}
 
-			if e.renderMode == RenderModeWire || e.renderMode == RenderModeWireVertex || e.renderMode == RenderModeWireFill || e.renderMode == RenderModeTextureWire {
+			if e.wireMode == WireModeOn {
 				e.framebuffer.DrawTriangle(triangle, ColorWhite)
-			}
-
-			if e.renderMode == RenderModeWireVertex {
-				for _, point := range triangle.Projected {
-					e.framebuffer.DrawRectangle(int(point.X-2), int(point.Y-2), 4, 4, ColorRed)
-				}
 			}
 		}
 
