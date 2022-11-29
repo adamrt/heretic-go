@@ -197,6 +197,8 @@ func (e *Engine) Update() {
 		worldMatrix = worldMatrix.Mul(NewRotationMatrix(mesh.Rotation))
 		worldMatrix = worldMatrix.Mul(NewTranslationMatrix(mesh.Translation))
 
+		viewMatrix := LookAt(e.camera.eye, e.camera.front, e.camera.up)
+
 		// Project each into 2D
 		for _, triangle := range mesh.Triangles {
 			triangle.Projected = make([]Vec4, 3)
@@ -204,10 +206,8 @@ func (e *Engine) Update() {
 			// Transformation
 			for i := 0; i < 3; i++ {
 				transformedVertex := triangle.Points[i].Vec4()
-				// Transform to world space
 				transformedVertex = worldMatrix.MulVec4(transformedVertex)
-				// Transform to view space
-				transformedVertex = e.camera.ViewMatrix().MulVec4(transformedVertex)
+				transformedVertex = viewMatrix.MulVec4(transformedVertex)
 				triangle.Projected[i] = transformedVertex
 			}
 

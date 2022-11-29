@@ -17,7 +17,7 @@ func NewWindow(width, height int) *Window {
 		sdl.WINDOWPOS_CENTERED,
 		int32(width),
 		int32(height),
-		sdl.WINDOW_BORDERLESS,
+		sdl.WINDOW_SHOWN,
 	)
 	if err != nil {
 		panic(err)

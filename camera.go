@@ -11,10 +11,9 @@ package heretic
 import "math"
 
 type Camera struct {
-	eye     Vec3
-	front   Vec3
-	up      Vec3
-	worldUp Vec3
+	eye   Vec3
+	front Vec3
+	up    Vec3
 
 	viewMatrix Matrix
 
@@ -23,43 +22,42 @@ type Camera struct {
 
 func NewCamera(eye, front, up Vec3, width, height int) *Camera {
 	c := Camera{
-		eye:     eye,
-		front:   front,
-		up:      up,
-		worldUp: Vec3{0, 1, 0},
-		height:  float64(height),
-		width:   float64(width),
+		eye:    eye,
+		front:  front,
+		up:     up,
+		height: float64(height),
+		width:  float64(width),
 	}
-	c.updateViewMatrix()
 	return &c
 }
 
-func (c *Camera) updateViewMatrix() { c.viewMatrix = LookAt(c.eye, c.front, c.up) }
-
-func (c *Camera) ViewMatrix() Matrix { return c.viewMatrix }
-
 func (c *Camera) ProcessMouseMovement(xrel, yrel, delta float64) {
-	// Calculate the amount of rotation given the mouse movement.
-	var deltaAngleX float64 = (2.0 * math.Pi / c.width)
-	var deltaAngleY float64 = (math.Pi / c.height)
-	var xAngle float64 = float64(xrel) * deltaAngleX
-	var yAngle float64 = float64(yrel) * deltaAngleY
+	const EPS = 0.0001
 
-	cosAngle := float64(c.front.Dot(c.worldUp))
-	if cosAngle*sgn(deltaAngleY) > 0.99 {
-		yAngle = 0.0
-	}
+	minPolarAngle := 0.0
+	maxPolarAngle := math.Pi // 180 degrees as radians
+	minAzimuthAngle := math.Inf(-1)
+	maxAzimuthAngle := math.Inf(1)
 
-	position := c.eye.Vec4()
-	pivot := c.front.Vec4()
+	// Compute direction vector from target to camera
+	tcam := c.eye
+	tcam.Sub(c.front)
 
-	// step 2: Rotate the camera around the pivot point on the first axis.
-	rotationMatrixX := MatrixMakeRotX(yAngle)
-	position = rotationMatrixX.MulVec4(position.Sub(pivot)).Add(pivot)
+	// Calculate angles based on current camera position plus deltas
+	radius := tcam.Length()
+	theta := math.Atan2(tcam.X, tcam.Z) + (xrel * delta / 4)
+	phi := math.Acos(tcam.Y/radius) + (-yrel * delta / 4)
 
-	rotationMatrixY := MatrixMakeRotY(xAngle)
-	position = rotationMatrixY.MulVec4(position.Sub(pivot)).Add(pivot)
-	c.eye = position.Vec3()
+	// Restrict phi and theta to be between desired limits
+	phi = clamp(phi, minPolarAngle, maxPolarAngle)
+	phi = clamp(phi, EPS, math.Pi-EPS)
+	theta = clamp(theta, minAzimuthAngle, maxAzimuthAngle)
 
-	c.updateViewMatrix()
+	// Calculate new cartesian coordinates
+	tcam.X = radius * math.Sin(phi) * math.Sin(theta)
+	tcam.Y = radius * math.Cos(phi)
+	tcam.Z = radius * math.Sin(phi) * math.Cos(theta)
+
+	// Update camera position and orientation
+	c.eye = c.front.Add(tcam)
 }

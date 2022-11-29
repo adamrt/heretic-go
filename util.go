@@ -10,6 +10,10 @@ func lerp(a, b, t float64) float64 {
 	return a + t*(b-a)
 }
 
+func clamp(v, lo, hi float64) float64 {
+	return math.Min(math.Max(v, lo), hi)
+}
+
 func radians(degrees float64) float64 {
 	return degrees * (math.Pi / 180)
 }
