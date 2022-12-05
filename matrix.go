@@ -151,19 +151,13 @@ func MatrixMakeOrtho(left, right, bottom, top, near, far float64) Matrix {
 }
 
 func LookAt(eye, target, up Vec3) Matrix {
-	// Forward
-	z := target.Sub(eye).Normalize()
-	// Right
-	x := up.Cross(z).Normalize()
-	// Up
-	y := z.Cross(x).Normalize()
-
-	viewMatrix := Matrix{
+	z := target.Sub(eye).Normalize() // Forward
+	x := up.Cross(z).Normalize()     // Right
+	y := z.Cross(x)                  // Up
+	return Matrix{                   // View Matrix
 		{x.X, x.Y, x.Z, -x.Dot(eye)},
 		{y.X, y.Y, y.Z, -y.Dot(eye)},
 		{z.X, z.Y, z.Z, -z.Dot(eye)},
 		{0, 0, 0, 1},
 	}
-
-	return viewMatrix
 }

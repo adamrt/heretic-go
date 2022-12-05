@@ -41,7 +41,7 @@ func (c *Camera) ProcessMouseMovement(xrel, yrel, delta float64) {
 
 	// Compute direction vector from target to camera
 	tcam := c.eye
-	tcam.Sub(c.front)
+	tcam = tcam.Sub(c.front)
 
 	// Calculate angles based on current camera position plus deltas
 	radius := tcam.Length()
